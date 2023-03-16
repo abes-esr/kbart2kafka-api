@@ -15,9 +15,10 @@ public class TopicListener {
     @Value("${topic.name")
     private String topicName;
 
-    @KafkaListener(topics = "${topic.name}")
+    @KafkaListener(topics = "${topic.name}", groupId = "convergence")
     public void consume(ConsumerRecord<String, String> payload){
             //log.info("Topic : {}", topicName);
+            log.info("Topic name : " + topicName);
             log.info("payload info", payload.key());
             //log.info("Headers : {}", payload.headers());
             //log.info("Partition : {}", payload.partition());
