@@ -3,6 +3,7 @@ package fr.abes.kafkaconvergence.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartWebDto;
 import fr.abes.kafkaconvergence.service.TopicProducer;
+import fr.abes.kafkaconvergence.utils.CheckFiles;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -29,7 +30,7 @@ public class KafkaController {
         //le fichier à une extension tsv,
         //contient des tabulations,
         //contient un entête avec la présence du terme publication title
-        if(isFileWithTSVExtension(file) && detectTabulations(file) && detectOfHeaderPresence("publication_title", file)){
+        if(CheckFiles.isFileWithTSVExtension(file) && CheckFiles.detectTabulations(file) && CheckFiles.detectOfHeaderPresence("publication_title", file)){
 
         }
         // controle si presence de tabulations dans les fichiers
@@ -42,58 +43,7 @@ public class KafkaController {
         }
     }
 
-    /**
-     * Controle si le fichier à bien une extension tsv
-     * @param file fichier en entrée
-     * @return true si extension présente, false sinon
-     * @throws IOException erreur avec le fichier en entrée
-     */
-    private boolean isFileWithTSVExtension(MultipartFile file) throws IOException {
-        //Filename extension control
-        String fileName = file.getOriginalFilename(); // get file name
-        if (fileName == null || fileName.isEmpty()) return false; // check if file name is valid
-        String[] parts = fileName.split("\\."); // split by dot
-        String extension = parts[parts.length - 1]; // get last part as extension
 
-        return extension.equalsIgnoreCase("tsv"); // compare with tsv ignoring case
-    }
-
-    /**
-     * Détecte si le fichier présente des tabulations
-     * @param file fichier en entrée
-     * @return true si des tabulations sont présentes dans le fichier, false sinon
-     * @throws IOException erreur avec le fichier en entrée
-     */
-    private boolean detectTabulations(MultipartFile file) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.contains("\t")) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Détecte la présence d'une entête dans le fichier
-     * @param header terme à recherche dans l'entête
-     * @param file fichier en entrée
-     * @return true si le terme est présent
-     * @throws IOException
-     */
-    private boolean detectOfHeaderPresence(String header, MultipartFile file) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.contains(header)) {
-                   return true;
-                }
-            }
-        }
-        return false;
-    }
 
     /**
      * Construction des objets dto placés dans une liste
