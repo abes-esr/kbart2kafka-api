@@ -11,6 +11,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class ResultWsSudocDto {
-    List<PpnWithTypeDto> ppns = new ArrayList<>();
-    List<String> erreurs = new ArrayList<>();
+    private List<PpnWithTypeDto> ppns = new ArrayList<>();
+    private List<String> erreurs = new ArrayList<>();
 }

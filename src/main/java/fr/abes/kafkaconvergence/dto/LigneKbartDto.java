@@ -1,8 +1,11 @@
 package fr.abes.kafkaconvergence.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class LigneKbartDto {
     private String publication_title;
     private String print_identifier;
@@ -33,6 +36,6 @@ public class LigneKbartDto {
 
     @Override
     public int hashCode() {
-        return 0;
+        return this.publication_title.hashCode() * this.online_identifier.hashCode() * this.print_identifier.hashCode();
     }
 }

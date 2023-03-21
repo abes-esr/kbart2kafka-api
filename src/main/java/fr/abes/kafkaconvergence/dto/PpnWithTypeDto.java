@@ -1,12 +1,12 @@
 package fr.abes.kafkaconvergence.dto;
 
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
+@NoArgsConstructor
 public class PpnWithTypeDto {
-    String ppn;
-    TYPE_SUPPORT type;
+    private String ppn;
+    private TYPE_SUPPORT type;
 }

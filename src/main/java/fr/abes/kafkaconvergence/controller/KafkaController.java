@@ -45,8 +45,11 @@ public class KafkaController {
                         // Crée un nouvel objet dto et set les différentes parties
                         LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
                         ResultWsSudocDto result = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier());
-                        kbart.setBestPpn(result.getPpns().get(0).getPpn());
-                        topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
+                        if (result.getPpns().size() > 0) {
+                            kbart.setBestPpn(result.getPpns().get(0).getPpn());
+                            log.info(String.valueOf(kbart.hashCode()));
+                            topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
+                        }
                     }
                 }
             }
@@ -79,7 +82,7 @@ public class KafkaController {
         kbartLineInDtoObject.setCoverage_depth(line[13]);
         kbartLineInDtoObject.setNotes(line[14]);
         kbartLineInDtoObject.setPublisher_name(line[15]);
-        kbartLineInDtoObject.setPublication_title(line[16]);
+        kbartLineInDtoObject.setPublication_type(line[16]);
         kbartLineInDtoObject.setDate_monograph_published_print(line[17]);
         kbartLineInDtoObject.setDate_monograph_published_online(line[18]);
         kbartLineInDtoObject.setMonograph_volume(Integer.getInteger(line[19]));
