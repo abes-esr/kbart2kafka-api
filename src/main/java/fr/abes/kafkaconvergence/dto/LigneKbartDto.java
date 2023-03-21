@@ -3,7 +3,7 @@ package fr.abes.kafkaconvergence.dto;
 import lombok.Data;
 
 @Data
-public class LigneKbartWebDto {
+public class LigneKbartDto {
     private String publication_title;
     private String print_identifier;
     private String online_identifier;
@@ -29,4 +29,10 @@ public class LigneKbartWebDto {
     private String parent_publication_title_id;
     private String preceding_publication_title_id;
     private String access_type;
+    private String bestPpn;
+
+    @Override
+    public int hashCode() {
+        return 0;
+    }
 }
