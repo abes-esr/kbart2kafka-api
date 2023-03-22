@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.service.TopicProducer;
+import fr.abes.kafkaconvergence.service.TopicProducerError;
 import fr.abes.kafkaconvergence.service.WsService;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ import java.util.List;
 @RestController
 public class KafkaController {
     private final TopicProducer topicProducer;
+
+    private final TopicProducerError topicProducerError;
     private final WsService service;
     private final ObjectMapper mapper;
 
@@ -49,6 +52,8 @@ public class KafkaController {
                             kbart.setBestPpn(result.getPpns().get(0).getPpn());
                             log.info(String.valueOf(kbart.hashCode()));
                             topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
+                        } else {
+                            topicProducerError.send(Integer.valueOf(kbart.hashCode()).toString(), result.getErreurs().get(0));
                         }
                     }
                 }
