@@ -23,10 +23,10 @@ public class WsServiceTest {
 
     @Test
     void getCallTest() {
-        String url = "http://www.serviceTest.com/service/type/id/";
+        String url = "http://www.serviceTest.com/service/type/id";
         Mockito.when(restTemplate.getForObject(url, String.class)).thenReturn("test");
 
-        Assertions.assertEquals("test", wsService.getCall("http://www.serviceTest.com/service/", "type", "id"));
+        Assertions.assertEquals("test", wsService.getCall("http://www.serviceTest.com/service", "type", "id"));
     }
 
     @Test
