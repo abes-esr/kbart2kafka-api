@@ -1,6 +1,7 @@
 package fr.abes.kafkaconvergence.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.abes.kafkaconvergence.dto.ErreurResultDto;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.service.TopicProducer;
@@ -48,12 +49,19 @@ public class KafkaController {
                         // Crée un nouvel objet dto et set les différentes parties
                         LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
                         ResultWsSudocDto result = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier());
-                        if (result.getPpns().size() > 0) {
+                        String key = Integer.valueOf(kbart.hashCode()).toString();
+                        if (!result.getPpns().isEmpty()) {
                             kbart.setBestPpn(result.getPpns().get(0).getPpn());
                             log.info(String.valueOf(kbart.hashCode()));
-                            topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
-                        } else {
-                            topicProducerError.send(Integer.valueOf(kbart.hashCode()).toString(), result.getErreurs().get(0));
+                            topicProducer.send(key, mapper.writeValueAsString(kbart));
+                        }
+                        if (!result.getErreurs().isEmpty()){
+                            ErreurResultDto erreurResultDto = new ErreurResultDto();
+                            erreurResultDto.setServiceName("onlineId2Ppn");
+                            erreurResultDto.setLigneKbartDto(kbart);
+                            erreurResultDto.setMessages(result.getErreurs());
+
+                            topicProducerError.send(key, mapper.writeValueAsString(erreurResultDto));
                         }
                     }
                 }
