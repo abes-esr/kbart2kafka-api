@@ -24,7 +24,7 @@ public class ErreurResult {
     @Column(name = "PPNS")
     private List<String> ppns = new ArrayList<>();
 
-    @Column(name = "LIGNE_KBART")
+    @Column(name = "LIGNE_KBART", length = 4000)
     private String ligneKbart;
 
     @ElementCollection
