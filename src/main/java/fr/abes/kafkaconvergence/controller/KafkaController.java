@@ -33,9 +33,7 @@ public class KafkaController {
         //contient des tabulations,
         //contient un entête avec la présence du terme publication title
         try {
-            CheckFiles.isFileWithTSVExtension(file);
-            CheckFiles.detectTabulations(file);
-            CheckFiles.detectOfHeaderPresence("publication_title", file);
+            CheckFiles.verifyFile(file, "publication_title");
             String provider = CheckFiles.getProviderFromFilename(file);
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {

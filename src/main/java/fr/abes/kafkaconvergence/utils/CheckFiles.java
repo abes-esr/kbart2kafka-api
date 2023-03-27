@@ -69,4 +69,10 @@ public class CheckFiles {
             return filenameFields[0].toLowerCase();
         return "";
     }
+
+    public static void verifyFile(MultipartFile file, String header) throws IllegalFileFormatException, IOException {
+        CheckFiles.isFileWithTSVExtension(file);
+        CheckFiles.detectTabulations(file);
+        CheckFiles.detectOfHeaderPresence(header, file);
+    }
 }
