@@ -9,6 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -54,11 +55,13 @@ public class WsService {
         return restTemplate.getForObject(formedUrl.toString(), String.class);
     }
 
-    public ResultWsSudocDto callOnlineId2Ppn(String type, String id) throws JsonProcessingException {
-        return mapper.readValue(getCall(urlOnlineId2Ppn, type, id), ResultWsSudocDto.class);
+    public ResultWsSudocDto callOnlineId2Ppn(String type, String id, @Nullable String provider) throws JsonProcessingException {
+        return mapper.readValue(getCall(urlOnlineId2Ppn, type, id, provider), ResultWsSudocDto.class);
     }
 
     public ResultWsSudocDto callPrintId2Ppn(String type, String id) throws JsonProcessingException {
         return mapper.readValue(getCall(urlPrintId2Ppn, type, id), ResultWsSudocDto.class);
     }
+
+
 }
