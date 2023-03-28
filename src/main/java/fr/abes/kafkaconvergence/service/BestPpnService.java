@@ -34,6 +34,7 @@ public class BestPpnService {
         if (!kbart.getOnline_identifier().isEmpty() && !kbart.getPublication_type().isEmpty()) {
             feedPpnListFromOnline(kbart.getOnline_identifier(), kbart.getPublication_type(), provider);
             feedPpnListFromPrint(kbart.getPrint_identifier(), kbart.getPublication_type());
+            //  TODO vérifier la cohérence du contrôle par rapport à l'US
             if (ppnElecList.isEmpty() && !kbart.getDate_monograph_published_online().isEmpty() && !kbart.getPublication_title().isEmpty()) {
                 feedPpnListFromDat(kbart.getDate_monograph_published_online(), kbart.getPublication_title(), kbart.getFirst_author(), kbart.getFirst_editor());
             }
