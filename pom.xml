@@ -110,6 +110,12 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- gestion des LocalDateTime -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-json</artifactId>
+        </dependency>
+
         <!-- TEST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

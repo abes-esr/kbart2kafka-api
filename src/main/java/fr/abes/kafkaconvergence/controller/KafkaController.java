@@ -2,40 +2,39 @@ package fr.abes.kafkaconvergence.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
-import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
+import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
+import fr.abes.kafkaconvergence.service.BestPpnService;
 import fr.abes.kafkaconvergence.service.TopicProducer;
-import fr.abes.kafkaconvergence.service.WsService;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.LinkedList;
 import java.util.List;
 
 @CrossOrigin(origins = "*")
 @Slf4j
 @RequiredArgsConstructor
 @RestController
+@RequestMapping("/v1")
 public class KafkaController {
     private final TopicProducer topicProducer;
-    private final WsService service;
+    private final BestPpnService service;
     private final ObjectMapper mapper;
 
     @PostMapping("/kbart2Kafka")
-    public void kbart2kafka(MultipartFile file) throws IOException {
+    public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException {
         //execution seulement si:
         //le fichier à une extension tsv,
         //contient des tabulations,
         //contient un entête avec la présence du terme publication title
-        if (CheckFiles.isFileWithTSVExtension(file) && CheckFiles.detectTabulations(file) && CheckFiles.detectOfHeaderPresence("publication_title", file)) {
+        try {
+            CheckFiles.verifyFile(file, "publication_title");
+            String provider = CheckFiles.getProviderFromFilename(file);
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
                 String line;
@@ -44,25 +43,25 @@ public class KafkaController {
                         String[] tsvElementsOnOneLine = line.split("\t");
                         // Crée un nouvel objet dto et set les différentes parties
                         LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
-                        ResultWsSudocDto result = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier());
-                        if (result.getPpns().size() > 0) {
-                            kbart.setBestPpn(result.getPpns().get(0).getPpn());
-                            log.info(String.valueOf(kbart.hashCode()));
+                        List<String> bestPpns = service.getBestPpn(kbart, provider);
+                        if (bestPpns.size() > 0) {
+                            kbart.setBestPpn(bestPpns.get(0));
                             topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
                         }
                     }
                 }
             }
+        } catch (IllegalFileFormatException ex) {
+            throw new IllegalArgumentException(ex.getMessage());
         }
     }
 
 
-
     /**
      * Construction de la dto
+     *
      * @param line ligne en entrée
      * @return Un objet DTO initialisé avec les informations de la ligne
-     *
      */
     private LigneKbartDto constructDto(String[] line) {
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
@@ -96,6 +95,7 @@ public class KafkaController {
 
     /**
      * Sérialisation d'un objet dto en chaine de caractère pour le passer au producteur de messages kafka
+     *
      * @param dto objet à passer au producteur de messages
      * @return une chaine à passer au TopicProducer de kafka
      */
