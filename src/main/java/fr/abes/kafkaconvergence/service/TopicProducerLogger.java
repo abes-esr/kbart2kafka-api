@@ -14,6 +14,7 @@ public class TopicProducerLogger {
     @Value("${topic.errorname}")
     private String topicNameError;
 
+    @Value("${topic.infoname}")
     private String topicNameInfo;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
