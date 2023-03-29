@@ -32,7 +32,7 @@ public class LoggerResultDto {
         this.messages = messages;
     }
 
-    public void addPpns(String ppn){
+    public void addPpn(String ppn){
         ppns.add(ppn);
     }
 

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class TopicListenerError {
+public class TopicListenerLoggeur {
     @Value("${topic.errorname}")
     private String topicName;
 
