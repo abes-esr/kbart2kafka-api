@@ -1,6 +1,7 @@
 package fr.abes.kafkaconvergence.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.abes.kafkaconvergence.dto.ErreurResultDto;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
@@ -45,6 +46,20 @@ public class KafkaController {
                         String[] tsvElementsOnOneLine = line.split("\t");
                         // Crée un nouvel objet dto et set les différentes parties
                         LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
+                        ResultWsSudocDto result = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier());
+                        String key = Integer.valueOf(kbart.hashCode()).toString();
+                        if (!result.getPpns().isEmpty()) {
+                            kbart.setBestPpn(result.getPpns().get(0).getPpn());
+                            log.info(String.valueOf(kbart.hashCode()));
+                            topicProducer.send(key, mapper.writeValueAsString(kbart));
+                        }
+                        if (!result.getErreurs().isEmpty()){
+                            ErreurResultDto erreurResultDto = new ErreurResultDto();
+                            erreurResultDto.setServiceName("onlineId2Ppn");
+                            erreurResultDto.setLigneKbartDto(kbart);
+                            erreurResultDto.setMessages(result.getErreurs());
+
+                            topicProducerError.send(key, mapper.writeValueAsString(erreurResultDto));
                         List<String> bestPpns = service.getBestPpn(kbart, provider);
                         if (bestPpns.size() > 0) {
                             kbart.setBestPpn(bestPpns.get(0));

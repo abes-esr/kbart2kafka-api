@@ -1,6 +1,10 @@
 package fr.abes.kafkaconvergence.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.abes.kafkaconvergence.dto.ErreurResultDto;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.entity.ErreurResult;
 import fr.abes.kafkaconvergence.entity.LigneKbart;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.Converter;
@@ -15,6 +19,8 @@ import java.text.SimpleDateFormat;
 @RequiredArgsConstructor
 public class DtoMapper {
     private final UtilsMapper mapper;
+
+    private final ObjectMapper objectMapper;
 
     @Bean
     public void converterLigneKbartDtoToLigneKbart() {
@@ -52,6 +58,27 @@ public class DtoMapper {
                 ligneKbart.setPpnFromOnlineId(source.getBestPpn());
 
                 return ligneKbart;
+            }
+        };
+        mapper.addConverter(myConverter);
+    }
+
+    @Bean
+    public void converterErreurResultDtoToErreurResult() {
+        Converter<ErreurResultDto, ErreurResult> myConverter = new Converter<ErreurResultDto, ErreurResult>() {
+            @Override
+            public ErreurResult convert(MappingContext<ErreurResultDto, ErreurResult> context) {
+                ErreurResultDto source = context.getSource();
+                ErreurResult erreurResult = new ErreurResult();
+                try {
+                    erreurResult.setLigneKbart(objectMapper.writeValueAsString(source.getLigneKbartDto()));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                erreurResult.setMessages(source.getMessages());
+                erreurResult.setPpns(source.getPpns());
+
+                return erreurResult;
             }
         };
         mapper.addConverter(myConverter);
