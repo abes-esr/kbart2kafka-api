@@ -59,9 +59,9 @@ public class KafkaController {
 
     /**
      * Construction de la dto
-     *
      * @param line ligne en entrée
      * @return Un objet DTO initialisé avec les informations de la ligne
+     *
      */
     private LigneKbartDto constructDto(String[] line) {
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
@@ -95,7 +95,6 @@ public class KafkaController {
 
     /**
      * Sérialisation d'un objet dto en chaine de caractère pour le passer au producteur de messages kafka
-     *
      * @param dto objet à passer au producteur de messages
      * @return une chaine à passer au TopicProducer de kafka
      */

@@ -1,6 +1,10 @@
 package fr.abes.kafkaconvergence.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.abes.kafkaconvergence.dto.LoggerResultDto;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.entity.ErreurResult;
 import fr.abes.kafkaconvergence.entity.LigneKbart;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.Converter;
@@ -8,13 +12,12 @@ import org.modelmapper.spi.MappingContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-
 @Component
 @RequiredArgsConstructor
 public class DtoMapper {
     private final UtilsMapper mapper;
+
+    private final ObjectMapper objectMapper;
 
     @Bean
     public void converterLigneKbartDtoToLigneKbart() {
@@ -52,6 +55,27 @@ public class DtoMapper {
                 ligneKbart.setPpnFromOnlineId(source.getBestPpn());
 
                 return ligneKbart;
+            }
+        };
+        mapper.addConverter(myConverter);
+    }
+
+    @Bean
+    public void converterErreurResultDtoToErreurResult() {
+        Converter<LoggerResultDto, ErreurResult> myConverter = new Converter<LoggerResultDto, ErreurResult>() {
+            @Override
+            public ErreurResult convert(MappingContext<LoggerResultDto, ErreurResult> context) {
+                LoggerResultDto source = context.getSource();
+                ErreurResult erreurResult = new ErreurResult();
+                try {
+                    erreurResult.setLigneKbart(objectMapper.writeValueAsString(source.getLigneKbartDto()));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                erreurResult.setMessages(source.getMessages());
+                erreurResult.setPpns(source.getPpns());
+
+                return erreurResult;
             }
         };
         mapper.addConverter(myConverter);
