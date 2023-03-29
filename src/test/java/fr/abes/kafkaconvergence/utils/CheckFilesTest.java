@@ -1,7 +1,7 @@
 package fr.abes.kafkaconvergence.utils;
 
+import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,39 +9,53 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class CheckFilesTest {
 
 
     @Test
-    void isFileWithTSVExtension() throws IOException {
+    void isFileWithTSVExtension() throws IllegalFileFormatException {
         MultipartFile file = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", new byte[]{});
-        Assertions.assertTrue(CheckFiles.isFileWithTSVExtension(file));
+        CheckFiles.isFileWithTSVExtension(file);
 
-        file = new MockMultipartFile("test.csv", "test.csv", "UTF-8", new byte[]{});
-        Assertions.assertFalse(CheckFiles.isFileWithTSVExtension(file));
+        MultipartFile file2 = new MockMultipartFile("test.tsv", "", "UTF-8", new byte[]{});
+        IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.isFileWithTSVExtension(file2));
+        Assertions.assertEquals("Le nom du fichier est vide", erreur2.getMessage());
+
+        MultipartFile file3 = new MockMultipartFile("test.csv", "test.csv", "UTF-8", new byte[]{});
+        IllegalFileFormatException erreur3 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.isFileWithTSVExtension(file3));
+        Assertions.assertEquals("le fichier n'est pas au format tsv", erreur3.getMessage());
     }
 
     @Test
-    void detectTabulations() throws IOException {
+    void detectTabulations() throws IOException, IllegalFileFormatException {
         byte[] datas = "test\ttest\ttest".getBytes(StandardCharsets.UTF_8);
-        MultipartFile file = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", datas);
-        Assertions.assertTrue(CheckFiles.detectTabulations(file));
+        final MultipartFile file = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", datas);
+        CheckFiles.detectTabulations(file);
 
         datas = "test;test;test".getBytes(StandardCharsets.UTF_8);
-        file = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", datas);
-        Assertions.assertFalse(CheckFiles.detectTabulations(file));
+        final MultipartFile file2 = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", datas);
+        IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectTabulations(file2));
+        Assertions.assertEquals("Le fichier ne contient pas de tabulation", erreur.getMessage());
     }
 
     @Test
-    void detectOfHeaderPresence() throws IOException {
+    void detectOfHeaderPresence() throws IOException, IllegalFileFormatException {
         byte[] datas = "test\ttest\ttest".getBytes(StandardCharsets.UTF_8);
         MultipartFile file = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", datas);
-        Assertions.assertTrue(CheckFiles.detectOfHeaderPresence("test", file));
+        CheckFiles.detectOfHeaderPresence("test", file);
 
         datas = "toto\ttata\ttiti".getBytes(StandardCharsets.UTF_8);
-        file = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", datas);
-        Assertions.assertFalse(CheckFiles.detectOfHeaderPresence("test", file));
+        MultipartFile file2 = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", datas);
+        IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectOfHeaderPresence("test", file2));
+        Assertions.assertEquals("Le champ test est absent de l'en tête du fichier", erreur.getMessage());
+    }
+
+    @Test
+    void getProviderFromFilename() {
+        MultipartFile file = new MockMultipartFile("cairn_Global_Ouvrages-General_2023-02-15.txt", "cairn_Global_Ouvrages-General_2023-02-15.txt", null, (byte[]) null);
+        Assertions.assertEquals("cairn", CheckFiles.getProviderFromFilename(file));
+
+        file = new MockMultipartFile("Cairn_Global_Ouvrages-General_2023-02-15.txt", "Cairn_Global_Ouvrages-General_2023-02-15.txt", null, (byte[]) null);
+        Assertions.assertEquals("cairn", CheckFiles.getProviderFromFilename(file));
     }
 }
