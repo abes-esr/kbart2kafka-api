@@ -16,6 +16,9 @@ public class BestPpnService {
 
     public List<String> getBestPpn(LigneKbartDto kbart, String provider) throws JsonProcessingException {
         ResultWsSudocDto result = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider);
+
+        //todo log erreur topicProducerError.send(Integer.valueOf(kbart.hashCode()).toString(), "result.getErreurs()");
+
         return result.getPpns().stream().map(PpnWithTypeDto::getPpn).toList();
     }
 }

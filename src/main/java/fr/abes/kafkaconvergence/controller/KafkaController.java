@@ -25,8 +25,6 @@ import java.util.List;
 @RequestMapping("/v1")
 public class KafkaController {
     private final TopicProducer topicProducer;
-
-    private final TopicProducerError topicProducerError;
     private final BestPpnService service;
     private final ObjectMapper mapper;
 
@@ -51,8 +49,6 @@ public class KafkaController {
                         if (bestPpns.size() > 0) {
                             kbart.setBestPpn(bestPpns.get(0));
                             topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
-                        } else {
-                            topicProducerError.send(Integer.valueOf(kbart.hashCode()).toString(), result.getErreurs().get(0));
                         }
                     }
                 }
@@ -65,9 +61,9 @@ public class KafkaController {
 
     /**
      * Construction de la dto
-     *
      * @param line ligne en entrée
      * @return Un objet DTO initialisé avec les informations de la ligne
+     *
      */
     private LigneKbartDto constructDto(String[] line) {
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
@@ -101,7 +97,6 @@ public class KafkaController {
 
     /**
      * Sérialisation d'un objet dto en chaine de caractère pour le passer au producteur de messages kafka
-     *
      * @param dto objet à passer au producteur de messages
      * @return une chaine à passer au TopicProducer de kafka
      */
