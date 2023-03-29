@@ -1,13 +1,10 @@
 package fr.abes.kafkaconvergence.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.abes.kafkaconvergence.dto.ErreurResultDto;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
 import fr.abes.kafkaconvergence.service.TopicProducer;
-import fr.abes.kafkaconvergence.service.TopicProducerError;
-import fr.abes.kafkaconvergence.service.WsService;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

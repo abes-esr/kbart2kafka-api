@@ -9,16 +9,21 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TopicProducerError {
+public class TopicProducerLogger {
 
     @Value("${topic.errorname}")
     private String topicNameError;
 
+    private String topicNameInfo;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void send(String key, String message){
-        log.info("Message envoyé d'erreur: {}", message);
+    public void sendError(String key, String message){
+        log.debug("Message envoyé d'erreur: {}", message);
         kafkaTemplate.send(topicNameError, key, message);
     }
 
+    public void sendInfo(String key, String message){
+        log.debug("Message envoyé d'info: {}", message);
+        kafkaTemplate.send(topicNameInfo, key, message);
+    }
 }
