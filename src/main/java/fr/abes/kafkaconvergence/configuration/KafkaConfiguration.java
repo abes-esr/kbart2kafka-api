@@ -20,9 +20,4 @@ public class KafkaConfiguration {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
-
-    @Bean
-    public Logger logger(){
-        return new Logger(objectMapper());
-    }
 }

@@ -1,7 +1,7 @@
 package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.abes.kafkaconvergence.dto.LoggerResultDto;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
@@ -22,8 +22,7 @@ public class BestPpnService {
     public List<String> getBestPpn(LigneKbartDto kbart, String provider) throws JsonProcessingException {
         ResultWsSudocDto result = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider);
 
-        logger.error(Integer.valueOf(kbart.hashCode()).toString(), result.getErreurs());
-
+        logger.error(Integer.valueOf(kbart.hashCode()).toString(), new LoggerResultDto("OnlineId2Ppn", kbart, result.getErreurs()));
 
         return result.getPpns().stream().map(PpnWithTypeDto::getPpn).toList();
     }

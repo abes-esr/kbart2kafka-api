@@ -2,10 +2,8 @@ package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.abes.kafkaconvergence.dto.ErreurResultDto;
-import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.dto.LoggerResultDto;
 import fr.abes.kafkaconvergence.entity.ErreurResult;
-import fr.abes.kafkaconvergence.entity.LigneKbart;
 import fr.abes.kafkaconvergence.repository.ErreurResultDao;
 import fr.abes.kafkaconvergence.utils.UtilsMapper;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +34,9 @@ public class TopicListenerError {
         //log.info("Headers : {}", payload.headers());
         //log.info("Partition : {}", payload.partition());
         log.info("payload value" + payload.value());
-        ErreurResultDto erreurResultDto = jacksonMapper.readValue(payload.value(), ErreurResultDto.class);
+        LoggerResultDto loggerResultDto = jacksonMapper.readValue(payload.value(), LoggerResultDto.class);
 
-        service.save(mapper.map(erreurResultDto, ErreurResult.class));
+        service.save(mapper.map(loggerResultDto, ErreurResult.class));
 
     }
 }

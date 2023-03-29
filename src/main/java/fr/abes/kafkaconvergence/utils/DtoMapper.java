@@ -2,7 +2,7 @@ package fr.abes.kafkaconvergence.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.abes.kafkaconvergence.dto.ErreurResultDto;
+import fr.abes.kafkaconvergence.dto.LoggerResultDto;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.entity.ErreurResult;
 import fr.abes.kafkaconvergence.entity.LigneKbart;
@@ -11,9 +11,6 @@ import org.modelmapper.Converter;
 import org.modelmapper.spi.MappingContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 @Component
 @RequiredArgsConstructor
@@ -65,10 +62,10 @@ public class DtoMapper {
 
     @Bean
     public void converterErreurResultDtoToErreurResult() {
-        Converter<ErreurResultDto, ErreurResult> myConverter = new Converter<ErreurResultDto, ErreurResult>() {
+        Converter<LoggerResultDto, ErreurResult> myConverter = new Converter<LoggerResultDto, ErreurResult>() {
             @Override
-            public ErreurResult convert(MappingContext<ErreurResultDto, ErreurResult> context) {
-                ErreurResultDto source = context.getSource();
+            public ErreurResult convert(MappingContext<LoggerResultDto, ErreurResult> context) {
+                LoggerResultDto source = context.getSource();
                 ErreurResult erreurResult = new ErreurResult();
                 try {
                     erreurResult.setLigneKbart(objectMapper.writeValueAsString(source.getLigneKbartDto()));
