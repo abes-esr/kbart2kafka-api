@@ -6,6 +6,7 @@ import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -15,11 +16,16 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class BestPpnService {
     private final WsService service;
 
     private Map<String, Long> ppnElecList;
+
+    private List<String> ppnPrintListFromOnlineId2Ppn;
+
+    private List<String> ppnPrintListFromPrintId2Ppn;
 
     @Value("${score.online.id.to.ppn}")
     private long scoreOnlineId2Ppn;
@@ -48,10 +54,13 @@ public class BestPpnService {
             long nbPpnElec = result.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : result.getPpns()) {
                 if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                    ppnElecList.put(ppn.getPpn(), scoreOnlineId2Ppn /nbPpnElec);
+                    ppnElecList.put(ppn.getPpn(), scoreOnlineId2Ppn / nbPpnElec);
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
-                    //  TODO mettre de coté le ppn
+                    ppnPrintListFromOnlineId2Ppn.add(ppn.getPpn());
                 }
+            }
+            if(nbPpnElec > 1){
+                log.info("onlineId2Ppn à renvoyé" + nbPpnElec + "notices electroniques");
             }
         }
     }
@@ -60,15 +69,15 @@ public class BestPpnService {
         ResultWsSudocDto result = service.callPrintId2Ppn(publicationType, printIdentifier);
         if(!result.getPpns().isEmpty()) {
             long nbPpnElec = result.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
-            long nbPpnPrint = result.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.IMPRIME)).count();
-            if(nbPpnPrint > 0){
                 for (PpnWithTypeDto ppn : result.getPpns()) {
                     if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                        ppnElecList.put(ppn.getPpn(), scorePrintId2Ppn /nbPpnPrint);
+                        ppnElecList.put(ppn.getPpn(), scorePrintId2Ppn /nbPpnElec);
                     } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
-                        //  TODO mettre de coté le ppn
+                        ppnPrintListFromPrintId2Ppn.add(ppn.getPpn());
                     }
                 }
+            if(nbPpnElec > 1){
+                log.info("PrintId2Ppn à renvoyé" + nbPpnElec + "notices electroniques");
             }
         }
     }
