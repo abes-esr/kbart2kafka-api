@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v2
       - name: "Build: build docker image"
         run: |
-          docker build ./bacon2kafka-api -t localimage:latest
+          docker build . -t localimage:latest
       - name: "Push: prepare version from git tags/branchs"
         id: docker_tag_meta
         uses: docker/metadata-action@v3
@@ -42,7 +42,7 @@ jobs:
           for DOCKER_TAG in $DOCKER_TAGS
           do
             # publication de l'image pour l'API
-            docker build ./bacon2kafka-api --target bacon2kafka-api-image -t ${DOCKER_TAG}-bacon2kafka-api
+            docker build . --target bacon2kafka-api-image -t ${DOCKER_TAG}-bacon2kafka-api
             docker push ${DOCKER_TAG}-bacon2kafka-api
           done
   
