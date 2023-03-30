@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,6 +48,7 @@ public class BestPpnService {
     private NoticeService noticeService;
 
     public List<String> getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException {
+        List<String> result = new ArrayList<>();
         if (!kbart.getOnline_identifier().isEmpty() && !kbart.getPublication_type().isEmpty()) {
             feedPpnListFromOnline(kbart.getOnline_identifier(), kbart.getPublication_type(), provider);
             feedPpnListFromPrint(kbart.getPrint_identifier(), kbart.getPublication_type());
@@ -54,7 +56,16 @@ public class BestPpnService {
                 feedPpnListFromDat(kbart.getDate_monograph_published_online(), kbart.getPublication_title(), kbart.getAuthor(), kbart.getDate_monograph_published_print());
             }
         }
-        return new ArrayList<>();
+        if(!ppnElecList.isEmpty()){
+            result = this.ppnElecList.entrySet().stream().map(entry -> entry.getValue() + "-" + entry.getKey()).sorted().collect(Collectors.toList());
+            Collections.reverse(result);
+            for (String entry : result
+            ) {
+                List<String> temp = List.of(entry.split("-"));
+                entry = temp.get(0);
+            }
+        }
+        return result;
     }
 
     public void feedPpnListFromOnline(String onlineIdentifier, String publicationType, String provider) throws JsonProcessingException {

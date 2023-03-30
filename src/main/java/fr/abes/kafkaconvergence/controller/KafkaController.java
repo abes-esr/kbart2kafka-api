@@ -53,8 +53,8 @@ public class KafkaController {
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
         } catch (IllegalPpnException e) {
-            // TODO gérer l'erreur
-            throw new RuntimeException(e);
+            // TODO gérer l'erreur ???
+            throw new RuntimeException(e.getMessage());
         }
     }
 
