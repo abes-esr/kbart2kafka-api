@@ -20,7 +20,7 @@ public class Logger {
         this.topicProducerLogger.sendError(key, mapper.writeValueAsString(messageError));
     }
 
-    public void info(String key, Object messageInfo) throws JsonProcessingException {
+    public void info(String key, LoggerResultDto messageInfo) throws JsonProcessingException {
         this.topicProducerLogger.sendInfo(key, mapper.writeValueAsString(messageInfo));
     }
 }

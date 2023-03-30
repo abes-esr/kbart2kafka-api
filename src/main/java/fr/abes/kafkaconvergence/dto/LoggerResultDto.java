@@ -17,6 +17,9 @@ public class LoggerResultDto {
 
     private List<String> messages;
 
+    public LoggerResultDto(LigneKbartDto ligneKbartDto) {
+        this.ligneKbartDto = ligneKbartDto;
+    }
 
     public LoggerResultDto(String serviceName, LigneKbartDto ligneKbartDto, List<String> messages) {
         this.serviceName = serviceName;

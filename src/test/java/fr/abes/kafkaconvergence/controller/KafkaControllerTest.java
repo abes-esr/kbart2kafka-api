@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.configuration.KafkaConfiguration;
 import fr.abes.kafkaconvergence.exception.ApiReturnError;
 import fr.abes.kafkaconvergence.exception.ExceptionControllerHandler;
+import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
 import fr.abes.kafkaconvergence.service.TopicProducer;
 import jdk.jfr.ContentType;
@@ -95,7 +96,7 @@ public class KafkaControllerTest {
 
     @Test
     @DisplayName("test controller all ok")
-    void testKafkaControllerAllOk() throws Exception {
+    void testKafkaControllerAllOk() throws Exception, IllegalPpnException {
         StringBuilder datas = new StringBuilder("publication_title\tprint_identifier\tonline_identifier\tdate_first_issue_online\tnum_first_vol_online\tnum_first_issue_online\tdate_last_issue_online\tnum_last_vol_online\tnum_last_issue_online\ttitle_url\tfirst_author\ttitle_id\tembargo_info\tcoverage_depth\tnotes\tpublisher_name\tpublication_type\tdate_monograph_published_print\tdate_monograph_published_online\tmonograph_volume\tmonograph_edition\tfirst_editor\tparent_publication_title_id\tpreceding_publication_title_id\taccess_type\n");
         datas.append("Villes et politiques urbaines au Canada et aux États-Unis\t9782878541496\t9782878548808\t\t\t\t\t\t\thttp://books.openedition.org/psn/4795\tLacroix\tpsn/4795\t\tfulltext\t\tPresses Sorbonne Nouvelle\tmonograph\t1997\t2018\t\t\tLacroix\t\t\tF\t225228076\tMonographie.");
         MockMultipartFile file = new MockMultipartFile("file", "cairn_global.tsv", MediaType.TEXT_PLAIN_VALUE, datas.toString().getBytes(StandardCharsets.UTF_8));
