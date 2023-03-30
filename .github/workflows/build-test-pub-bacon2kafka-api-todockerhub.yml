@@ -10,8 +10,9 @@ env:
 
 on:
   push:
-    paths:
-      - 'bacon2kafka-api/**'
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
   workflow_dispatch:
 
 jobs:
