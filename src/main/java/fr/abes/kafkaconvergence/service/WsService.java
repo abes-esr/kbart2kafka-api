@@ -2,6 +2,7 @@ package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,9 @@ public class WsService {
 
     @Value("${url.printId2Ppn")
     private String urlPrintId2Ppn;
+
+    @Value("{$url.dat2Ppn}")
+    private String urlDat2Ppn;
 
     private final RestTemplate restTemplate;
     private final HttpHeaders headers;
@@ -63,5 +67,8 @@ public class WsService {
         return mapper.readValue(getCall(urlPrintId2Ppn, type, id), ResultWsSudocDto.class);
     }
 
+    public ResultDat2PpnWebDto callDat2Ppn(String monographPublishedOnline, String publicationTitle, String author) throws JsonProcessingException {
+        return mapper.readValue(getCall(urlDat2Ppn, monographPublishedOnline, publicationTitle, author), ResultDat2PpnWebDto.class);
+    }
 
 }

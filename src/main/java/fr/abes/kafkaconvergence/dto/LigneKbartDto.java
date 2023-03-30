@@ -38,4 +38,8 @@ public class LigneKbartDto {
     public int hashCode() {
         return this.publication_title.hashCode() * this.online_identifier.hashCode() * this.print_identifier.hashCode();
     }
+
+    public String getAuthor() {
+        return (!this.first_author.isEmpty()) ? this.first_author : this.first_editor;
+    }
 }

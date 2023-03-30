@@ -3,6 +3,7 @@ package fr.abes.kafkaconvergence.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
+import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
 import fr.abes.kafkaconvergence.service.TopicProducer;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
@@ -32,11 +33,10 @@ public class KafkaController {
         //le fichier à une extension tsv,
         //contient des tabulations,
         //contient un entête avec la présence du terme publication title
-        try {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             CheckFiles.verifyFile(file, "publication_title");
             String provider = CheckFiles.getProviderFromFilename(file);
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (!line.contains("publication_title")) {
@@ -50,9 +50,11 @@ public class KafkaController {
                         }
                     }
                 }
-            }
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
+        } catch (IllegalPpnException e) {
+            // TODO gérer l'erreur
+            throw new RuntimeException(e);
         }
     }
 
