@@ -7,9 +7,7 @@ import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.logger.Logger;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,10 +40,16 @@ public class BestPpnService {
     @Value("${score.error.type.notice}")
     private long scoreErrorType;
 
-    @Value("{$score.dat.to.ppn}")
+    @Value("${score.dat.to.ppn}")
     private long scoreDat2Ppn;
 
     private NoticeService noticeService;
+
+    public List<String> sortByBestPpn(Map<String, Long> list){
+        List<String> result = new ArrayList<>();
+        result.add(Collections.max(list.entrySet(), Map.Entry.comparingByValue()).getKey());
+        return result;
+    }
 
     public List<String> getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException {
         List<String> result = new ArrayList<>();
@@ -58,13 +61,7 @@ public class BestPpnService {
             }
         }
         if(!ppnElecList.isEmpty()){
-            result = this.ppnElecList.entrySet().stream().map(entry -> entry.getValue() + "-" + entry.getKey()).sorted().collect(Collectors.toList());
-            Collections.reverse(result);
-            for (String entry : result
-            ) {
-                List<String> temp = List.of(entry.split("-"));
-                entry = temp.get(0);
-            }
+            result = sortByBestPpn(ppnElecList);
         }
         return result;
     }
