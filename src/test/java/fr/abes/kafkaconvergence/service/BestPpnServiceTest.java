@@ -1,10 +1,6 @@
 package fr.abes.kafkaconvergence.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.abes.kafkaconvergence.dto.LigneKbartDto;
-import fr.abes.kafkaconvergence.dto.LoggerResultDto;
-import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
-import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
+import fr.abes.kafkaconvergence.dto.*;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.logger.Logger;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
@@ -19,7 +15,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,22 +63,47 @@ class BestPpnServiceTest {
     }
 
     @Test
-    @DisplayName("feedPpnListFromOnline")
-    void getBestPpn() throws IllegalPpnException, IOException, NoSuchFieldException {
-        //  Create a PpnWithTypeDto
-        PpnWithTypeDto ppnWithType = new PpnWithTypeDto();
-        ppnWithType.setPpn("111111111");
-        ppnWithType.setType(TYPE_SUPPORT.ELECTRONIQUE);
-        //  Create a List of PpnWithListDto
+    @DisplayName("Test avec cohérence de type")
+    void getBestPpnTest01() throws IllegalPpnException, IOException {
+        //  Create PpnWithTypeDto for elec
+        PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
+        ppnWithType1.setPpn("100000001");
+        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
+        ppnWithType2.setPpn("100000002");
+        ppnWithType2.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
+        ppnWithType3.setPpn("100000003");
+        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
-        ppnWithTypeDto.add(ppnWithType);
-        //  Create a ResultWsSudocDto
-        ResultWsSudocDto result = new ResultWsSudocDto();
-        result.setPpns(ppnWithTypeDto);
+        ppnWithTypeDto.add(ppnWithType1);
+        ppnWithTypeDto.add(ppnWithType2);
+        ppnWithTypeDto.add(ppnWithType3);
+        //  Create a ResultWsSudocDto for elec
+        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+        resultElec.setPpns(ppnWithTypeDto);
+
+        //  Create a PpnWithTypeDto for print
+        PpnWithTypeDto ppnWithTypePrint = new PpnWithTypeDto();
+        ppnWithTypePrint.setPpn("200000001");
+        ppnWithTypePrint.setType(TYPE_SUPPORT.IMPRIME);
+        //  Create a List of PpnWithListDto for print
+        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
+        ppnWithTypePrintDto.add(ppnWithTypePrint);
+        //  Create a ResultWsSudocDto for print
+        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+        resultPrint.setPpns(ppnWithTypePrintDto);
+
+        //  Create a ResultDat2PpnWebDto
+        ResultDat2PpnWebDto resultDat2PpnWeb = new ResultDat2PpnWebDto();
+        resultDat2PpnWeb.addPpn("300000001");
+        resultDat2PpnWeb.addPpn("300000002");
 
         //  Create a LigneKbartDto
         LigneKbartDto kbart = new LigneKbartDto();
         kbart.setOnline_identifier("1292-8399");
+        kbart.setPrint_identifier("2-84358-095-1");
         kbart.setPublication_type("serial");
         kbart.setDate_monograph_published_online("DateOnline");
         kbart.setPublication_title("Titre");
@@ -91,22 +111,72 @@ class BestPpnServiceTest {
         kbart.setDate_monograph_published_print("DatePrint");
 
         //  Mock the WsService
-        Mockito.when(service.callOnlineId2Ppn("serial", "1292-8399", "UrlProvider")).thenReturn(result);
-//        Mockito.when(service.callPrintId2Ppn("serial", "1292-8399", "UrlProvider")).thenReturn(result);
-//        Mockito.when(service.callDat2Ppn("serial", "1292-8399", "")).thenReturn(result);
-
-        Field field = bestPpnService.getClass().getDeclaredField("ppnElecList");
-        field.setAccessible(true);
+        Mockito.when(service.callOnlineId2Ppn("serial", "1292-8399", "UrlProvider")).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn("serial", "2-84358-095-1", "UrlProvider")).thenReturn(resultPrint);
+        Mockito.when(service.callDat2Ppn("serial", "1292-8399", "")).thenReturn(resultDat2PpnWeb);
 
         List<String> test = bestPpnService.getBestPpn(kbart, "UrlProvider");
 
-        //  Test avec 1 ppn type électronique
-        Assertions.assertEquals(test.get(0), result.getPpns().get(0).getPpn());
-
         //  Test avec 3 ppns type électronique
+        Assertions.assertEquals(test.get(0), "100000001");
+    }
 
-        // Test avec 1 ppn type imprimé
-
-
+    @Test
+    @DisplayName("Test avec incohérence de type")
+    void getBestPpnTest02() throws IllegalPpnException, IOException {
+//        //  Create PpnWithTypeDto for elec
+//        PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
+//        ppnWithType1.setPpn("100000001");
+//        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+//        PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
+//        ppnWithType2.setPpn("100000002");
+//        ppnWithType2.setType(TYPE_SUPPORT.ELECTRONIQUE);
+//        PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
+//        ppnWithType3.setPpn("100000003");
+//        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+//        //  Create a List of PpnWithListDto for elec
+//        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+//        ppnWithTypeDto.add(ppnWithType1);
+//        ppnWithTypeDto.add(ppnWithType2);
+//        ppnWithTypeDto.add(ppnWithType3);
+//        //  Create a ResultWsSudocDto for elec
+//        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+//        resultElec.setPpns(ppnWithTypeDto);
+//
+//        //  Create a PpnWithTypeDto for print
+//        PpnWithTypeDto ppnWithTypePrint = new PpnWithTypeDto();
+//        ppnWithTypePrint.setPpn("200000001");
+//        ppnWithTypePrint.setType(TYPE_SUPPORT.IMPRIME);
+//        //  Create a List of PpnWithListDto for print
+//        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
+//        ppnWithTypePrintDto.add(ppnWithTypePrint);
+//        //  Create a ResultWsSudocDto for print
+//        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+//        resultPrint.setPpns(ppnWithTypePrintDto);
+//
+//        //  Create a ResultDat2PpnWebDto
+//        ResultDat2PpnWebDto resultDat2PpnWeb = new ResultDat2PpnWebDto();
+//        resultDat2PpnWeb.addPpn("300000001");
+//        resultDat2PpnWeb.addPpn("300000002");
+//
+//        //  Create a LigneKbartDto
+//        LigneKbartDto kbart = new LigneKbartDto();
+//        kbart.setOnline_identifier("1292-8399");
+//        kbart.setPrint_identifier("2-84358-095-1");
+//        kbart.setPublication_type("serial");
+//        kbart.setDate_monograph_published_online("DateOnline");
+//        kbart.setPublication_title("Titre");
+//        kbart.setFirst_author("Auteur");
+//        kbart.setDate_monograph_published_print("DatePrint");
+//
+//        //  Mock the WsService
+//        Mockito.when(service.callOnlineId2Ppn("serial", "1292-8399", "UrlProvider")).thenReturn(resultElec);
+//        Mockito.when(service.callPrintId2Ppn("serial", "2-84358-095-1", "UrlProvider")).thenReturn(resultPrint);
+//        Mockito.when(service.callDat2Ppn("serial", "1292-8399", "")).thenReturn(resultDat2PpnWeb);
+//
+//        List<String> test = bestPpnService.getBestPpn(kbart, "UrlProvider");
+//
+//        //  Test avec 3 ppns type électronique
+//        Assertions.assertEquals(test.get(0), "100000001");
     }
 }

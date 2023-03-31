@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -53,28 +50,31 @@ public class BestPpnService {
 
     public List<String> getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException {
         List<String> result = new ArrayList<>();
+        this.ppnElecList = new HashMap<>();
+        this.ppnPrintListFromOnlineId2Ppn = new ArrayList<>();
+        this.ppnPrintListFromPrintId2Ppn = new ArrayList<>();
         if (!kbart.getOnline_identifier().isEmpty() && !kbart.getPublication_type().isEmpty()) {
             feedPpnListFromOnline(kbart.getOnline_identifier(), kbart.getPublication_type(), provider);
             feedPpnListFromPrint(kbart.getPrint_identifier(), kbart.getPublication_type(), provider);
-            if (ppnElecList.isEmpty()) {
+            if (this.ppnElecList.isEmpty()) {
                 feedPpnListFromDat(kbart.getDate_monograph_published_online(), kbart.getPublication_title(), kbart.getAuthor(), kbart.getDate_monograph_published_print());
             }
         }
-        if(!ppnElecList.isEmpty()){
-            result = sortByBestPpn(ppnElecList);
+        if(!this.ppnElecList.isEmpty()){
+            result = sortByBestPpn(this.ppnElecList);
         }
         return result;
     }
 
     public void feedPpnListFromOnline(String onlineIdentifier, String publicationType, String provider) throws JsonProcessingException {
-        ResultWsSudocDto result = service.callOnlineId2Ppn(publicationType, onlineIdentifier, provider);
-        if (!result.getPpns().isEmpty()) {
-            long nbPpnElec = result.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
-            for (PpnWithTypeDto ppn : result.getPpns()) {
+        ResultWsSudocDto resultCallOnlineId2Ppn = service.callOnlineId2Ppn(publicationType, onlineIdentifier, provider);
+        if (!resultCallOnlineId2Ppn.getPpns().isEmpty()) {
+            long nbPpnElec = resultCallOnlineId2Ppn.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
+            for (PpnWithTypeDto ppn : resultCallOnlineId2Ppn.getPpns()) {
                 if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                    ppnElecList.put(ppn.getPpn(), scoreOnlineId2Ppn / nbPpnElec);
+                    this.ppnElecList.put(ppn.getPpn(), scoreOnlineId2Ppn / nbPpnElec);
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
-                    ppnPrintListFromOnlineId2Ppn.add(ppn.getPpn());
+                    this.ppnPrintListFromOnlineId2Ppn.add(ppn.getPpn());
                 }
             }
             if(nbPpnElec > 1){
@@ -84,14 +84,14 @@ public class BestPpnService {
     }
 
     public void feedPpnListFromPrint(String printIdentifier, String publicationType, String provider) throws JsonProcessingException {
-        ResultWsSudocDto result = service.callPrintId2Ppn(publicationType, printIdentifier, provider);
-        if(!result.getPpns().isEmpty()) {
-            long nbPpnElec = result.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
-                for (PpnWithTypeDto ppn : result.getPpns()) {
+        ResultWsSudocDto resultPrintId2Ppn = service.callPrintId2Ppn(publicationType, printIdentifier, provider);
+        if(!resultPrintId2Ppn.getPpns().isEmpty()) {
+            long nbPpnElec = resultPrintId2Ppn.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
+                for (PpnWithTypeDto ppn : resultPrintId2Ppn.getPpns()) {
                     if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                        ppnElecList.put(ppn.getPpn(), scorePrintId2Ppn /nbPpnElec);
+                        this.ppnElecList.put(ppn.getPpn(), scorePrintId2Ppn /nbPpnElec);
                     } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
-                        ppnPrintListFromPrintId2Ppn.add(ppn.getPpn());
+                        this.ppnPrintListFromPrintId2Ppn.add(ppn.getPpn());
                     }
                 }
             if(nbPpnElec > 1){
