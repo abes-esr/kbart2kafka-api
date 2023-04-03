@@ -6,7 +6,9 @@ import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.logger.Logger;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Service
+@Getter
 @RequiredArgsConstructor
 public class BestPpnService {
     private final WsService service;
@@ -40,6 +43,7 @@ public class BestPpnService {
     @Value("${score.dat.to.ppn}")
     private long scoreDat2Ppn;
 
+    @Autowired
     private NoticeService noticeService;
 
     public List<String> sortByBestPpn(Map<String, Long> list){
@@ -100,20 +104,21 @@ public class BestPpnService {
         }
     }
 
-    public void feedPpnListFromDat(String monographPublishedOnline, String publicationTitle, String author, String dateMonographPublishedPrint) throws IOException, IllegalPpnException {
+    public void feedPpnListFromDat(String monographPublishedOnline, String publicationTitle, String author, String dateMonographPublishedPrint) throws JsonProcessingException, IOException, IllegalPpnException {
+        this.loggerResultDto = new LoggerResultDto();
         this.loggerResultDto.setServiceName("dat2Ppn");
         if (!monographPublishedOnline.isEmpty()){
-            ResultDat2PpnWebDto result = service.callDat2Ppn(monographPublishedOnline, author, publicationTitle);
-            for (String ppn : result.getPpns()) {
+            ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(monographPublishedOnline, author, publicationTitle);
+            for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeElectronique()) {
-                    ppnElecList.put(ppn, scoreDat2Ppn);
+                    this.ppnElecList.put(ppn, scoreDat2Ppn);
                 }
             }
         }
-        if (!ppnElecList.isEmpty() && !dateMonographPublishedPrint.isEmpty()) {
-            ResultDat2PpnWebDto result = service.callDat2Ppn(dateMonographPublishedPrint, author, publicationTitle);
-            for (String ppn : result.getPpns()) {
+        if (ppnElecList.isEmpty() && !dateMonographPublishedPrint.isEmpty()) {
+            ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(dateMonographPublishedPrint, author, publicationTitle);
+            for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeImprimee()) {
                     //TODO gérer cas notice imprimée
