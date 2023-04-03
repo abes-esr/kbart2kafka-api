@@ -38,4 +38,9 @@ public class LigneKbartDto {
     public int hashCode() {
         return this.publication_title.hashCode() * this.online_identifier.hashCode() * this.print_identifier.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return this.publication_title;
+    }
 }
