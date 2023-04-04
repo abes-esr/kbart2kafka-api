@@ -8,21 +8,27 @@ import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.logger.Logger;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import lombok.Getter;
+import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
+import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Getter
 @RequiredArgsConstructor
+@Slf4j
 public class BestPpnService {
     private final WsService service;
 
-    private final Logger logger;
 
     private LoggerResultDto loggerResultDto;
 
@@ -68,6 +74,9 @@ public class BestPpnService {
         if(!ppnResultList.getPpnList().isEmpty()){
             result = sortByBestPpn(ppnResultList.getPpnList());
         }
+
+//        log.error("OnlineId2Ppn " + kbart.toString() + " " + result.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
+
         return result;
     }
 
@@ -132,7 +141,7 @@ public class BestPpnService {
 
     private void sendLogIfError() throws JsonProcessingException {
         if(!this.loggerResultDto.getMessages().isEmpty()){
-            logger.error(String.valueOf(this.loggerResultDto.getLigneKbartDto().hashCode()), this.loggerResultDto);
+            log.error(String.valueOf(this.loggerResultDto.getLigneKbartDto().hashCode()), this.loggerResultDto);
         }
     }
 }

@@ -18,9 +18,9 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 @CrossOrigin(origins = "*")
-@Slf4j
 @RequiredArgsConstructor
 @RestController
+@Slf4j
 @RequestMapping("/v1")
 public class KafkaController {
     private final TopicProducer topicProducer;

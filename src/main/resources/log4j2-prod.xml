@@ -7,6 +7,7 @@
         <Property name="logFileName">${bundle:application:application.name}</Property>
         <Property name="errorFileName">${bundle:application:application.name}_error</Property>
         <Property name="debugFileName">${bundle:application:application.name}_debug</Property>
+        <Property name="kafkaServer">${bundle:application-prod:spring.kafka.producer.bootstrap-servers}</Property>
 
         <!-- Politique de gestion des fichiers -->
         <Property name="sizeTriggerPolicy">200 MB</Property>
@@ -15,7 +16,17 @@
         <Property name="keepMostRecentSize">100 MB</Property>
     </Properties>
     <Appenders>
-
+        <!-- KAFKA -->
+        <Kafka name="kafkaErrorLogAppender" topic="errorbacon2kafka">
+            <JSONLayout />
+            <Property name="bootstrap.servers">${kafkaServer}</Property>
+            <LevelRangeFilter minLevel="ERROR" maxLevel="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
+        <Kafka name="kafkaInfoLogAppender" topic="infobacon2kafka">
+            <JSONLayout />
+            <Property name="bootstrap.servers">${kafkaServer}</Property>
+            <LevelRangeFilter minLevel="INFO" maxLevel="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Kafka>
         <!-- CONSOLE -->
         <Console name="Console">
             <PatternLayout
@@ -122,7 +133,12 @@
     </Appenders>
 
     <Loggers>
-        <Root level="all">
+        <Logger name="fr.abes.kafkaconvergence" level="info">
+            <AppenderRef ref="kafkaErrorLogAppender"/>
+            <AppenderRef ref="kafkaInfoLogAppender"/>
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="DebugFile" />
             <AppenderRef ref="LogFile" />
             <AppenderRef ref="ErrorFile" />
