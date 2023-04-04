@@ -142,7 +142,7 @@ class BestPpnServiceTest {
         List<String> result = bestPpnService.getBestPpn(kbart, "UrlProvider");
 
         //  Vérification
-        Assertions.assertEquals(bestPpnService.getPpnElecList().size(), 2);
+        Assertions.assertEquals(bestPpnService.getPpnResultList().getPpnList().size(), 2);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromOnlineId2Ppn().size(), 1);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromOnlineId2Ppn().get(0), "100000003");
         Assertions.assertEquals(result.get(0), "100000001");
@@ -190,7 +190,7 @@ class BestPpnServiceTest {
         List<String> result = bestPpnService.getBestPpn(kbart, "UrlProvider");
 
         //  Vérification
-        Assertions.assertEquals(bestPpnService.getPpnElecList().size(), 1);
+        Assertions.assertEquals(bestPpnService.getPpnResultList().getPpnList().size(), 1);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromPrintId2Ppn().get(0), "200000002");
         Assertions.assertEquals(result.get(0), "200000001");
     }
@@ -236,7 +236,7 @@ class BestPpnServiceTest {
         List<String> result = bestPpnService.getBestPpn(kbart, "UrlProvider");
 
         //  Test avec Notice électronique
-        Assertions.assertEquals(bestPpnService.getPpnElecList().size(), 1);
+        Assertions.assertEquals(bestPpnService.getPpnResultList().getPpnList().size(), 1);
         Assertions.assertEquals(result.get(0), "300000001");
 
         //  Test avec Notice monographie
@@ -245,7 +245,7 @@ class BestPpnServiceTest {
         //  Appel du service
         List<String> result2 = bestPpnService.getBestPpn(kbart, "UrlProvider");
         //  Vérification
-        Assertions.assertEquals(bestPpnService.getPpnElecList().size(), 0);
+        Assertions.assertEquals(bestPpnService.getPpnResultList().getPpnList().size(), 0);
         Assertions.assertEquals(result2.size(), 0);
     }
 }

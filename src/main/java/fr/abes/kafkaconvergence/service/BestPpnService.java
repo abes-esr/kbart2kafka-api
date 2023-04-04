@@ -2,6 +2,7 @@ package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.abes.kafkaconvergence.dto.*;
+import fr.abes.kafkaconvergence.entity.PpnResultList;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.logger.Logger;
@@ -25,7 +26,7 @@ public class BestPpnService {
 
     private LoggerResultDto loggerResultDto;
 
-    private Map<String, Long> ppnElecList;
+    private PpnResultList ppnResultList;
 
     private List<String> ppnPrintListFromOnlineId2Ppn;
 
@@ -54,18 +55,18 @@ public class BestPpnService {
 
     public List<String> getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException {
         List<String> result = new ArrayList<>();
-        this.ppnElecList = new HashMap<>();
+        this.ppnResultList = new PpnResultList();
         this.ppnPrintListFromOnlineId2Ppn = new ArrayList<>();
         this.ppnPrintListFromPrintId2Ppn = new ArrayList<>();
         if (!kbart.getOnline_identifier().isEmpty() && !kbart.getPublication_type().isEmpty()) {
             feedPpnListFromOnline(kbart.getOnline_identifier(), kbart.getPublication_type(), provider);
             feedPpnListFromPrint(kbart.getPrint_identifier(), kbart.getPublication_type(), provider);
-            if (this.ppnElecList.isEmpty()) {
+            if (ppnResultList.getPpnList().isEmpty()) {
                 feedPpnListFromDat(kbart.getDate_monograph_published_online(), kbart.getPublication_title(), kbart.getAuthor(), kbart.getDate_monograph_published_print());
             }
         }
-        if(!this.ppnElecList.isEmpty()){
-            result = sortByBestPpn(this.ppnElecList);
+        if(!ppnResultList.getPpnList().isEmpty()){
+            result = sortByBestPpn(ppnResultList.getPpnList());
         }
         return result;
     }
@@ -76,7 +77,7 @@ public class BestPpnService {
             long nbPpnElec = resultCallOnlineId2Ppn.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallOnlineId2Ppn.getPpns()) {
                 if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                    this.ppnElecList.put(ppn.getPpn(), scoreOnlineId2Ppn / nbPpnElec);
+                    this.ppnResultList.addPpn(ppn.getPpn(), scoreOnlineId2Ppn / nbPpnElec);
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
                     this.ppnPrintListFromOnlineId2Ppn.add(ppn.getPpn());
                 }
@@ -93,7 +94,7 @@ public class BestPpnService {
             long nbPpnElec = resultPrintId2Ppn.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
                 for (PpnWithTypeDto ppn : resultPrintId2Ppn.getPpns()) {
                     if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                        this.ppnElecList.put(ppn.getPpn(), scorePrintId2Ppn /nbPpnElec);
+                        this.ppnResultList.addPpn(ppn.getPpn(), scorePrintId2Ppn /nbPpnElec);
                     } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
                         this.ppnPrintListFromPrintId2Ppn.add(ppn.getPpn());
                     }
@@ -112,11 +113,11 @@ public class BestPpnService {
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeElectronique()) {
-                    this.ppnElecList.put(ppn, scoreDat2Ppn);
+                    this.ppnResultList.addPpn(ppn, scoreDat2Ppn);
                 }
             }
         }
-        if (ppnElecList.isEmpty() && !dateMonographPublishedPrint.isEmpty()) {
+        if (this.ppnResultList.getPpnList().isEmpty() && !dateMonographPublishedPrint.isEmpty()) {
             ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(dateMonographPublishedPrint, author, publicationTitle);
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
