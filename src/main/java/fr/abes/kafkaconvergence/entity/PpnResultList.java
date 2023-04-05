@@ -11,17 +11,14 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 public class PpnResultList {
-
-    private Map<String, Long> ppnList = new HashMap<>();
+    private Map<String, Long> mapPpnScore = new HashMap<>();
 
     public void addPpn(String ppn, Long value) {
-        this.ppnList.put(ppn, value);
+        this.mapPpnScore.put(ppn, value);
     }
 
     public void addPpnList(Map<String, Long> ppnList) {
-        ppnList.entrySet().forEach(entry -> {
-            this.ppnList.put(entry.getKey(), entry.getValue());
-        });
+        this.mapPpnScore.putAll(ppnList);
 
     }
 }

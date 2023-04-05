@@ -38,27 +38,23 @@ public class KafkaController {
     })
     @PostMapping("/kbart2Kafka")
     public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException {
-        //execution seulement si:
-        //le fichier à une extension tsv,
-        //contient des tabulations,
-        //contient un entête avec la présence du terme publication title
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             CheckFiles.verifyFile(file, "publication_title");
             String provider = CheckFiles.getProviderFromFilename(file);
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (!line.contains("publication_title")) {
-                        String[] tsvElementsOnOneLine = line.split("\t");
-                        // Crée un nouvel objet dto et set les différentes parties
-                        LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
-                        List<String> bestPpns = service.getBestPpn(kbart, provider);
-                        if (bestPpns.size() > 0) {
-                            kbart.setBestPpn(bestPpns.get(0));
-                            topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
-                        }
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.contains("publication_title")) {
+                    String[] tsvElementsOnOneLine = line.split("\t");
+                    // Crée un nouvel objet dto et set les différentes parties
+                    LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
+                    List<String> bestPpns = service.getBestPpn(kbart, provider);
+                    if (bestPpns.size() > 0) {
+                        kbart.setBestPpn(bestPpns.get(0));
+                        topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
                     }
                 }
+            }
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
         } catch (IllegalPpnException e) {
@@ -70,9 +66,9 @@ public class KafkaController {
 
     /**
      * Construction de la dto
+     *
      * @param line ligne en entrée
      * @return Un objet DTO initialisé avec les informations de la ligne
-     *
      */
     private LigneKbartDto constructDto(String[] line) {
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
@@ -106,6 +102,7 @@ public class KafkaController {
 
     /**
      * Sérialisation d'un objet dto en chaine de caractère pour le passer au producteur de messages kafka
+     *
      * @param dto objet à passer au producteur de messages
      * @return une chaine à passer au TopicProducer de kafka
      */

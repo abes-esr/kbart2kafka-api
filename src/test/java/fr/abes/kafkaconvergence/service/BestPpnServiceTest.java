@@ -2,7 +2,10 @@ package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import fr.abes.kafkaconvergence.dto.*;
+import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
+import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
+import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
@@ -23,9 +26,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @SpringBootTest(classes = {BestPpnService.class})
 @TestPropertySource(properties = {"score.online.id.to.ppn=10", "score.print.id.to.ppn=8", "score.error.type.notice=6", "score.dat.to.ppn=20"})
@@ -39,9 +40,6 @@ class BestPpnServiceTest {
 
     @MockBean
     WsService service;
-
-    @MockBean
-    LoggerResultDto loggerResultDto;
 
     @Value("${score.online.id.to.ppn}")
     long scoreOnlineId2Ppn;
@@ -78,18 +76,6 @@ class BestPpnServiceTest {
         module2.setDefaultUseWrapper(false);
         XmlMapper mapper2 = new XmlMapper(module2);
         this.noticePrint = mapper2.readValue(xml2, NoticeXml.class);
-    }
-
-
-    @Test
-    void sortByBestPpn(){
-        Map<String, Long> list = new HashMap<>();
-        list.put("444444444", Long.valueOf(4));
-        list.put("777777777", Long.valueOf(7));
-        list.put("222222222", Long.valueOf(2));
-        list.put("666666666", Long.valueOf(6));
-        List<String> result = bestPpnService.sortByBestPpn(list);
-        Assertions.assertEquals(result.get(0), "777777777");
     }
 
     @Test
@@ -138,7 +124,7 @@ class BestPpnServiceTest {
         List<String> result = bestPpnService.getBestPpn(kbart, "UrlProvider");
 
         //  Vérification
-        Assertions.assertEquals(bestPpnService.getPpnResultList().getPpnList().size(), 2);
+        Assertions.assertEquals(result.size(), 2);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromOnlineId2Ppn().size(), 1);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromOnlineId2Ppn().get(0), "100000003");
         Assertions.assertEquals(result.get(0), "100000001");
@@ -186,7 +172,7 @@ class BestPpnServiceTest {
         List<String> result = bestPpnService.getBestPpn(kbart, "UrlProvider");
 
         //  Vérification
-        Assertions.assertEquals(bestPpnService.getPpnResultList().getPpnList().size(), 1);
+        Assertions.assertEquals(result.size(), 1);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromPrintId2Ppn().get(0), "200000002");
         Assertions.assertEquals(result.get(0), "200000001");
     }
@@ -232,16 +218,23 @@ class BestPpnServiceTest {
         List<String> result = bestPpnService.getBestPpn(kbart, "UrlProvider");
 
         //  Test avec Notice électronique
-        Assertions.assertEquals(bestPpnService.getPpnResultList().getPpnList().size(), 1);
+        Assertions.assertEquals(result.size(), 1);
         Assertions.assertEquals(result.get(0), "300000001");
 
+        //  Create a ResultDat2PpnWebDto
+        ResultDat2PpnWebDto resultDat2PpnWeb2 = new ResultDat2PpnWebDto();
+        resultDat2PpnWeb2.addPpn("300000002");
+
         //  Test avec Notice monographie
-        Mockito.when(service.callDat2Ppn("DatePrint", "Auteur", "Titre")).thenReturn(resultDat2PpnWeb);
+        Mockito.when(service.callDat2Ppn("DatePrint", "Auteur", "Titre")).thenReturn(resultDat2PpnWeb2);
         Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticePrint);
+        Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
+
         //  Appel du service
         List<String> result2 = bestPpnService.getBestPpn(kbart, "UrlProvider");
         //  Vérification
-        Assertions.assertEquals(bestPpnService.getPpnResultList().getPpnList().size(), 0);
         Assertions.assertEquals(result2.size(), 0);
+        Assertions.assertEquals(bestPpnService.getPpnPrintListFromDat2Ppn().size(), 1);
+        Assertions.assertEquals(bestPpnService.getPpnPrintListFromDat2Ppn().get(0), "300000002");
     }
 }
