@@ -7,6 +7,10 @@ import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
 import fr.abes.kafkaconvergence.service.TopicProducer;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +31,11 @@ public class KafkaController {
     private final BestPpnService service;
     private final ObjectMapper mapper;
 
+    @ApiOperation("Reads a TSV file, calculates the best PPN and sends the answer to Kafka")
+    @ApiResponses({
+            @ApiResponse(code = HttpServletResponse.SC_BAD_REQUEST, message = "Wrong file format", response = String.class),
+            @ApiResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message = "The server is not responding, please try again later", response = String.class)
+    })
     @PostMapping("/kbart2Kafka")
     public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException {
         //execution seulement si:

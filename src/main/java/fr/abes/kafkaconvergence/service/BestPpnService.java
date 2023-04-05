@@ -5,21 +5,19 @@ import fr.abes.kafkaconvergence.dto.*;
 import fr.abes.kafkaconvergence.entity.PpnResultList;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
-import fr.abes.kafkaconvergence.logger.Logger;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import lombok.Getter;
-import fr.abes.kafkaconvergence.dto.LigneKbartDto;
-import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
-import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +26,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BestPpnService {
     private final WsService service;
-
 
     private LoggerResultDto loggerResultDto;
 
@@ -65,8 +62,8 @@ public class BestPpnService {
         this.ppnPrintListFromOnlineId2Ppn = new ArrayList<>();
         this.ppnPrintListFromPrintId2Ppn = new ArrayList<>();
         if (!kbart.getOnline_identifier().isEmpty() && !kbart.getPublication_type().isEmpty()) {
-            feedPpnListFromOnline(kbart.getOnline_identifier(), kbart.getPublication_type(), provider);
-            feedPpnListFromPrint(kbart.getPrint_identifier(), kbart.getPublication_type(), provider);
+            feedPpnListFromOnline(kbart, provider);
+            feedPpnListFromPrint(kbart, provider);
             if (ppnResultList.getPpnList().isEmpty()) {
                 feedPpnListFromDat(kbart.getDate_monograph_published_online(), kbart.getPublication_title(), kbart.getAuthor(), kbart.getDate_monograph_published_print());
             }
@@ -75,13 +72,11 @@ public class BestPpnService {
             result = sortByBestPpn(ppnResultList.getPpnList());
         }
 
-//        log.error("OnlineId2Ppn " + kbart.toString() + " " + result.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
-
         return result;
     }
 
-    public void feedPpnListFromOnline(String onlineIdentifier, String publicationType, String provider) throws JsonProcessingException {
-        ResultWsSudocDto resultCallOnlineId2Ppn = service.callOnlineId2Ppn(publicationType, onlineIdentifier, provider);
+    public void feedPpnListFromOnline(LigneKbartDto kbart, String provider) throws JsonProcessingException {
+        ResultWsSudocDto resultCallOnlineId2Ppn = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider);
         if (!resultCallOnlineId2Ppn.getPpns().isEmpty()) {
             long nbPpnElec = resultCallOnlineId2Ppn.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallOnlineId2Ppn.getPpns()) {
@@ -92,13 +87,14 @@ public class BestPpnService {
                 }
             }
             if(nbPpnElec > 1){
-                //TODO logger.info("onlineId2Ppn à renvoyé" + nbPpnElec + "notices electroniques"); -> trouver comment avoir une même clé pr une ligne kbart
+                log.error("OnlineId2Ppn " + kbart.toString() + " " + resultCallOnlineId2Ppn.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
+                //  TODO logger.info("onlineId2Ppn à renvoyé" + nbPpnElec + "notices electroniques"); ENCORE DES INFOS UTILES ?
             }
         }
     }
 
-    public void feedPpnListFromPrint(String printIdentifier, String publicationType, String provider) throws JsonProcessingException {
-        ResultWsSudocDto resultPrintId2Ppn = service.callPrintId2Ppn(publicationType, printIdentifier, provider);
+    public void feedPpnListFromPrint(LigneKbartDto kbart, String provider) throws JsonProcessingException {
+        ResultWsSudocDto resultPrintId2Ppn = service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider);
         if(!resultPrintId2Ppn.getPpns().isEmpty()) {
             long nbPpnElec = resultPrintId2Ppn.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
                 for (PpnWithTypeDto ppn : resultPrintId2Ppn.getPpns()) {
@@ -109,7 +105,8 @@ public class BestPpnService {
                     }
                 }
             if(nbPpnElec > 1){
-                //TODO gestion des logs -> log.info("PrintId2Ppn à renvoyé" + nbPpnElec + "notices electroniques");
+                log.error("PrintId2Ppn " + kbart.toString() + " " + resultPrintId2Ppn.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
+                //  TODO gestion des logs -> log.info("PrintId2Ppn à renvoyé" + nbPpnElec + "notices electroniques"); ENCORE DES INFOS UTILES ?
             }
         }
     }

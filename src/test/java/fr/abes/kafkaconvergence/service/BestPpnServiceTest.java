@@ -5,7 +5,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import fr.abes.kafkaconvergence.dto.*;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
-import fr.abes.kafkaconvergence.logger.Logger;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
@@ -40,9 +39,6 @@ class BestPpnServiceTest {
 
     @MockBean
     WsService service;
-
-    @MockBean
-    Logger logger;
 
     @MockBean
     LoggerResultDto loggerResultDto;
