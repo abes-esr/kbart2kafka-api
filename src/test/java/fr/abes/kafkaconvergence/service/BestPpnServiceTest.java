@@ -81,6 +81,7 @@ class BestPpnServiceTest {
     @Test
     @DisplayName("Test feedPpnListFromOnline")
     void getBestPpnTest01() throws IllegalPpnException, IOException {
+        String provider = "urlProvider";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -117,22 +118,25 @@ class BestPpnServiceTest {
         kbart.setDate_monograph_published_print("DatePrint");
 
         //  Mock
-        Mockito.when(service.callOnlineId2Ppn("serial", "1292-8399", "UrlProvider")).thenReturn(resultElec);
-        Mockito.when(service.callPrintId2Ppn("serial", "2-84358-095-1", "UrlProvider")).thenReturn(resultPrint);
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
 
         //  Appel du service
-        List<String> result = bestPpnService.getBestPpn(kbart, "UrlProvider");
+        List<String> result = bestPpnService.getBestPpn(kbart, provider);
 
         //  Vérification
         Assertions.assertEquals(result.size(), 2);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromOnlineId2Ppn().size(), 1);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromOnlineId2Ppn().get(0), "100000003");
+        Assertions.assertEquals(2, result.size());
         Assertions.assertEquals(result.get(0), "100000001");
+        Assertions.assertEquals(result.get(1), "100000002");
     }
 
     @Test
     @DisplayName("Test feedPpnListFromPrint")
     void getBestPpnTest02() throws IllegalPpnException, IOException {
+        String provider = "urlProvider";
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
         //  Create a ResultWsSudocDto for elec
@@ -165,21 +169,23 @@ class BestPpnServiceTest {
         kbart.setDate_monograph_published_print("DatePrint");
 
         //  Mock
-        Mockito.when(service.callOnlineId2Ppn("serial", "1292-8399", "UrlProvider")).thenReturn(resultElec);
-        Mockito.when(service.callPrintId2Ppn("serial", "2-84358-095-1", "UrlProvider")).thenReturn(resultPrint);
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
 
         //  Appel du service
-        List<String> result = bestPpnService.getBestPpn(kbart, "UrlProvider");
+        List<String> result = bestPpnService.getBestPpn(kbart, provider);
 
         //  Vérification
         Assertions.assertEquals(result.size(), 1);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromPrintId2Ppn().get(0), "200000002");
+        Assertions.assertEquals(1, result.size());
         Assertions.assertEquals(result.get(0), "200000001");
     }
 
     @Test
     @DisplayName("Test feedPpnListFromDat")
     void getBestPpnTest03() throws IllegalPpnException, IOException {
+        String provider = "urlProvider";
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
         //  Create a ResultWsSudocDto for elec
@@ -208,14 +214,14 @@ class BestPpnServiceTest {
         kbart.setDate_monograph_published_print("DatePrint");
 
         //  Mock
-        Mockito.when(service.callOnlineId2Ppn("serial", "1292-8399", "UrlProvider")).thenReturn(resultElec);
-        Mockito.when(service.callPrintId2Ppn("serial", "2-84358-095-1", "UrlProvider")).thenReturn(resultPrint);
-        Mockito.when(service.callDat2Ppn("DateOnline", "Auteur", "Titre")).thenReturn(resultDat2PpnWeb);
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
         Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticeElec);
         Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
 
         //  Appel du service
-        List<String> result = bestPpnService.getBestPpn(kbart, "UrlProvider");
+        List<String> result = bestPpnService.getBestPpn(kbart, provider);
 
         //  Test avec Notice électronique
         Assertions.assertEquals(result.size(), 1);
@@ -226,12 +232,12 @@ class BestPpnServiceTest {
         resultDat2PpnWeb2.addPpn("300000002");
 
         //  Test avec Notice monographie
-        Mockito.when(service.callDat2Ppn("DatePrint", "Auteur", "Titre")).thenReturn(resultDat2PpnWeb2);
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb2);
         Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticePrint);
         Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
 
         //  Appel du service
-        List<String> result2 = bestPpnService.getBestPpn(kbart, "UrlProvider");
+        List<String> result2 = bestPpnService.getBestPpn(kbart, provider);
         //  Vérification
         Assertions.assertEquals(result2.size(), 0);
         Assertions.assertEquals(bestPpnService.getPpnPrintListFromDat2Ppn().size(), 1);

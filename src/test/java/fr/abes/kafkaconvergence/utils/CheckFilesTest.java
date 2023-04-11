@@ -42,11 +42,11 @@ class CheckFilesTest {
     void detectOfHeaderPresence() throws IOException, IllegalFileFormatException {
         byte[] datas = "test\ttest\ttest".getBytes(StandardCharsets.UTF_8);
         MultipartFile file = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", datas);
-        CheckFiles.detectOfHeaderPresence("test", file);
+        CheckFiles.detectHeaderPresence("test", file);
 
         datas = "toto\ttata\ttiti".getBytes(StandardCharsets.UTF_8);
         MultipartFile file2 = new MockMultipartFile("test.tsv", "test.tsv", "UTF-8", datas);
-        IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectOfHeaderPresence("test", file2));
+        IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("test", file2));
         Assertions.assertEquals("Le champ test est absent de l'en tête du fichier", erreur.getMessage());
     }
 

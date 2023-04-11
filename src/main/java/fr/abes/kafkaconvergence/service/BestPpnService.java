@@ -72,7 +72,7 @@ public class BestPpnService {
             }
         }
         if (ppnResultList.getMapPpnScore().isEmpty()) {
-            log.error("BestPpn" + kbart.toString() + "Aucun bestPpn trouvé.");
+            log.error("BestPpn " + kbart.toString() + " Aucun bestPpn trouvé.");
         }
         return new ArrayList<>(ppnResultList.getMapPpnScore().keySet());
     }
@@ -89,7 +89,7 @@ public class BestPpnService {
                 }
             }
             if (this.ppnPrintListFromOnlineId2Ppn.size() > 1) {
-                log.error("OnlineId2Ppn " + kbart.toString() + "Plus d'un ppn de type imprimé a été trouvé : " + String.join(", ", this.ppnPrintListFromOnlineId2Ppn));
+                log.error("OnlineId2Ppn " + kbart.toString() + " Plus d'un ppn de type imprimé a été trouvé : " + String.join(", ", this.ppnPrintListFromOnlineId2Ppn));
             }
             if (nbPpnElec > 1) {
                 log.error("OnlineId2Ppn " + kbart.toString() + " " + resultCallOnlineId2Ppn.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
@@ -109,7 +109,7 @@ public class BestPpnService {
                 }
             }
             if (this.ppnPrintListFromPrintId2Ppn.size() > 1) {
-                log.error("PrintId2Ppn " + kbart.toString() + "Plus d'un ppn de type imprimé a été trouvé : " + String.join(", ", this.ppnPrintListFromPrintId2Ppn));
+                log.error("PrintId2Ppn " + kbart.toString() + " Plus d'un ppn de type imprimé a été trouvé : " + String.join(", ", this.ppnPrintListFromPrintId2Ppn));
             }
             if (nbPpnElec > 1) {
                 log.error("PrintId2Ppn " + kbart.toString() + " " + resultPrintId2Ppn.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));

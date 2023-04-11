@@ -50,7 +50,7 @@ public class CheckFiles {
      * @param file   fichier en entrée
      * @throws IOException
      */
-    public static void detectOfHeaderPresence(String header, MultipartFile file) throws IOException, IllegalFileFormatException {
+    public static void detectHeaderPresence(String header, MultipartFile file) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             String line = reader.readLine();
             if (!line.contains(header))
@@ -78,6 +78,6 @@ public class CheckFiles {
     public static void verifyFile(MultipartFile file, String header) throws IllegalFileFormatException, IOException {
         CheckFiles.isFileWithTSVExtension(file);
         CheckFiles.detectTabulations(file);
-        CheckFiles.detectOfHeaderPresence(header, file);
+        CheckFiles.detectHeaderPresence(header, file);
     }
 }

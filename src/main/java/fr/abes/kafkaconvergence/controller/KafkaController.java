@@ -31,6 +31,8 @@ public class KafkaController {
     private final BestPpnService service;
     private final ObjectMapper mapper;
 
+    private static final String HEADER_TO_CHECK = "publication_title";
+
     @ApiOperation("Reads a TSV file, calculates the best PPN and sends the answer to Kafka")
     @ApiResponses({
             @ApiResponse(code = HttpServletResponse.SC_BAD_REQUEST, message = "Wrong file format", response = String.class),
@@ -39,12 +41,12 @@ public class KafkaController {
     @PostMapping("/kbart2Kafka")
     public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            CheckFiles.verifyFile(file, "publication_title");
+            CheckFiles.verifyFile(file, HEADER_TO_CHECK);
             String provider = CheckFiles.getProviderFromFilename(file);
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
             String line;
             while ((line = reader.readLine()) != null) {
-                if (!line.contains("publication_title")) {
+                if (!line.contains(HEADER_TO_CHECK)) {
                     String[] tsvElementsOnOneLine = line.split("\t");
                     // Crée un nouvel objet dto et set les différentes parties
                     LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
