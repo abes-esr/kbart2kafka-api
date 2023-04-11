@@ -2,8 +2,10 @@ package fr.abes.kafkaconvergence.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.entity.PpnResultList;
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
+import fr.abes.kafkaconvergence.exception.ScoreException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
 import fr.abes.kafkaconvergence.service.TopicProducer;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
@@ -50,16 +52,14 @@ public class KafkaController {
                     String[] tsvElementsOnOneLine = line.split("\t");
                     // Crée un nouvel objet dto et set les différentes parties
                     LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
-                    List<String> bestPpns = service.getBestPpn(kbart, provider);
-                    if (bestPpns.size() > 0) {
-                        kbart.setBestPpn(bestPpns.get(0));
-                        topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
-                    }
+                    PpnResultList allPpns = service.getBestPpn(kbart, provider);
+                    List<String> bestPpn = service.getBestPpnByScore(allPpns);
+                    topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
                 }
             }
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
-        } catch (IllegalPpnException e) {
+        } catch (IllegalPpnException | ScoreException e) {
             // TODO gérer l'erreur ???
             throw new RuntimeException(e.getMessage());
         }

@@ -8,6 +8,7 @@ import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.entity.PpnResultList;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
+import fr.abes.kafkaconvergence.exception.ScoreException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +16,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Getter
@@ -27,11 +28,6 @@ public class BestPpnService {
 
     private PpnResultList ppnResultList;
 
-    private List<String> ppnPrintListFromOnlineId2Ppn;
-
-    private List<String> ppnPrintListFromPrintId2Ppn;
-
-    private List<String> ppnPrintListFromDat2Ppn;
 
     @Value("${score.online.id.to.ppn}")
     private long scoreOnlineId2Ppn;
@@ -51,9 +47,6 @@ public class BestPpnService {
         this.service = service;
         this.noticeService = noticeService;
         this.ppnResultList = new PpnResultList();
-        this.ppnPrintListFromOnlineId2Ppn = new ArrayList<>();
-        this.ppnPrintListFromPrintId2Ppn = new ArrayList<>();
-        this.ppnPrintListFromDat2Ppn = new ArrayList<>();
     }
 
 //    public List<String> sortByBestPpn(Map<String, Long> list) {
@@ -62,7 +55,7 @@ public class BestPpnService {
 //        return result;
 //    }
 
-    public List<String> getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException {
+    public PpnResultList getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException {
         this.ppnResultList = new PpnResultList();
         if (!kbart.getOnline_identifier().isEmpty() && !kbart.getPublication_type().isEmpty()) {
             feedPpnListFromOnline(kbart, provider);
@@ -74,45 +67,35 @@ public class BestPpnService {
         if (ppnResultList.getMapPpnScore().isEmpty()) {
             log.error("BestPpn " + kbart.toString() + " Aucun bestPpn trouvé.");
         }
-        return new ArrayList<>(ppnResultList.getMapPpnScore().keySet());
+        return ppnResultList;
     }
 
     public void feedPpnListFromOnline(LigneKbartDto kbart, String provider) throws JsonProcessingException {
-        ResultWsSudocDto resultCallOnlineId2Ppn = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider);
-        if (!resultCallOnlineId2Ppn.getPpns().isEmpty()) {
-            long nbPpnElec = resultCallOnlineId2Ppn.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
-            for (PpnWithTypeDto ppn : resultCallOnlineId2Ppn.getPpns()) {
-                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                    this.ppnResultList.addPpn(ppn.getPpn(), scoreOnlineId2Ppn / nbPpnElec);
-                } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
-                    this.ppnPrintListFromOnlineId2Ppn.add(ppn.getPpn());
-                }
-            }
-            if (this.ppnPrintListFromOnlineId2Ppn.size() > 1) {
-                log.error("OnlineId2Ppn " + kbart.toString() + " Plus d'un ppn de type imprimé a été trouvé : " + String.join(", ", this.ppnPrintListFromOnlineId2Ppn));
-            }
-            if (nbPpnElec > 1) {
-                log.error("OnlineId2Ppn " + kbart.toString() + " " + resultCallOnlineId2Ppn.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
-            }
-        }
+        ResultWsSudocDto resultCallWs = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider);
+        getResultFromCall(kbart, resultCallWs, scoreOnlineId2Ppn, "OnlineId2Ppn ");
     }
 
     public void feedPpnListFromPrint(LigneKbartDto kbart, String provider) throws JsonProcessingException {
-        ResultWsSudocDto resultPrintId2Ppn = service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider);
-        if (!resultPrintId2Ppn.getPpns().isEmpty()) {
-            long nbPpnElec = resultPrintId2Ppn.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
-            for (PpnWithTypeDto ppn : resultPrintId2Ppn.getPpns()) {
+        ResultWsSudocDto resultCallWs = service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider);
+        getResultFromCall(kbart, resultCallWs, scorePrintId2Ppn, "PrintId2Ppn ");
+    }
+
+    private void getResultFromCall(LigneKbartDto kbart, ResultWsSudocDto resultCallWs, long scoreOnlineId2Ppn, String s) {
+        if (!resultCallWs.getPpns().isEmpty()) {
+            long nbPpnElec = resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
+            for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
                 if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                    this.ppnResultList.addPpn(ppn.getPpn(), scorePrintId2Ppn / nbPpnElec);
+                    this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), scoreOnlineId2Ppn / nbPpnElec);
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
-                    this.ppnPrintListFromPrintId2Ppn.add(ppn.getPpn());
+                    this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), 0L);
                 }
             }
-            if (this.ppnPrintListFromPrintId2Ppn.size() > 1) {
-                log.error("PrintId2Ppn " + kbart.toString() + " Plus d'un ppn de type imprimé a été trouvé : " + String.join(", ", this.ppnPrintListFromPrintId2Ppn));
+            Stream<PpnWithTypeDto> ppnImprimes = this.ppnResultList.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME));
+            if (ppnImprimes.count() > 1) {
+                log.error(s + kbart.toString() + " Plus d'un ppn de type imprimé a été trouvé : " + ppnImprimes.map(PpnWithTypeDto::getPpn).collect(Collectors.joining(";")));
             }
             if (nbPpnElec > 1) {
-                log.error("PrintId2Ppn " + kbart.toString() + " " + resultPrintId2Ppn.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
+                log.error(s + kbart.toString() + " " + resultCallWs.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
             }
         }
     }
@@ -123,7 +106,7 @@ public class BestPpnService {
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeElectronique()) {
-                    this.ppnResultList.addPpn(ppn, scoreDat2Ppn);
+                    this.ppnResultList.addPpnWithType(ppn, TYPE_SUPPORT.ELECTRONIQUE, scoreDat2Ppn);
                 }
             }
         }
@@ -132,12 +115,36 @@ public class BestPpnService {
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeImprimee()) {
-                    this.ppnPrintListFromDat2Ppn.add(ppn);
+                    this.ppnResultList.addPpnWithType(ppn, TYPE_SUPPORT.IMPRIME, 0L);
                 }
             }
-            if (this.ppnPrintListFromDat2Ppn.size() > 1) {
-                log.error("Dat2Ppn " + kbart.toString() + "Plus d'un ppn de type imprimé a été trouvé : " + String.join(", ", this.ppnPrintListFromDat2Ppn));
+
+            Stream<PpnWithTypeDto> ppnImprimes = this.ppnResultList.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME));
+            if (ppnImprimes.count() > 1) {
+                log.error("Dat2Ppn " + kbart.toString() + "Plus d'un ppn de type imprimé a été trouvé : " + ppnImprimes.map(PpnWithTypeDto::getPpn).collect(Collectors.joining(";")));
             }
         }
+    }
+
+    public List<String> getBestPpnByScore(PpnResultList ppns) throws ScoreException {
+        List<String> result = new ArrayList<>();
+        //cas d'un seul ppn électronique
+        List<PpnWithTypeDto> ppnElect = ppns.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).collect(Collectors.toList());
+        if (ppnElect.size() == 1) {
+            result.add(ppnElect.get(0).getPpn());
+            return result;
+        }
+
+        //cas de plusieurs ppn avec une pondération identique
+        List<PpnWithTypeDto> ppnElectMemeScore = new ArrayList<>();
+        ppnElectMemeScore.add(Collections.max(ppns.getMapPpnScore().entrySet(), Map.Entry.comparingByValue()).getKey());
+        if (ppnElectMemeScore.size() > 1) {
+            log.error("Les ppn " + ppnElectMemeScore.stream().map(PpnWithTypeDto::getPpn).collect(Collectors.joining(", ")) + " ont le même score");
+            throw new ScoreException("Les ppn " + ppnElectMemeScore.stream().map(PpnWithTypeDto::getPpn).collect(Collectors.joining(", ")) + " ont le même score");
+        }
+
+        //cas ppn imprimé
+        result.addAll(ppns.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).map(PpnWithTypeDto::getPpn).collect(Collectors.toList()));
+        return result;
     }
 }

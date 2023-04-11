@@ -6,6 +6,7 @@ import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
 import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
+import fr.abes.kafkaconvergence.entity.PpnResultList;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
@@ -122,15 +123,15 @@ class BestPpnServiceTest {
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
 
         //  Appel du service
-        List<String> result = bestPpnService.getBestPpn(kbart, provider);
+        PpnResultList result = bestPpnService.getBestPpn(kbart, provider);
 
         //  Vérification
-        Assertions.assertEquals(result.size(), 2);
-        Assertions.assertEquals(bestPpnService.getPpnPrintListFromOnlineId2Ppn().size(), 1);
-        Assertions.assertEquals(bestPpnService.getPpnPrintListFromOnlineId2Ppn().get(0), "100000003");
-        Assertions.assertEquals(2, result.size());
-        Assertions.assertEquals(result.get(0), "100000001");
-        Assertions.assertEquals(result.get(1), "100000002");
+        Assertions.assertEquals(3, (long) result.getMapPpnScore().keySet().size());
+        Assertions.assertEquals(1 ,result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
+        Assertions.assertEquals(2,result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count());
+        Assertions.assertEquals("100000003", result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).findFirst().get().getPpn());
+        Assertions.assertEquals(5, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("100000001")).findFirst().get().getValue());
+        Assertions.assertEquals(5, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("100000002")).findFirst().get().getValue());
     }
 
     @Test
@@ -173,13 +174,14 @@ class BestPpnServiceTest {
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
 
         //  Appel du service
-        List<String> result = bestPpnService.getBestPpn(kbart, provider);
+        PpnResultList result = bestPpnService.getBestPpn(kbart, provider);
 
         //  Vérification
-        Assertions.assertEquals(result.size(), 1);
-        Assertions.assertEquals(bestPpnService.getPpnPrintListFromPrintId2Ppn().get(0), "200000002");
-        Assertions.assertEquals(1, result.size());
-        Assertions.assertEquals(result.get(0), "200000001");
+        Assertions.assertEquals(2, (long) result.getMapPpnScore().keySet().size());
+        Assertions.assertEquals(1, result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
+        Assertions.assertEquals(1, result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count());
+        Assertions.assertEquals("200000002", result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).findFirst().get().getPpn());
+        Assertions.assertEquals(8, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("200000001")).findFirst().get().getValue());
     }
 
     @Test
@@ -221,11 +223,12 @@ class BestPpnServiceTest {
         Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
 
         //  Appel du service
-        List<String> result = bestPpnService.getBestPpn(kbart, provider);
+        PpnResultList result = bestPpnService.getBestPpn(kbart, provider);
 
         //  Test avec Notice électronique
-        Assertions.assertEquals(result.size(), 1);
-        Assertions.assertEquals(result.get(0), "300000001");
+        Assertions.assertEquals(1, (long) result.getMapPpnScore().keySet().size());
+        Assertions.assertEquals(1, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count());
+        Assertions.assertEquals(20, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("300000001")).findFirst().get().getValue());
 
         //  Create a ResultDat2PpnWebDto
         ResultDat2PpnWebDto resultDat2PpnWeb2 = new ResultDat2PpnWebDto();
@@ -233,14 +236,14 @@ class BestPpnServiceTest {
 
         //  Test avec Notice monographie
         Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb2);
-        Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticePrint);
+        //Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticePrint);
         Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
 
         //  Appel du service
-        List<String> result2 = bestPpnService.getBestPpn(kbart, provider);
+        PpnResultList result2 = bestPpnService.getBestPpn(kbart, provider);
         //  Vérification
-        Assertions.assertEquals(result2.size(), 0);
-        Assertions.assertEquals(bestPpnService.getPpnPrintListFromDat2Ppn().size(), 1);
-        Assertions.assertEquals(bestPpnService.getPpnPrintListFromDat2Ppn().get(0), "300000002");
+        Assertions.assertEquals(1, (long) result2.getMapPpnScore().keySet().size());
+        Assertions.assertEquals(1, result2.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
+        Assertions.assertEquals(0L, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("300000002")).findFirst().get().getValue());
     }
 }
