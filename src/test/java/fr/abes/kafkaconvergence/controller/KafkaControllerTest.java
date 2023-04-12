@@ -96,7 +96,7 @@ public class KafkaControllerTest {
     void testKafkaControllerAllOk() throws Exception, IllegalPpnException {
         MockMultipartFile file = new MockMultipartFile("file", "cairn_global.tsv", MediaType.TEXT_PLAIN_VALUE, ("publication_title\tprint_identifier\tonline_identifier\tdate_first_issue_online\tnum_first_vol_online\tnum_first_issue_online\tdate_last_issue_online\tnum_last_vol_online\tnum_last_issue_online\ttitle_url\tfirst_author\ttitle_id\tembargo_info\tcoverage_depth\tnotes\tpublisher_name\tpublication_type\tdate_monograph_published_print\tdate_monograph_published_online\tmonograph_volume\tmonograph_edition\tfirst_editor\tparent_publication_title_id\tpreceding_publication_title_id\taccess_type\n" + "Villes et politiques urbaines au Canada et aux États-Unis\t9782878541496\t9782878548808\t\t\t\t\t\t\thttp://books.openedition.org/psn/4795\tLacroix\tpsn/4795\t\tfulltext\t\tPresses Sorbonne Nouvelle\tmonograph\t1997\t2018\t\t\tLacroix\t\t\tF\t225228076\tMonographie.").getBytes(StandardCharsets.UTF_8));
         PpnResultList ppnResult = new PpnResultList();
-        ppnResult.addPpnWithType("123456789", TYPE_SUPPORT.ELECTRONIQUE, 10L);
+        ppnResult.addPpnWithType("123456789", TYPE_SUPPORT.ELECTRONIQUE, 10);
         Mockito.when(service.getBestPpn(Mockito.any(), eq("cairn"))).thenReturn(ppnResult);
         Mockito.doNothing().when(producer).send(Mockito.any(), Mockito.anyString());
         this.mockMvc.perform(multipart("/v1/kbart2Kafka").file(file).characterEncoding(StandardCharsets.UTF_8))

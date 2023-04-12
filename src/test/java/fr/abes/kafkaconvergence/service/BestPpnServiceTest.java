@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
-import org.springframework.test.context.TestPropertySource;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -226,7 +225,7 @@ class BestPpnServiceTest {
 
         //  Test avec Notice monographie
         Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb2);
-        //Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticePrint);
+        Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticePrint);
         Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
 
         //  Appel du service
@@ -234,15 +233,15 @@ class BestPpnServiceTest {
         //  Vérification
         Assertions.assertEquals(1, (long) result2.getMapPpnScore().keySet().size());
         Assertions.assertEquals(1, result2.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
-        Assertions.assertEquals(0L, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("300000002")).findFirst().get().getValue());
+        Assertions.assertEquals(0, result2.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("300000002")).findFirst().get().getValue());
     }
 
     @Test
     @DisplayName("test best ppn with score : 1 seule notice électronique")
     void bestPpnWithScoreTest1() throws ScoreException {
         PpnResultList in = new PpnResultList();
-        Map<PpnWithTypeDto, Long> ppns = new HashMap<>();
-        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10L);
+        Map<PpnWithTypeDto, Integer> ppns = new HashMap<>();
+        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
         in.setMapPpnScore(ppns);
 
         List<String> result = bestPpnService.getBestPpnByScore(in);
@@ -254,9 +253,9 @@ class BestPpnServiceTest {
     @DisplayName("test best ppn with score : 2 notices électroniques avec score différnt")
     void bestPpnWithScoreTest2() throws ScoreException {
         PpnResultList in = new PpnResultList();
-        Map<PpnWithTypeDto, Long> ppns = new HashMap<>();
-        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10L);
-        ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.ELECTRONIQUE), 5L);
+        Map<PpnWithTypeDto, Integer> ppns = new HashMap<>();
+        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
+        ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.ELECTRONIQUE), 5);
         in.setMapPpnScore(ppns);
 
         List<String> result = bestPpnService.getBestPpnByScore(in);
@@ -266,31 +265,15 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("test best ppn with score : 2 notices électroniques avec même score")
-    void bestPpnWithScoreTest3() throws ScoreException {
+    void bestPpnWithScoreTest3() {
         PpnResultList in = new PpnResultList();
-        Map<PpnWithTypeDto, Long> ppns = new HashMap<>();
-        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10L);
-        ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.ELECTRONIQUE), 10L);
+        Map<PpnWithTypeDto, Integer> ppns = new HashMap<>();
+        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
+        ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.ELECTRONIQUE), 10);
         in.setMapPpnScore(ppns);
 
-        List<String> result = bestPpnService.getBestPpnByScore(in);
-        Assertions.assertEquals(2, result.size());
-        Assertions.assertEquals("111111111", result.get(0));
-        Assertions.assertEquals("222222222", result.get(1));
-    }
+        Assertions.assertThrows(ScoreException.class, () -> bestPpnService.getBestPpnByScore(in));
 
-    @Test
-    @DisplayName("test best ppn with score : 2 notices dont une électronique")
-    void bestPpnWithScoreTest4() throws ScoreException {
-        PpnResultList in = new PpnResultList();
-        Map<PpnWithTypeDto, Long> ppns = new HashMap<>();
-        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10L);
-        ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.IMPRIME), 5L);
-        in.setMapPpnScore(ppns);
-
-        List<String> result = bestPpnService.getBestPpnByScore(in);
-        Assertions.assertEquals(1, result.size());
-        Assertions.assertEquals("111111111", result.get(0));
     }
 
     @Test
@@ -298,9 +281,9 @@ class BestPpnServiceTest {
         Map<String, Integer> map = new HashMap<>();
         map.put("1", 10);
         map.put("2", 20);
-        Map<String, Integer> result = bestPpnService.maxUsingIteration(map);
+        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
         Assertions.assertEquals(1 ,result.keySet().size());
-        Assertions.assertEquals(10 ,result.get("1"));
+        Assertions.assertEquals(20 ,result.get("2"));
     }
 
     @Test
@@ -308,10 +291,10 @@ class BestPpnServiceTest {
         Map<String, Integer> map = new HashMap<>();
         map.put("1", 10);
         map.put("2", 20);
-        map.put("3", 10);
-        Map<String, Integer> result = bestPpnService.maxUsingIteration(map);
+        map.put("3", 20);
+        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
         Assertions.assertEquals(2 ,result.keySet().size());
-        Assertions.assertEquals(10 ,result.get("1"));
-        Assertions.assertEquals(10 ,result.get("3"));
+        Assertions.assertEquals(20 ,result.get("2"));
+        Assertions.assertEquals(20 ,result.get("3"));
     }
 }

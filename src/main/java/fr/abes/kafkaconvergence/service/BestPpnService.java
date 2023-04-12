@@ -18,8 +18,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 @Service
@@ -32,22 +30,22 @@ public class BestPpnService {
 
 
     @Value("${score.online.id.to.ppn.elect}")
-    private long scoreOnlineId2PpnElect;
+    private int scoreOnlineId2PpnElect;
 
     @Value("${score.online.id.to.ppn.imprime}")
-    private long scoreOnlineId2PpnImrime;
+    private int scoreOnlineId2PpnImrime;
 
     @Value("${score.print.id.to.ppn.elect}")
-    private long scorePrintId2PpnElect;
+    private int scorePrintId2PpnElect;
 
     @Value("${score.print.id.to.ppn.imprime}")
-    private long scorePrintId2PpnImprime;
+    private int scorePrintId2PpnImprime;
 
     @Value("${score.error.type.notice}")
-    private long scoreErrorType;
+    private int scoreErrorType;
 
     @Value("${score.dat.to.ppn}")
-    private long scoreDat2Ppn;
+    private int scoreDat2Ppn;
 
     private final NoticeService noticeService;
 
@@ -88,9 +86,9 @@ public class BestPpnService {
         getResultFromCall(kbart, resultCallWs, scorePrintId2PpnElect, scorePrintId2PpnImprime, "PrintId2Ppn ");
     }
 
-    private void getResultFromCall(LigneKbartDto kbart, ResultWsSudocDto resultCallWs, long scoreElect, long scoreImprime, String service) {
+    private void getResultFromCall(LigneKbartDto kbart, ResultWsSudocDto resultCallWs, int scoreElect, int scoreImprime, String service) {
         if (!resultCallWs.getPpns().isEmpty()) {
-            long nbPpnElec = resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
+            int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
                 if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
                     this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), scoreElect / nbPpnElec);
@@ -123,7 +121,7 @@ public class BestPpnService {
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeImprimee()) {
-                    this.ppnResultList.addPpnWithType(ppn, TYPE_SUPPORT.IMPRIME, 0L);
+                    this.ppnResultList.addPpnWithType(ppn, TYPE_SUPPORT.IMPRIME, 0);
                 }
             }
 
@@ -135,7 +133,7 @@ public class BestPpnService {
     }
 
     public List<String> getBestPpnByScore(PpnResultList ppns) throws ScoreException {
-        Map<PpnWithTypeDto, Long> ppnScore = maxUsingIteration(ppns.getMapPpnScore());
+        Map<PpnWithTypeDto, Integer> ppnScore = getMaxValuesFromMap(ppns.getMapPpnScore());
         if (ppnScore.size() == 1) {
             List<String> result = new ArrayList<>();
             result.add(ppnScore.keySet().stream().findFirst().get().getPpn());
@@ -151,19 +149,14 @@ public class BestPpnService {
         return new ArrayList<>();
     }
 
-    public <K, V extends Comparable<V>> Map<K, V> maxUsingIteration(Map<K, V> map) {
-        Map<K, V> maxEntry = new HashMap<>();
-        for (Map.Entry<K, V> entry : map.entrySet()) {
-            if (maxEntry.isEmpty()) {
-                maxEntry.put(entry.getKey(), entry.getValue());
-                continue;
-            }
-            for (Map.Entry<K, V> entryMax : maxEntry.entrySet()) {
-                if (entry.getValue().compareTo(entryMax.getValue()) >= 0) {
-                    maxEntry.put(entry.getKey(), entry.getValue());
-                }
+    public <K,V extends Comparable<? super V>> Map<K, V> getMaxValuesFromMap(Map<K,V> map) {
+        Map<K, V> maxKeys = new HashMap<>();
+        V maxValue = Collections.max(map.values());
+        for (Map.Entry<K,V> entry : map.entrySet()) {
+            if (entry.getValue().equals(maxValue)) {
+                maxKeys.put(entry.getKey(), entry.getValue());
             }
         }
-        return maxEntry;
+        return maxKeys;
     }
 }

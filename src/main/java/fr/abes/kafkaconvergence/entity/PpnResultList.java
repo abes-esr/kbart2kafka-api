@@ -13,16 +13,16 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 public class PpnResultList {
-    private Map<PpnWithTypeDto, Long> mapPpnScore = new HashMap<>();
+    private Map<PpnWithTypeDto, Integer> mapPpnScore = new HashMap<>();
 
-    public void addPpn(String ppn, Long value) {
+    public void addPpn(String ppn, Integer value) {
         this.mapPpnScore.put(new PpnWithTypeDto(ppn), value);
     }
 
-    public void addPpnWithType(String ppn, TYPE_SUPPORT type, Long value) {
+    public void addPpnWithType(String ppn, TYPE_SUPPORT type, Integer value) {
         this.mapPpnScore.put(new PpnWithTypeDto(ppn, type), value);
     }
-    public void addPpnList(Map<PpnWithTypeDto, Long> ppnList) {
+    public void addPpnList(Map<PpnWithTypeDto, Integer> ppnList) {
         this.mapPpnScore.putAll(ppnList);
 
     }
