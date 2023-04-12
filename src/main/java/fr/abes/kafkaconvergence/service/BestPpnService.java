@@ -92,6 +92,8 @@ public class BestPpnService {
                         if (this.ppnResultList.getMapPpnScore().containsKey(ppnWithTypeDtoTest)) {
                             Integer value = this.ppnResultList.getMapPpnScore().get(ppnWithTypeDtoTest) + (scoreElect / nbPpnElec);
                             this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), value);
+                        } else {
+                            this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), (scoreElect / nbPpnElec));
                         }
                     } else {
                         this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), (scoreElect / nbPpnElec));
