@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
@@ -53,7 +52,8 @@ public class KafkaController {
                     // Crée un nouvel objet dto et set les différentes parties
                     LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
                     PpnResultList allPpns = service.getBestPpn(kbart, provider);
-                    List<String> bestPpn = service.getBestPpnByScore(allPpns);
+                    String bestPpn = service.getBestPpnByScore(allPpns);
+                    kbart.setBestPpn(bestPpn);
                     topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
                 }
             }

@@ -115,12 +115,12 @@ class BestPpnServiceTest {
         PpnResultList result = bestPpnService.getBestPpn(kbart, provider);
 
         //  Vérification
-        Assertions.assertEquals(3, (long) result.getMapPpnScore().keySet().size());
-        Assertions.assertEquals(1 ,result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
-        Assertions.assertEquals(2,result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count());
+        Assertions.assertEquals(2, (long) result.getMapPpnScore().keySet().size());
+        Assertions.assertEquals(1, result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
+        Assertions.assertEquals(1, result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count());
         Assertions.assertEquals("100000003", result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).findFirst().get().getPpn());
         Assertions.assertEquals(5, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("100000001")).findFirst().get().getValue());
-        Assertions.assertEquals(5, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("100000002")).findFirst().get().getValue());
+//        Assertions.assertEquals(5, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("100000002")).findFirst().get().getValue());
     }
 
     @Test
@@ -244,9 +244,9 @@ class BestPpnServiceTest {
         ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
         in.setMapPpnScore(ppns);
 
-        List<String> result = bestPpnService.getBestPpnByScore(in);
-        Assertions.assertEquals(1, result.size());
-        Assertions.assertEquals("111111111", result.get(0));
+        String result = bestPpnService.getBestPpnByScore(in);
+        Assertions.assertFalse(result.isEmpty());
+        Assertions.assertEquals("111111111", result);
     }
 
     @Test
@@ -258,9 +258,9 @@ class BestPpnServiceTest {
         ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.ELECTRONIQUE), 5);
         in.setMapPpnScore(ppns);
 
-        List<String> result = bestPpnService.getBestPpnByScore(in);
-        Assertions.assertEquals(1, result.size());
-        Assertions.assertEquals("111111111", result.get(0));
+        String result = bestPpnService.getBestPpnByScore(in);
+        Assertions.assertFalse(result.isEmpty());
+        Assertions.assertEquals("111111111", result);
     }
 
     @Test

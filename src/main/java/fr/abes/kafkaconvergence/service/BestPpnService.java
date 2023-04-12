@@ -55,12 +55,6 @@ public class BestPpnService {
         this.ppnResultList = new PpnResultList();
     }
 
-//    public List<String> sortByBestPpn(Map<String, Long> list) {
-//        List<String> result = new ArrayList<>();
-//        result.add(Collections.max(list.entrySet(), Map.Entry.comparingByValue()).getKey());
-//        return result;
-//    }
-
     public PpnResultList getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException {
         this.ppnResultList = new PpnResultList();
         if (!kbart.getOnline_identifier().isEmpty() && !kbart.getPublication_type().isEmpty()) {
@@ -91,7 +85,17 @@ public class BestPpnService {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
                 if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                    this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), scoreElect / nbPpnElec);
+                    if (!this.ppnResultList.getMapPpnScore().isEmpty()) {
+                        PpnWithTypeDto ppnWithTypeDtoTest = new PpnWithTypeDto();
+                        ppnWithTypeDtoTest.setPpn(ppn.getPpn());
+                        ppnWithTypeDtoTest.setType(TYPE_SUPPORT.ELECTRONIQUE);
+                        if (this.ppnResultList.getMapPpnScore().containsKey(ppnWithTypeDtoTest)) {
+                            Integer value = this.ppnResultList.getMapPpnScore().get(ppnWithTypeDtoTest) + (scoreElect / nbPpnElec);
+                            this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), value);
+                        }
+                    } else {
+                        this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), (scoreElect / nbPpnElec));
+                    }
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
                     this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), scoreImprime);
                 }
@@ -132,12 +136,10 @@ public class BestPpnService {
         }
     }
 
-    public List<String> getBestPpnByScore(PpnResultList ppns) throws ScoreException {
+    public String getBestPpnByScore(PpnResultList ppns) throws ScoreException {
         Map<PpnWithTypeDto, Integer> ppnScore = getMaxValuesFromMap(ppns.getMapPpnScore());
         if (ppnScore.size() == 1) {
-            List<String> result = new ArrayList<>();
-            result.add(ppnScore.keySet().stream().findFirst().get().getPpn());
-            return result;
+            return ppnScore.keySet().stream().findFirst().get().getPpn();
         }
         //cas de plusieurs ppn avec une pondération identique
 
@@ -146,7 +148,7 @@ public class BestPpnService {
             throw new ScoreException("Les ppn " + ppnScore.keySet().stream().map(PpnWithTypeDto::getPpn).collect(Collectors.joining(", ")) + " ont le même score");
         }
 
-        return new ArrayList<>();
+        return "Aucun best ppn";
     }
 
     public <K,V extends Comparable<? super V>> Map<K, V> getMaxValuesFromMap(Map<K,V> map) {

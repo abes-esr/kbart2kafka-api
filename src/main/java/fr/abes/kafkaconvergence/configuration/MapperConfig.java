@@ -26,6 +26,7 @@ public class MapperConfig {
         ObjectMapper objectMapper = builder.build();
         objectMapper.registerModule(new JavaTimeModule());
         return objectMapper;
+//        return JsonMapper.builder().addModule(new JavaTimeModule()).build();
     }
 
     @Bean

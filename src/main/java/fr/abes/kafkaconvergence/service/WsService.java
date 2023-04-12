@@ -23,10 +23,10 @@ public class WsService {
     @Value("${url.onlineId2Ppn}")
     private String urlOnlineId2Ppn;
 
-    @Value("${url.printId2Ppn")
+    @Value("${url.printId2Ppn}")
     private String urlPrintId2Ppn;
 
-    @Value("{$url.dat2Ppn}")
+    @Value("${url.dat2Ppn}")
     private String urlDat2Ppn;
 
     private final RestTemplate restTemplate;
