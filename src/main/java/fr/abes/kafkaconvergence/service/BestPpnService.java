@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 @Service
@@ -29,11 +31,17 @@ public class BestPpnService {
     private PpnResultList ppnResultList;
 
 
-    @Value("${score.online.id.to.ppn}")
-    private long scoreOnlineId2Ppn;
+    @Value("${score.online.id.to.ppn.elect}")
+    private long scoreOnlineId2PpnElect;
 
-    @Value("${score.print.id.to.ppn}")
-    private long scorePrintId2Ppn;
+    @Value("${score.online.id.to.ppn.imprime}")
+    private long scoreOnlineId2PpnImrime;
+
+    @Value("${score.print.id.to.ppn.elect}")
+    private long scorePrintId2PpnElect;
+
+    @Value("${score.print.id.to.ppn.imprime}")
+    private long scorePrintId2PpnImprime;
 
     @Value("${score.error.type.notice}")
     private long scoreErrorType;
@@ -72,30 +80,30 @@ public class BestPpnService {
 
     public void feedPpnListFromOnline(LigneKbartDto kbart, String provider) throws JsonProcessingException {
         ResultWsSudocDto resultCallWs = service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider);
-        getResultFromCall(kbart, resultCallWs, scoreOnlineId2Ppn, "OnlineId2Ppn ");
+        getResultFromCall(kbart, resultCallWs, scoreOnlineId2PpnElect, scoreOnlineId2PpnImrime, "OnlineId2Ppn ");
     }
 
     public void feedPpnListFromPrint(LigneKbartDto kbart, String provider) throws JsonProcessingException {
         ResultWsSudocDto resultCallWs = service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider);
-        getResultFromCall(kbart, resultCallWs, scorePrintId2Ppn, "PrintId2Ppn ");
+        getResultFromCall(kbart, resultCallWs, scorePrintId2PpnElect, scorePrintId2PpnImprime, "PrintId2Ppn ");
     }
 
-    private void getResultFromCall(LigneKbartDto kbart, ResultWsSudocDto resultCallWs, long scoreOnlineId2Ppn, String s) {
+    private void getResultFromCall(LigneKbartDto kbart, ResultWsSudocDto resultCallWs, long scoreElect, long scoreImprime, String service) {
         if (!resultCallWs.getPpns().isEmpty()) {
             long nbPpnElec = resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
                 if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                    this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), scoreOnlineId2Ppn / nbPpnElec);
+                    this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), scoreElect / nbPpnElec);
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
-                    this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), 0L);
+                    this.ppnResultList.addPpnWithType(ppn.getPpn(), ppn.getType(), scoreImprime);
                 }
             }
             Stream<PpnWithTypeDto> ppnImprimes = this.ppnResultList.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME));
             if (ppnImprimes.count() > 1) {
-                log.error(s + kbart.toString() + " Plus d'un ppn de type imprimé a été trouvé : " + ppnImprimes.map(PpnWithTypeDto::getPpn).collect(Collectors.joining(";")));
+                log.error(service + kbart.toString() + " Plus d'un ppn de type imprimé a été trouvé : " + ppnImprimes.map(PpnWithTypeDto::getPpn).collect(Collectors.joining(";")));
             }
             if (nbPpnElec > 1) {
-                log.error(s + kbart.toString() + " " + resultCallWs.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
+                log.error(service + kbart.toString() + " " + resultCallWs.getErreurs().stream().map(String::toString).collect(Collectors.joining(", ")));
             }
         }
     }
@@ -127,24 +135,35 @@ public class BestPpnService {
     }
 
     public List<String> getBestPpnByScore(PpnResultList ppns) throws ScoreException {
-        List<String> result = new ArrayList<>();
-        //cas d'un seul ppn électronique
-        List<PpnWithTypeDto> ppnElect = ppns.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).collect(Collectors.toList());
-        if (ppnElect.size() == 1) {
-            result.add(ppnElect.get(0).getPpn());
+        Map<PpnWithTypeDto, Long> ppnScore = maxUsingIteration(ppns.getMapPpnScore());
+        if (ppnScore.size() == 1) {
+            List<String> result = new ArrayList<>();
+            result.add(ppnScore.keySet().stream().findFirst().get().getPpn());
             return result;
         }
-
         //cas de plusieurs ppn avec une pondération identique
-        List<PpnWithTypeDto> ppnElectMemeScore = new ArrayList<>();
-        ppnElectMemeScore.add(Collections.max(ppns.getMapPpnScore().entrySet(), Map.Entry.comparingByValue()).getKey());
-        if (ppnElectMemeScore.size() > 1) {
-            log.error("Les ppn " + ppnElectMemeScore.stream().map(PpnWithTypeDto::getPpn).collect(Collectors.joining(", ")) + " ont le même score");
-            throw new ScoreException("Les ppn " + ppnElectMemeScore.stream().map(PpnWithTypeDto::getPpn).collect(Collectors.joining(", ")) + " ont le même score");
+
+        if (ppnScore.size() > 1) {
+            log.error("Les ppn " + ppnScore.keySet().stream().map(PpnWithTypeDto::getPpn).collect(Collectors.joining(", ")) + " ont le même score");
+            throw new ScoreException("Les ppn " + ppnScore.keySet().stream().map(PpnWithTypeDto::getPpn).collect(Collectors.joining(", ")) + " ont le même score");
         }
 
-        //cas ppn imprimé
-        result.addAll(ppns.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).map(PpnWithTypeDto::getPpn).collect(Collectors.toList()));
-        return result;
+        return new ArrayList<>();
+    }
+
+    public <K, V extends Comparable<V>> Map<K, V> maxUsingIteration(Map<K, V> map) {
+        Map<K, V> maxEntry = new HashMap<>();
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            if (maxEntry.isEmpty()) {
+                maxEntry.put(entry.getKey(), entry.getValue());
+                continue;
+            }
+            for (Map.Entry<K, V> entryMax : maxEntry.entrySet()) {
+                if (entry.getValue().compareTo(entryMax.getValue()) >= 0) {
+                    maxEntry.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return maxEntry;
     }
 }
