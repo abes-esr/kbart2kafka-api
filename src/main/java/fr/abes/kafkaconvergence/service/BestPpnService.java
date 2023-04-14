@@ -22,22 +22,11 @@ import java.util.*;
 @Slf4j
 public class BestPpnService {
     private final WsService service;
-
-    private Map<String, Integer> ppnElecResultList;
-
-    private List<String> ppnPrintResultList;
-
     @Value("${score.online.id.to.ppn.elect}")
     private int scoreOnlineId2PpnElect;
 
-    @Value("${score.online.id.to.ppn.imprime}")
-    private int scoreOnlineId2PpnImrime;
-
     @Value("${score.print.id.to.ppn.elect}")
     private int scorePrintId2PpnElect;
-
-    @Value("${score.print.id.to.ppn.imprime}")
-    private int scorePrintId2PpnImprime;
 
     @Value("${score.error.type.notice}")
     private int scoreErrorType;
@@ -53,112 +42,112 @@ public class BestPpnService {
         this.service = service;
         this.noticeService = noticeService;
         this.topicProducer = topicProducer;
-        this.ppnElecResultList = new HashMap<>();
-        this.ppnPrintResultList = new ArrayList<>();
     }
 
     public String getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException, BestPpnException {
+        Map<String, Integer> ppnElecResultList = new HashMap<>();
+        List<String> ppnPrintResultList = new ArrayList<>();
+
         if (!kbart.getPublication_type().isEmpty()) {
             if (!kbart.getOnline_identifier().isEmpty()) {
-                feedPpnListFromOnline(kbart, provider);
+                feedPpnListFromOnline(kbart, provider, ppnElecResultList, ppnPrintResultList);
             }
             if (!kbart.getPrint_identifier().isEmpty()) {
-                feedPpnListFromPrint(kbart, provider);
+                feedPpnListFromPrint(kbart, provider, ppnElecResultList, ppnPrintResultList);
             }
         }
         if (ppnElecResultList.isEmpty()) {
-            feedPpnListFromDat(kbart);
+            feedPpnListFromDat(kbart, ppnElecResultList, ppnPrintResultList);
         }
         if (ppnElecResultList.isEmpty()) {
             log.error("BestPpn " + kbart.toString() + " Aucun bestPpn trouvé.");
         }
 
-        return getBestPpnByScore(kbart, provider);
+        return getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
     }
 
-    public void feedPpnListFromOnline(LigneKbartDto kbart, String provider) throws JsonProcessingException {
-        getResultFromCall(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider));
+    public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws JsonProcessingException {
+        getResultFromCall(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider), this.scoreOnlineId2PpnElect, ppnElecResultList, ppnPrintResultList);
     }
 
-    public void feedPpnListFromPrint(LigneKbartDto kbart, String provider) throws JsonProcessingException {
-        getResultFromCall(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider));
+    public void feedPpnListFromPrint(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws JsonProcessingException {
+        getResultFromCall(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider), this.scorePrintId2PpnElect, ppnElecResultList, ppnPrintResultList);
     }
 
-    private void getResultFromCall(ResultWsSudocDto resultCallWs) {
+    private void getResultFromCall(ResultWsSudocDto resultCallWs, int score, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
                 if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
-                    if (!this.ppnElecResultList.isEmpty()) {
-                        if (this.ppnElecResultList.containsKey(ppn.getPpn())) {
-                            Integer value = this.ppnElecResultList.get(ppn.getPpn()) + (this.scoreOnlineId2PpnElect / nbPpnElec);
-                            this.ppnElecResultList.put(ppn.getPpn(), value);
+                    if (!ppnElecResultList.isEmpty()) {
+                        if (ppnElecResultList.containsKey(ppn.getPpn())) {
+                            Integer value = ppnElecResultList.get(ppn.getPpn()) + (score / nbPpnElec);
+                            ppnElecResultList.put(ppn.getPpn(), value);
                         } else {
-                            this.ppnElecResultList.put(ppn.getPpn(), (this.scoreOnlineId2PpnElect / nbPpnElec));
+                            ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
                         }
                     } else {
-                        this.ppnElecResultList.put(ppn.getPpn(), (this.scoreOnlineId2PpnElect / nbPpnElec));
+                        ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
                     }
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
-                    this.ppnPrintResultList.add(ppn.getPpn());
+                    ppnPrintResultList.add(ppn.getPpn());
                 }
             }
         }
     }
 
-    public void feedPpnListFromDat(LigneKbartDto kbart) throws IOException, IllegalPpnException {
+    public void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws IOException, IllegalPpnException {
         if (!kbart.getDate_monograph_published_online().isEmpty()) {
             ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeElectronique()) {
-                    this.ppnElecResultList.put(ppn, scoreDat2Ppn);
+                    ppnElecResultList.put(ppn, scoreDat2Ppn);
+                } else if (notice.isNoticeImprimee()) {
+                    ppnPrintResultList.add(ppn);
                 }
             }
         }
-        if (this.ppnElecResultList.isEmpty() && !kbart.getDate_monograph_published_print().isEmpty()) {
+        if (ppnElecResultList.isEmpty() && !kbart.getDate_monograph_published_print().isEmpty()) {
             ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeImprimee()) {
-                    this.ppnPrintResultList.add(ppn);
+                    ppnPrintResultList.add(ppn);
+                } else if (notice.isNoticeElectronique()) {
+                    ppnElecResultList.put(ppn, scoreDat2Ppn);
                 }
             }
         }
     }
 
-    public String getBestPpnByScore(LigneKbartDto kbart, String provider) throws BestPpnException, JsonProcessingException {
+    public String getBestPpnByScore(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws BestPpnException, JsonProcessingException {
         Map<String, Integer> ppnElecScore = getMaxValuesFromMap(ppnElecResultList);
         switch (ppnElecScore.size()) {
-            case 0 :
+            case 0:
                 switch (ppnPrintResultList.size()) {
-                    case 0 :
-                        topicProducer.sendPrintNotice(null, kbart, provider);
-                        //  TODO alimenter topic "création d'une e-notice à partir d'une ligne kbart + info provider"
-                        break;
-                    case 1 :
-                        topicProducer.sendPrintNotice(ppnPrintResultList.get(0), kbart, provider);
-                        // TODO alimenter topic "création de la e-notice à partir de la notice imprimée + kbart + infos provider"
-                        break;
-                    default :
-                        throw new BestPpnException("Plusieurs ppn imprimés (" + String.join(", ", ppnElecScore.keySet()) + ") ont été trouvés.");
+                    case 0 -> topicProducer.sendPrintNotice(null, kbart, provider);
+                    case 1 -> topicProducer.sendPrintNotice(ppnPrintResultList.get(0), kbart, provider);
+                    default ->
+                            throw new BestPpnException("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
                 }
                 break;
-            case 1 :
+            case 1:
                 return ppnElecScore.keySet().stream().findFirst().get();
-            default :
+            default:
                 throw new BestPpnException("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
-
         }
         return "";
     }
 
-    public <K,V extends Comparable<? super V>> Map<K, V> getMaxValuesFromMap(Map<K,V> map) {
+    public <K, V extends Comparable<? super V>> Map<K, V> getMaxValuesFromMap(Map<K, V> map) {
         Map<K, V> maxKeys = new HashMap<>();
-        V maxValue = Collections.max(map.values());
-        for (Map.Entry<K,V> entry : map.entrySet()) {
-            if (entry.getValue().equals(maxValue)) {
-                maxKeys.put(entry.getKey(), entry.getValue());
+        if (!map.isEmpty()) {
+            V maxValue = Collections.max(map.values());
+            for (Map.Entry<K, V> entry : map.entrySet()) {
+                if (entry.getValue().equals(maxValue)) {
+                    maxKeys.put(entry.getKey(), entry.getValue());
+                }
             }
         }
         return maxKeys;
