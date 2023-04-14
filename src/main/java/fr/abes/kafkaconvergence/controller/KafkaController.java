@@ -2,10 +2,9 @@ package fr.abes.kafkaconvergence.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
-import fr.abes.kafkaconvergence.entity.PpnResultList;
+import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
-import fr.abes.kafkaconvergence.exception.ScoreException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
 import fr.abes.kafkaconvergence.service.TopicProducer;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
@@ -30,7 +29,6 @@ import java.io.InputStreamReader;
 public class KafkaController {
     private final TopicProducer topicProducer;
     private final BestPpnService service;
-    private final ObjectMapper mapper;
 
     private static final String HEADER_TO_CHECK = "publication_title";
 
@@ -51,15 +49,14 @@ public class KafkaController {
                     String[] tsvElementsOnOneLine = line.split("\t");
                     // Crée un nouvel objet dto et set les différentes parties
                     LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
-                    PpnResultList allPpns = service.getBestPpn(kbart, provider);
-                    String bestPpn = service.getBestPpnByScore(allPpns);
+                    String bestPpn = service.getBestPpn(kbart, provider);
                     kbart.setBestPpn(bestPpn);
-                    topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
+                    topicProducer.sendKbart(kbart);
                 }
             }
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
-        } catch (IllegalPpnException | ScoreException e) {
+        } catch (IllegalPpnException | BestPpnException e) {
             // TODO gérer l'erreur ???
             throw new RuntimeException(e.getMessage());
         }

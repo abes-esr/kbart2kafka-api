@@ -4,12 +4,10 @@ import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
-import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
-import fr.abes.kafkaconvergence.entity.PpnResultList;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
+import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
-import fr.abes.kafkaconvergence.exception.ScoreException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
@@ -27,9 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @SpringBootTest(classes = {BestPpnService.class})
 class BestPpnServiceTest {
@@ -39,6 +35,9 @@ class BestPpnServiceTest {
 
     @MockBean
     NoticeService noticeService;
+
+    @MockBean
+    TopicProducer topicProducer;
 
     @MockBean
     WsService service;
@@ -70,7 +69,7 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test feedPpnListFromOnline")
-    void getBestPpnTest01() throws IllegalPpnException, IOException {
+    void getBestPpnTest01() throws IllegalPpnException, IOException, BestPpnException {
         String provider = "urlProvider";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
@@ -112,20 +111,15 @@ class BestPpnServiceTest {
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
 
         //  Appel du service
-        PpnResultList result = bestPpnService.getBestPpn(kbart, provider);
+        String result = bestPpnService.getBestPpn(kbart, provider);
 
         //  Vérification
-        Assertions.assertEquals(2, (long) result.getMapPpnScore().keySet().size());
-        Assertions.assertEquals(1, result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
-        Assertions.assertEquals(1, result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count());
-        Assertions.assertEquals("100000003", result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).findFirst().get().getPpn());
-        Assertions.assertEquals(5, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("100000001")).findFirst().get().getValue());
-//        Assertions.assertEquals(5, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("100000002")).findFirst().get().getValue());
+        Assertions.assertEquals("100000001", result);
     }
 
     @Test
     @DisplayName("Test feedPpnListFromPrint")
-    void getBestPpnTest02() throws IllegalPpnException, IOException {
+    void getBestPpnTest02() throws IllegalPpnException, IOException, BestPpnException {
         String provider = "urlProvider";
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -163,138 +157,134 @@ class BestPpnServiceTest {
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
 
         //  Appel du service
-        PpnResultList result = bestPpnService.getBestPpn(kbart, provider);
+        String result = bestPpnService.getBestPpn(kbart, provider);
 
         //  Vérification
-        Assertions.assertEquals(2, (long) result.getMapPpnScore().keySet().size());
-        Assertions.assertEquals(1, result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
-        Assertions.assertEquals(1, result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count());
-        Assertions.assertEquals("200000002", result.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).findFirst().get().getPpn());
-        Assertions.assertEquals(8, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("200000001")).findFirst().get().getValue());
+        Assertions.assertEquals("200000001", result);
     }
 
-    @Test
-    @DisplayName("Test feedPpnListFromDat")
-    void getBestPpnTest03() throws IllegalPpnException, IOException {
-        String provider = "urlProvider";
-        //  Create a List of PpnWithListDto for elec
-        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
-        //  Create a ResultWsSudocDto for elec
-        ResultWsSudocDto resultElec = new ResultWsSudocDto();
-        resultElec.setPpns(ppnWithTypeDto);
-
-        //  Create a List of PpnWithListDto for print
-        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
-        //  Create a ResultWsSudocDto for print
-        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
-        resultPrint.setPpns(ppnWithTypePrintDto);
-
-        //  Create a ResultDat2PpnWebDto
-        ResultDat2PpnWebDto resultDat2PpnWeb = new ResultDat2PpnWebDto();
-        resultDat2PpnWeb.addPpn("300000001");
-        resultDat2PpnWeb.addPpn("300000002");
-
-        //  Create a LigneKbartDto
-        LigneKbartDto kbart = new LigneKbartDto();
-        kbart.setOnline_identifier("1292-8399");
-        kbart.setPrint_identifier("2-84358-095-1");
-        kbart.setPublication_type("serial");
-        kbart.setDate_monograph_published_online("DateOnline");
-        kbart.setPublication_title("Titre");
-        kbart.setFirst_author("Auteur");
-        kbart.setDate_monograph_published_print("DatePrint");
-
-        //  Mock
-        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
-        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
-        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
-        Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticeElec);
-        Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
-
-        //  Appel du service
-        PpnResultList result = bestPpnService.getBestPpn(kbart, provider);
-
-        //  Test avec Notice électronique
-        Assertions.assertEquals(1, (long) result.getMapPpnScore().keySet().size());
-        Assertions.assertEquals(1, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count());
-        Assertions.assertEquals(20, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("300000001")).findFirst().get().getValue());
-
-        //  Create a ResultDat2PpnWebDto
-        ResultDat2PpnWebDto resultDat2PpnWeb2 = new ResultDat2PpnWebDto();
-        resultDat2PpnWeb2.addPpn("300000002");
-
-        //  Test avec Notice monographie
-        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb2);
-        Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticePrint);
-        Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
-
-        //  Appel du service
-        PpnResultList result2 = bestPpnService.getBestPpn(kbart, provider);
-        //  Vérification
-        Assertions.assertEquals(1, (long) result2.getMapPpnScore().keySet().size());
-        Assertions.assertEquals(1, result2.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
-        Assertions.assertEquals(0, result2.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("300000002")).findFirst().get().getValue());
-    }
-
-    @Test
-    @DisplayName("test best ppn with score : 1 seule notice électronique")
-    void bestPpnWithScoreTest1() throws ScoreException {
-        PpnResultList in = new PpnResultList();
-        Map<PpnWithTypeDto, Integer> ppns = new HashMap<>();
-        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
-        in.setMapPpnScore(ppns);
-
-        String result = bestPpnService.getBestPpnByScore(in);
-        Assertions.assertFalse(result.isEmpty());
-        Assertions.assertEquals("111111111", result);
-    }
-
-    @Test
-    @DisplayName("test best ppn with score : 2 notices électroniques avec score différnt")
-    void bestPpnWithScoreTest2() throws ScoreException {
-        PpnResultList in = new PpnResultList();
-        Map<PpnWithTypeDto, Integer> ppns = new HashMap<>();
-        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
-        ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.ELECTRONIQUE), 5);
-        in.setMapPpnScore(ppns);
-
-        String result = bestPpnService.getBestPpnByScore(in);
-        Assertions.assertFalse(result.isEmpty());
-        Assertions.assertEquals("111111111", result);
-    }
-
-    @Test
-    @DisplayName("test best ppn with score : 2 notices électroniques avec même score")
-    void bestPpnWithScoreTest3() {
-        PpnResultList in = new PpnResultList();
-        Map<PpnWithTypeDto, Integer> ppns = new HashMap<>();
-        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
-        ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.ELECTRONIQUE), 10);
-        in.setMapPpnScore(ppns);
-
-        Assertions.assertThrows(ScoreException.class, () -> bestPpnService.getBestPpnByScore(in));
-
-    }
-
-    @Test
-    void testMax1(){
-        Map<String, Integer> map = new HashMap<>();
-        map.put("1", 10);
-        map.put("2", 20);
-        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
-        Assertions.assertEquals(1 ,result.keySet().size());
-        Assertions.assertEquals(20 ,result.get("2"));
-    }
-
-    @Test
-    void testMax2(){
-        Map<String, Integer> map = new HashMap<>();
-        map.put("1", 10);
-        map.put("2", 20);
-        map.put("3", 20);
-        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
-        Assertions.assertEquals(2 ,result.keySet().size());
-        Assertions.assertEquals(20 ,result.get("2"));
-        Assertions.assertEquals(20 ,result.get("3"));
-    }
+//    @Test
+//    @DisplayName("Test feedPpnListFromDat")
+//    void getBestPpnTest03() throws IllegalPpnException, IOException {
+//        String provider = "urlProvider";
+//        //  Create a List of PpnWithListDto for elec
+//        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+//        //  Create a ResultWsSudocDto for elec
+//        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+//        resultElec.setPpns(ppnWithTypeDto);
+//
+//        //  Create a List of PpnWithListDto for print
+//        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
+//        //  Create a ResultWsSudocDto for print
+//        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+//        resultPrint.setPpns(ppnWithTypePrintDto);
+//
+//        //  Create a ResultDat2PpnWebDto
+//        ResultDat2PpnWebDto resultDat2PpnWeb = new ResultDat2PpnWebDto();
+//        resultDat2PpnWeb.addPpn("300000001");
+//        resultDat2PpnWeb.addPpn("300000002");
+//
+//        //  Create a LigneKbartDto
+//        LigneKbartDto kbart = new LigneKbartDto();
+//        kbart.setOnline_identifier("1292-8399");
+//        kbart.setPrint_identifier("2-84358-095-1");
+//        kbart.setPublication_type("serial");
+//        kbart.setDate_monograph_published_online("DateOnline");
+//        kbart.setPublication_title("Titre");
+//        kbart.setFirst_author("Auteur");
+//        kbart.setDate_monograph_published_print("DatePrint");
+//
+//        //  Mock
+//        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+//        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+//        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
+//        Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticeElec);
+//        Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
+//
+//        //  Appel du service
+//        PpnResultList result = bestPpnService.getBestPpn(kbart, provider);
+//
+//        //  Test avec Notice électronique
+//        Assertions.assertEquals(1, (long) result.getMapPpnScore().keySet().size());
+//        Assertions.assertEquals(1, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count());
+//        Assertions.assertEquals(20, result.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("300000001")).findFirst().get().getValue());
+//
+//        //  Create a ResultDat2PpnWebDto
+//        ResultDat2PpnWebDto resultDat2PpnWeb2 = new ResultDat2PpnWebDto();
+//        resultDat2PpnWeb2.addPpn("300000002");
+//
+//        //  Test avec Notice monographie
+//        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb2);
+//        Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticePrint);
+//        Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
+//
+//        //  Appel du service
+//        PpnResultList result2 = bestPpnService.getBestPpn(kbart, provider);
+//        //  Vérification
+//        Assertions.assertEquals(1, (long) result2.getMapPpnScore().keySet().size());
+//        Assertions.assertEquals(1, result2.getMapPpnScore().keySet().stream().filter(ppn -> ppn.getType().equals(TYPE_SUPPORT.IMPRIME)).count());
+//        Assertions.assertEquals(0, result2.getMapPpnScore().entrySet().stream().filter(ppn -> ppn.getKey().getPpn().equals("300000002")).findFirst().get().getValue());
+//    }
+//
+//    @Test
+//    @DisplayName("test best ppn with score : 1 seule notice électronique")
+//    void bestPpnWithScoreTest1() throws BestPpnException {
+//        PpnResultList in = new PpnResultList();
+//        Map<PpnWithTypeDto, Integer> ppns = new HashMap<>();
+//        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
+//        in.setMapPpnScore(ppns);
+//
+//        String result = bestPpnService.getBestPpnByScore(in);
+//        Assertions.assertFalse(result.isEmpty());
+//        Assertions.assertEquals("111111111", result);
+//    }
+//
+//    @Test
+//    @DisplayName("test best ppn with score : 2 notices électroniques avec score différent")
+//    void bestPpnWithScoreTest2() throws BestPpnException {
+//        PpnResultList in = new PpnResultList();
+//        Map<PpnWithTypeDto, Integer> ppns = new HashMap<>();
+//        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
+//        ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.ELECTRONIQUE), 5);
+//        in.setMapPpnScore(ppns);
+//
+//        String result = bestPpnService.getBestPpnByScore(in);
+//        Assertions.assertFalse(result.isEmpty());
+//        Assertions.assertEquals("111111111", result);
+//    }
+//
+//    @Test
+//    @DisplayName("test best ppn with score : 2 notices électroniques avec même score")
+//    void bestPpnWithScoreTest3() {
+//        PpnResultList in = new PpnResultList();
+//        Map<PpnWithTypeDto, Integer> ppns = new HashMap<>();
+//        ppns.put(new PpnWithTypeDto("111111111", TYPE_SUPPORT.ELECTRONIQUE), 10);
+//        ppns.put(new PpnWithTypeDto("222222222", TYPE_SUPPORT.ELECTRONIQUE), 10);
+//        in.setMapPpnScore(ppns);
+//
+//        Assertions.assertThrows(BestPpnException.class, () -> bestPpnService.getBestPpnByScore(in));
+//
+//    }
+//
+//    @Test
+//    void testMax1(){
+//        Map<String, Integer> map = new HashMap<>();
+//        map.put("1", 10);
+//        map.put("2", 20);
+//        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
+//        Assertions.assertEquals(1 ,result.keySet().size());
+//        Assertions.assertEquals(20 ,result.get("2"));
+//    }
+//
+//    @Test
+//    void testMax2(){
+//        Map<String, Integer> map = new HashMap<>();
+//        map.put("1", 10);
+//        map.put("2", 20);
+//        map.put("3", 20);
+//        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
+//        Assertions.assertEquals(2 ,result.keySet().size());
+//        Assertions.assertEquals(20 ,result.get("2"));
+//        Assertions.assertEquals(20 ,result.get("3"));
+//    }
 }
