@@ -127,7 +127,7 @@ public class BestPpnService {
         }
     }
 
-    public String getBestPpnByScore(LigneKbartDto kbart, String provider) throws BestPpnException {
+    public String getBestPpnByScore(LigneKbartDto kbart, String provider) throws BestPpnException, JsonProcessingException {
         Map<String, Integer> ppnElecScore = getMaxValuesFromMap(ppnElecResultList);
         switch (ppnElecScore.size()) {
             case 0 :
