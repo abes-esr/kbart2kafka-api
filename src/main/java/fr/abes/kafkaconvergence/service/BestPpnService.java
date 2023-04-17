@@ -55,7 +55,7 @@ public class BestPpnService {
                 feedPpnListFromOnline(kbart, provider, ppnElecResultList, ppnPrintResultList);
             }
             if (!kbart.getPrint_identifier().isEmpty()) {
-                log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getOnline_identifier() + " / provider : " + provider);
+                log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getPrint_identifier() + " / provider : " + provider);
                 feedPpnListFromPrint(kbart, provider, ppnElecResultList, ppnPrintResultList);
             }
         }
