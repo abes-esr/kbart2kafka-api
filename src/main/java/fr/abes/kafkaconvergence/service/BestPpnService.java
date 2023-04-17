@@ -45,14 +45,17 @@ public class BestPpnService {
     }
 
     public String getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException, BestPpnException {
+
         Map<String, Integer> ppnElecResultList = new HashMap<>();
         List<String> ppnPrintResultList = new ArrayList<>();
 
         if (!kbart.getPublication_type().isEmpty()) {
             if (!kbart.getOnline_identifier().isEmpty()) {
+                log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getOnline_identifier() + " / provider : " + provider);
                 feedPpnListFromOnline(kbart, provider, ppnElecResultList, ppnPrintResultList);
             }
             if (!kbart.getPrint_identifier().isEmpty()) {
+                log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getOnline_identifier() + " / provider : " + provider);
                 feedPpnListFromPrint(kbart, provider, ppnElecResultList, ppnPrintResultList);
             }
         }
@@ -67,10 +70,12 @@ public class BestPpnService {
     }
 
     public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws JsonProcessingException {
+        log.debug("Entrée dans onlineId2Ppn");
         getResultFromCall(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider), this.scoreOnlineId2PpnElect, ppnElecResultList, ppnPrintResultList);
     }
 
     public void feedPpnListFromPrint(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws JsonProcessingException {
+        log.debug("Entrée dans printId2Ppn");
         getResultFromCall(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider), this.scorePrintId2PpnElect, ppnElecResultList, ppnPrintResultList);
     }
 
@@ -82,14 +87,18 @@ public class BestPpnService {
                     if (!ppnElecResultList.isEmpty()) {
                         if (ppnElecResultList.containsKey(ppn.getPpn())) {
                             Integer value = ppnElecResultList.get(ppn.getPpn()) + (score / nbPpnElec);
+                            log.debug("PPN Electronique : " + ppn + " / score : " + value);
                             ppnElecResultList.put(ppn.getPpn(), value);
                         } else {
+                            log.debug("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
                             ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
                         }
                     } else {
+                        log.debug("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
                         ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
                     }
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
+                    log.debug("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
                 }
             }
@@ -97,7 +106,9 @@ public class BestPpnService {
     }
 
     public void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws IOException, IllegalPpnException {
+        log.debug("Entrée dans dat2ppn");
         if (!kbart.getDate_monograph_published_online().isEmpty()) {
+            log.debug("Appel avec date monograph published online : " + kbart.getDate_monograph_published_online());
             ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
@@ -109,6 +120,7 @@ public class BestPpnService {
             }
         }
         if (ppnElecResultList.isEmpty() && !kbart.getDate_monograph_published_print().isEmpty()) {
+            log.debug("Appel avec date monograph published print : " + kbart.getDate_monograph_published_print());
             ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
