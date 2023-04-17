@@ -1,8 +1,6 @@
 package fr.abes.kafkaconvergence.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter

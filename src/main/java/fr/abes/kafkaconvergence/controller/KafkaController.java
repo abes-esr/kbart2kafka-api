@@ -38,7 +38,7 @@ public class KafkaController {
             @ApiResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message = "The server is not responding, please try again later", response = String.class)
     })
     @PostMapping("/kbart2Kafka")
-    public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException {
+    public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException, BestPpnException, IllegalPpnException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             CheckFiles.verifyFile(file, HEADER_TO_CHECK);
             String provider = CheckFiles.getProviderFromFilename(file);
@@ -56,9 +56,6 @@ public class KafkaController {
             }
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
-        } catch (IllegalPpnException | BestPpnException e) {
-            // TODO gérer l'erreur ???
-            throw new RuntimeException(e.getMessage());
         }
     }
 

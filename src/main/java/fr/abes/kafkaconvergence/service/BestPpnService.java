@@ -106,11 +106,11 @@ public class BestPpnService {
     }
 
     public void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws IOException, IllegalPpnException {
-        log.debug("Entrée dans dat2ppn");
         if (!kbart.getDate_monograph_published_online().isEmpty()) {
-            log.debug("Appel avec date monograph published online : " + kbart.getDate_monograph_published_online());
+            log.debug("Appel dat2ppn :  date_monograph_published_online : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
             ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
             for (String ppn : resultDat2PpnWeb.getPpns()) {
+                log.debug("résultat : ppn " + ppn);
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeElectronique()) {
                     ppnElecResultList.put(ppn, scoreDat2Ppn);
@@ -120,9 +120,10 @@ public class BestPpnService {
             }
         }
         if (ppnElecResultList.isEmpty() && !kbart.getDate_monograph_published_print().isEmpty()) {
-            log.debug("Appel avec date monograph published print : " + kbart.getDate_monograph_published_print());
+            log.debug("Appel dat2ppn :  date_monograph_published_print : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
             ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
             for (String ppn : resultDat2PpnWeb.getPpns()) {
+                log.debug("résultat : ppn " + ppn);
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
                 if (notice.isNoticeImprimee()) {
                     ppnPrintResultList.add(ppn);
@@ -138,8 +139,14 @@ public class BestPpnService {
         switch (ppnElecScore.size()) {
             case 0:
                 switch (ppnPrintResultList.size()) {
-                    case 0 -> topicProducer.sendPrintNotice(null, kbart, provider);
-                    case 1 -> topicProducer.sendPrintNotice(ppnPrintResultList.get(0), kbart, provider);
+                    case 0 -> {
+                        log.debug("Envoi kbart et provider vers kafka");
+                        topicProducer.sendPrintNotice(null, kbart, provider);
+                        }
+                    case 1 -> {
+                        log.debug("envoi ppn imprimé " + ppnPrintResultList.get(0) + ", kbart et provider");
+                        topicProducer.sendPrintNotice(ppnPrintResultList.get(0), kbart, provider);
+                    }
                     default ->
                             throw new BestPpnException("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
                 }

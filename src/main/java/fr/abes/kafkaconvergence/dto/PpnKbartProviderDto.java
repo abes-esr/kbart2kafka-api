@@ -2,7 +2,6 @@ package fr.abes.kafkaconvergence.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @AllArgsConstructor
@@ -15,12 +14,12 @@ public class PpnKbartProviderDto {
 
     @Override
     public String toString() {
-        return "PPN : " + ppn + " / kbart : " + kbart.toString() + " / provider : " + provider;
+        return (this.ppn != null) ? "PPN : " + ppn + " / kbart : " + kbart.toString() + " / provider : " + provider : "kbart : " + kbart.toString() + " / provider : " + provider;
     }
 
     @Override
     public int hashCode() {
-        return this.ppn.hashCode() * this.kbart.hashCode() * this.provider.hashCode();
+        return (this.ppn != null) ? this.ppn.hashCode() * this.kbart.hashCode() * this.provider.hashCode() : this.kbart.hashCode() * this.provider.hashCode();
     }
 }
 
