@@ -18,7 +18,7 @@ public class TopicProducer {
     @Value("${topic.name.kbart}")
     private String topicKbart;
 
-    @Value("${topic.name.ppnKbartProvider")
+    @Value("${topic.name.ppnKbartProvider}")
     private String topicPpnKbartProvider;
 
     private final KafkaTemplate<String, String> kafkaTemplate;
