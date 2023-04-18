@@ -7,7 +7,9 @@ import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
 import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
+import fr.abes.kafkaconvergence.entity.basexml.notice.Datafield;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
+import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
@@ -23,8 +25,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
 
+import javax.xml.crypto.Data;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,7 +77,7 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test with 1 elecFromOnline & 1 printFromOnline")
-    void getBestPpnTest01() throws IllegalPpnException, IOException, BestPpnException {
+    void getBestPpnTest01() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "urlProvider";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
@@ -105,10 +109,12 @@ class BestPpnServiceTest {
         kbart.setPublication_title("Titre");
         kbart.setFirst_author("Auteur");
         kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url("https://www.test.fr/test");
 
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
         String result = bestPpnService.getBestPpn(kbart, provider);
@@ -119,7 +125,7 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test with 1 elecFromOnline & 1 elecFromPrint")
-    void getBestPpnTest02() throws IllegalPpnException, IOException, BestPpnException {
+    void getBestPpnTest02() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "urlProvider";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
@@ -156,10 +162,12 @@ class BestPpnServiceTest {
         kbart.setPublication_title("Titre");
         kbart.setFirst_author("Auteur");
         kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url("https://www.test.fr/test");
 
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
         String result = bestPpnService.getBestPpn(kbart, provider);
@@ -170,7 +178,7 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test sum of scores")
-    void getBestPpnTest03() throws IllegalPpnException, IOException, BestPpnException {
+    void getBestPpnTest03() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "urlProvider";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
@@ -207,10 +215,12 @@ class BestPpnServiceTest {
         kbart.setPublication_title("Titre");
         kbart.setFirst_author("Auteur");
         kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url("https://www.test.fr/test");
 
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
         String result = bestPpnService.getBestPpn(kbart, provider);
@@ -221,7 +231,7 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test throw BestPpnException same score")
-    void getBestPpnTest04() throws IOException {
+    void getBestPpnTest04() throws IOException, IllegalPpnException {
         String provider = "urlProvider";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
@@ -253,10 +263,12 @@ class BestPpnServiceTest {
         kbart.setPublication_title("Titre");
         kbart.setFirst_author("Auteur");
         kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url("https://www.test.fr/test");
 
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Vérification
         BestPpnException result = Assertions.assertThrows(BestPpnException.class, ()-> bestPpnService.getBestPpn(kbart, provider));
@@ -320,7 +332,7 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test printFromPrint & 2 printFromDat ")
-    void getBestPpnTest06() throws IllegalPpnException, IOException, BestPpnException {
+    void getBestPpnTest06() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "urlProvider";
 
         //  Create a List of PpnWithListDto for elec
