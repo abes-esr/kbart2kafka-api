@@ -2,10 +2,16 @@ package fr.abes.kafkaconvergence.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
+import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
 import fr.abes.kafkaconvergence.service.TopicProducer;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
@@ -24,31 +29,29 @@ import java.util.List;
 public class KafkaController {
     private final TopicProducer topicProducer;
     private final BestPpnService service;
-    private final ObjectMapper mapper;
 
+    private static final String HEADER_TO_CHECK = "publication_title";
+
+    @ApiOperation("Reads a TSV file, calculates the best PPN and sends the answer to Kafka")
+    @ApiResponses({
+            @ApiResponse(code = HttpServletResponse.SC_BAD_REQUEST, message = "Wrong file format", response = String.class),
+            @ApiResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message = "The server is not responding, please try again later", response = String.class)
+    })
     @PostMapping("/kbart2Kafka")
-    public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException {
-        //execution seulement si:
-        //le fichier à une extension tsv,
-        //contient des tabulations,
-        //contient un entête avec la présence du terme publication title
-        try {
-            CheckFiles.verifyFile(file, "publication_title");
+    public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException, BestPpnException, IllegalPpnException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            CheckFiles.verifyFile(file, HEADER_TO_CHECK);
             String provider = CheckFiles.getProviderFromFilename(file);
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (!line.contains("publication_title")) {
-                        String[] tsvElementsOnOneLine = line.split("\t");
-                        // Crée un nouvel objet dto et set les différentes parties
-                        LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
-                        List<String> bestPpns = service.getBestPpn(kbart, provider);
-                        if (bestPpns.size() > 0) {
-                            kbart.setBestPpn(bestPpns.get(0));
-                            topicProducer.send(Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
-                        }
-                    }
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.contains(HEADER_TO_CHECK)) {
+                    String[] tsvElementsOnOneLine = line.split("\t");
+                    // Crée un nouvel objet dto et set les différentes parties
+                    LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
+                    String bestPpn = service.getBestPpn(kbart, provider);
+                    kbart.setBestPpn(bestPpn);
+                    topicProducer.sendKbart(kbart);
                 }
             }
         } catch (IllegalFileFormatException ex) {
@@ -59,9 +62,9 @@ public class KafkaController {
 
     /**
      * Construction de la dto
+     *
      * @param line ligne en entrée
      * @return Un objet DTO initialisé avec les informations de la ligne
-     *
      */
     private LigneKbartDto constructDto(String[] line) {
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
@@ -95,6 +98,7 @@ public class KafkaController {
 
     /**
      * Sérialisation d'un objet dto en chaine de caractère pour le passer au producteur de messages kafka
+     *
      * @param dto objet à passer au producteur de messages
      * @return une chaine à passer au TopicProducer de kafka
      */

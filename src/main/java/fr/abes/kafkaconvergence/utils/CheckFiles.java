@@ -12,8 +12,7 @@ public class CheckFiles {
      * Controle si le fichier à bien une extension tsv
      *
      * @param file fichier en entrée
-     * @return true si extension présente, false sinon
-     * @throws IOException erreur avec le fichier en entrée
+     * @throws IllegalFileFormatException
      */
     public static void isFileWithTSVExtension(MultipartFile file) throws IllegalFileFormatException {
         //Filename extension control
@@ -31,7 +30,6 @@ public class CheckFiles {
      * Détecte si le fichier présente des tabulations
      *
      * @param file fichier en entrée
-     * @return true si des tabulations sont présentes dans le fichier, false sinon
      * @throws IOException erreur avec le fichier en entrée
      */
     public static void detectTabulations(MultipartFile file) throws IOException, IllegalFileFormatException {
@@ -50,10 +48,9 @@ public class CheckFiles {
      *
      * @param header terme à recherche dans l'entête
      * @param file   fichier en entrée
-     * @return true si le terme est présent
      * @throws IOException
      */
-    public static void detectOfHeaderPresence(String header, MultipartFile file) throws IOException, IllegalFileFormatException {
+    public static void detectHeaderPresence(String header, MultipartFile file) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             String line = reader.readLine();
             if (!line.contains(header))
@@ -70,9 +67,17 @@ public class CheckFiles {
         return "";
     }
 
+    /**
+     * Contrôle que le fichier à une extension tsv, qu'il contient des tabulations et
+     * qu'il contient un entête avec la présence d'un terme en paramètre
+     * @param file le fichier en entrée
+     * @param header la chaine de caractère à rechercher
+     * @throws IllegalFileFormatException Format de fichier non conforme
+     * @throws IOException Impossible de lire le fichier
+     */
     public static void verifyFile(MultipartFile file, String header) throws IllegalFileFormatException, IOException {
         CheckFiles.isFileWithTSVExtension(file);
         CheckFiles.detectTabulations(file);
-        CheckFiles.detectOfHeaderPresence(header, file);
+        CheckFiles.detectHeaderPresence(header, file);
     }
 }

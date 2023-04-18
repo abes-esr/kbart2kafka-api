@@ -29,4 +29,18 @@ public class ExceptionControllerHandler extends ResponseEntityExceptionHandler {
         log.debug(ex.getLocalizedMessage());
         return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, error, ex));
     }
+
+    @ExceptionHandler(IllegalPpnException.class)
+    protected ResponseEntity<Object> handleIllegalPpnException(IllegalPpnException ex) {
+        String error = "Erreur dans la récupération d'une notice";
+        log.debug(ex.getLocalizedMessage());
+        return buildResponseEntity(new ApiReturnError(HttpStatus.SERVICE_UNAVAILABLE, error, ex));
+    }
+
+    @ExceptionHandler(BestPpnException.class)
+    protected ResponseEntity<Object> handleBestPpnException(BestPpnException ex) {
+        String error = "Erreur dans le calcul de best ppn, intervention humaine requise";
+        log.debug(ex.getLocalizedMessage());
+        return buildResponseEntity(new ApiReturnError(HttpStatus.BAD_REQUEST, error, ex));
+    }
 }

@@ -9,4 +9,13 @@ import lombok.NoArgsConstructor;
 public class PpnWithTypeDto {
     private String ppn;
     private TYPE_SUPPORT type;
+
+    public PpnWithTypeDto(String ppn) {
+        this.ppn = ppn;
+    }
+
+    public PpnWithTypeDto(String ppn, TYPE_SUPPORT type) {
+        this.ppn = ppn;
+        this.type = type;
+    }
 }
