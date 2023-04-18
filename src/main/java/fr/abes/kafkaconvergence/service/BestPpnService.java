@@ -47,7 +47,7 @@ public class BestPpnService {
     public String getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException, BestPpnException {
 
         Map<String, Integer> ppnElecResultList = new HashMap<>();
-        List<String> ppnPrintResultList = new ArrayList<>();
+        Set<String> ppnPrintResultList = new HashSet<>();
 
         if (!kbart.getPublication_type().isEmpty()) {
             if (!kbart.getOnline_identifier().isEmpty()) {
@@ -69,17 +69,17 @@ public class BestPpnService {
         return getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
     }
 
-    public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws JsonProcessingException {
+    public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws JsonProcessingException {
         log.debug("Entrée dans onlineId2Ppn");
         getResultFromCall(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider), this.scoreOnlineId2PpnElect, ppnElecResultList, ppnPrintResultList);
     }
 
-    public void feedPpnListFromPrint(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws JsonProcessingException {
+    public void feedPpnListFromPrint(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws JsonProcessingException {
         log.debug("Entrée dans printId2Ppn");
         getResultFromCall(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider), this.scorePrintId2PpnElect, ppnElecResultList, ppnPrintResultList);
     }
 
-    private void getResultFromCall(ResultWsSudocDto resultCallWs, int score, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) {
+    private void getResultFromCall(ResultWsSudocDto resultCallWs, int score, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
@@ -105,7 +105,7 @@ public class BestPpnService {
         }
     }
 
-    public void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws IOException, IllegalPpnException {
+    public void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
         if (!kbart.getDate_monograph_published_online().isEmpty()) {
             log.debug("Appel dat2ppn :  date_monograph_published_online : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
             ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
@@ -134,7 +134,7 @@ public class BestPpnService {
         }
     }
 
-    public String getBestPpnByScore(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, List<String> ppnPrintResultList) throws BestPpnException, JsonProcessingException {
+    public String getBestPpnByScore(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws BestPpnException, JsonProcessingException {
         Map<String, Integer> ppnElecScore = getMaxValuesFromMap(ppnElecResultList);
         switch (ppnElecScore.size()) {
             case 0:
@@ -144,8 +144,8 @@ public class BestPpnService {
                         topicProducer.sendPrintNotice(null, kbart, provider);
                         }
                     case 1 -> {
-                        log.debug("envoi ppn imprimé " + ppnPrintResultList.get(0) + ", kbart et provider");
-                        topicProducer.sendPrintNotice(ppnPrintResultList.get(0), kbart, provider);
+                        log.debug("envoi ppn imprimé " + ppnPrintResultList.stream().toList().get(0) + ", kbart et provider");
+                        topicProducer.sendPrintNotice(ppnPrintResultList.stream().toList().get(0), kbart, provider);
                     }
                     default ->
                             throw new BestPpnException("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
