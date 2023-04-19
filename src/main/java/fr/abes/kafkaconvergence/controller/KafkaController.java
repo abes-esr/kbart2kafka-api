@@ -95,7 +95,7 @@ public class KafkaController {
         kbartLineInDtoObject.setFirst_editor(line[21]);
         kbartLineInDtoObject.setParent_publication_title_id(line[22]);
         kbartLineInDtoObject.setPreceding_publication_title_id(line[23]);
-        kbartLineInDtoObject.setAccess_type(line[23]);
+        kbartLineInDtoObject.setAccess_type(line[24]);
         return kbartLineInDtoObject;
     }
 

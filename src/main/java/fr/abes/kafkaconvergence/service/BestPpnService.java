@@ -112,7 +112,9 @@ public class BestPpnService {
     }
 
     public boolean checkUrlInNotice(String ppn, String titleUrl) throws IOException, IllegalPpnException, URISyntaxException {
-        if (titleUrl.contains("doi.org")) {
+        log.debug("entrée dans checkUrlInNotice " + titleUrl);
+        if (titleUrl == null || titleUrl.contains("doi.org")) {
+            log.debug("titleUrl null ou contient doi.org");
             return true;
         }
         String domain = Utils.extractDomainFromUrl(titleUrl);
@@ -121,15 +123,22 @@ public class BestPpnService {
         List<Datafield> zones856 = notice.getZoneDollarUWithoutDollar5("856");
         for(Datafield zone : zones856) {
             for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).collect(Collectors.toList())) {
-                if (sousZone.getValue().contains(domain)) return true;
+                if (sousZone.getValue().contains(domain)) {
+                    log.debug("Url trouvée dans 856");
+                    return true;
+                }
             }
         }
         List<Datafield> zone859 = notice.getZoneDollarUWithoutDollar5("859");
         for (Datafield zone : zone859) {
             for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).collect(Collectors.toList())) {
-                if (sousZone.getValue().contains(domain)) return true;
+                if (sousZone.getValue().contains(domain)) {
+                    log.debug("Url trouvée dans 859");
+                    return true;
+                }
             }
         }
+        log.debug("Url non trouvée dans notice");
         return false;
     }
 
