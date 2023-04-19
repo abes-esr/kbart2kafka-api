@@ -48,10 +48,13 @@ public class KafkaController {
                 if (!line.contains(HEADER_TO_CHECK)) {
                     String[] tsvElementsOnOneLine = line.split("\t");
                     // Crée un nouvel objet dto et set les différentes parties
-                    LigneKbartDto kbart = constructDto(tsvElementsOnOneLine);
-                    String bestPpn = service.getBestPpn(kbart, provider);
-                    kbart.setBestPpn(bestPpn);
-                    topicProducer.sendKbart(kbart);
+                    LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
+                    // Vérifie si un best ppn a déjà été renseigné
+                    if (ligneKbartDto.isBestPpnEmpty()) {
+                        String bestPpn = service.getBestPpn(ligneKbartDto, provider);
+                        ligneKbartDto.setBestPpn(bestPpn);
+                    }
+                    topicProducer.sendKbart(ligneKbartDto);
                 }
             }
         } catch (IllegalFileFormatException ex) {
@@ -92,7 +95,10 @@ public class KafkaController {
         kbartLineInDtoObject.setFirst_editor(line[21]);
         kbartLineInDtoObject.setParent_publication_title_id(line[22]);
         kbartLineInDtoObject.setPreceding_publication_title_id(line[23]);
-        kbartLineInDtoObject.setAccess_type(line[23]);
+        kbartLineInDtoObject.setAccess_type(line[24]);
+        if (line.length > 25){
+            kbartLineInDtoObject.setBestPpn(line[25]);
+        }
         return kbartLineInDtoObject;
     }
 
