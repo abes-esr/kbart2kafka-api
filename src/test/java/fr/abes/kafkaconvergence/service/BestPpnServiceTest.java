@@ -30,10 +30,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SpringBootTest(classes = {BestPpnService.class})
 class BestPpnServiceTest {
@@ -327,7 +324,7 @@ class BestPpnServiceTest {
 
         //  Vérification
         BestPpnException result = Assertions.assertThrows(BestPpnException.class, ()-> bestPpnService.getBestPpn(kbart, provider));
-        Assertions.assertEquals("Plusieurs ppn imprimés (100000001, 200000001, 300000001, 300000002) ont été trouvés." , result.getLocalizedMessage());
+        Assertions.assertEquals("Plusieurs ppn imprimés (100000001, 200000001, 300000002, 300000001) ont été trouvés." , result.getLocalizedMessage());
     }
 
     @Test
@@ -433,7 +430,7 @@ class BestPpnServiceTest {
         String provider = "";
         Map<String, Integer> ppnElecResultList = new HashMap<>();
         ppnElecResultList.put("100000001", 10);
-        List<String> ppnPrintResultList = new ArrayList<>();
+        Set<String> ppnPrintResultList = new HashSet<>();
 
         String result = bestPpnService.getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
         Assertions.assertFalse(result.isEmpty());
@@ -448,7 +445,7 @@ class BestPpnServiceTest {
         Map<String, Integer> ppnElecResultList = new HashMap<>();
         ppnElecResultList.put("100000001", 5);
         ppnElecResultList.put("100000002", 10);
-        List<String> ppnPrintResultList = new ArrayList<>();
+        Set<String> ppnPrintResultList = new HashSet<>();
 
         String result = bestPpnService.getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
         Assertions.assertFalse(result.isEmpty());
