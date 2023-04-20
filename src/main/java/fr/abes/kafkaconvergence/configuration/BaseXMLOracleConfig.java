@@ -46,7 +46,7 @@ public class BaseXMLOracleConfig {
 				= new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(baseXmlDataSource());
 		em.setPackagesToScan(
-				new String[] { "fr.abes.kafkaconvergence.entity.basexml" });
+				"fr.abes.kafkaconvergence.entity.basexml");
 		configHibernate(em, platform, showsql, dialect, ddlAuto, generateDdl, initMode);
 		return em;
 	}
