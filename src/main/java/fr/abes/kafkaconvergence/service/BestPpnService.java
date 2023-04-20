@@ -154,6 +154,7 @@ public class BestPpnService {
             case 1:
                 return ppnElecScore.keySet().stream().findFirst().get();
             default:
+                log.error("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
                 throw new BestPpnException("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
         }
         return "";
