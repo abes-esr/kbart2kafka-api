@@ -97,7 +97,7 @@ public class KafkaController {
         kbartLineInDtoObject.setPreceding_publication_title_id(line[23]);
         kbartLineInDtoObject.setAccess_type(line[24]);
         // Vérification de la présence d'un best ppn déjà renseigné dans le kbart
-        if (line.length > 25){
+        if (line.length == 26){
             kbartLineInDtoObject.setBestPpn(line[25]);
         }
         return kbartLineInDtoObject;
