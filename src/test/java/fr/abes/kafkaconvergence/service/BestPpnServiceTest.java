@@ -423,6 +423,9 @@ class BestPpnServiceTest {
         Assertions.assertEquals("100000001", result);
     }
 
+    //@Test
+    //@DisplayName("Test with ppn 233081976 bacon")
+
     @Test
     @DisplayName("test best ppn with score : 1 seule notice électronique")
     void bestPpnWithScoreTest1() throws BestPpnException, JsonProcessingException {
