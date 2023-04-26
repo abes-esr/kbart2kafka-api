@@ -23,6 +23,16 @@ public class LigneKbartDtoTest {
 
         ligne.setOnline_identifier("");
         Assertions.assertEquals("publication title : test / publication_type : monograph / print_identifier : 987123456789", ligne.toString());
+    }
 
+    @Test
+    void isBestPpnEmpty() {
+        LigneKbartDto ligneWithoutBestPpn = new LigneKbartDto();
+        LigneKbartDto ligneWithBestPpn = new LigneKbartDto();
+        ligneWithBestPpn.setBestPpn("123456789");
+
+        Assertions.assertTrue(ligneWithoutBestPpn.isBestPpnEmpty());
+
+        Assertions.assertEquals("123456789", ligneWithBestPpn.getBestPpn());
     }
 }
