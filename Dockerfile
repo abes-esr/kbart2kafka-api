@@ -36,4 +36,4 @@ WORKDIR /app/
 COPY --from=build-image /build/target/*.jar /app/bacon2kafka-api.jar
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-ENTRYPOINT ["java","-jar","/app/bacon2kafka-api.jar"]
+ENTRYPOINT ["java","-jar","-DkafkaServer=$SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS","/app/bacon2kafka-api.jar"]
