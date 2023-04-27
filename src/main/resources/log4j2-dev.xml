@@ -76,7 +76,7 @@
             <Policies>
                 <!-- On exécute les stratégies de création de nouveau fichier et de suppresion :
                 - Au démarrage de l'application
-                - Si l'un des fichiers atteint 10 MB
+                - Si l'un des fichiers atteint ${sizeTriggerPolicy}
                 - Si la date du filePattern nécessite un nouveau fichier -->
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="${sizeTriggerPolicy}" />
@@ -109,7 +109,7 @@
             <Policies>
                 <!-- On exécute les stratégies de création de nouveau fichier et de suppresion :
                 - Au démarrage de l'application
-                - Si l'un des fichiers atteint 10 MB
+                - Si l'un des fichiers atteint ${sizeTriggerPolicy}
                 - Si la date du filePattern nécessite un nouveau fichier -->
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="${sizeTriggerPolicy}" />
@@ -133,8 +133,10 @@
     </Appenders>
 
     <Loggers>
-        <Logger name="fr.abes.convergence.sudocws" level="debug" additivity="false">
+        <Logger name="fr.abes.kafkaconvergence" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="kafkaErrorLogAppender"/>
+            <AppenderRef ref="kafkaInfoLogAppender"/>
         </Logger>
         <Root level="info">
             <AppenderRef ref="Console"/>
