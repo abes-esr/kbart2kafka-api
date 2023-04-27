@@ -58,4 +58,9 @@ public class LigneKbartDto {
     public String getAuthor() {
         return (!this.first_author.isEmpty()) ? this.first_author : this.first_editor;
     }
+
+    public boolean isBestPpnEmpty() {
+        return this.bestPpn == null || this.bestPpn.isEmpty();
+    }
+
 }
