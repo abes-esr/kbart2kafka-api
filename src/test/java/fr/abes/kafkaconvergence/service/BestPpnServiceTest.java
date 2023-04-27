@@ -364,6 +364,52 @@ class BestPpnServiceTest {
     }
 
     @Test
+    @DisplayName("Test with 0 FromOnline & 1 elecFromPrint")
+    void getBestPpnTest07() throws IllegalPpnException, IOException, BestPpnException {
+        String provider = "urlProvider";
+        //  Create a ResultWsSudocDto for elec
+        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+        resultElec.setPpns(ppnWithTypeDto);
+
+        //  Create PpnWithTypeDto for elec
+        PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
+        ppnWithType3.setPpn("200000001");
+        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        PpnWithTypeDto ppnWithType4 = new PpnWithTypeDto();
+        ppnWithType4.setPpn("200000002");
+        ppnWithType4.setType(TYPE_SUPPORT.IMPRIME);
+        //  Create a List of PpnWithListDto for print
+        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
+        ppnWithTypePrintDto.add(ppnWithType3);
+        ppnWithTypePrintDto.add(ppnWithType4);
+        //  Create a ResultWsSudocDto for print
+        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+        resultPrint.setPpns(ppnWithTypePrintDto);
+
+        //  Create a LigneKbartDto
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setOnline_identifier("1292-8399");
+        kbart.setPrint_identifier("2-84358-095-1");
+        kbart.setPublication_type("serial");
+        kbart.setDate_monograph_published_print("");
+        kbart.setDate_monograph_published_online("DateOnline");
+        kbart.setPublication_title("Titre");
+        kbart.setFirst_author("Auteur");
+        kbart.setDate_monograph_published_print("DatePrint");
+
+        //  Mock
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+
+        //  Appel du service
+        String result = bestPpnService.getBestPpn(kbart, provider);
+
+        //  Vérification
+        Assertions.assertEquals("200000001", result);
+    }
+
+    @Test
     @DisplayName("test best ppn with score : 1 seule notice électronique")
     void bestPpnWithScoreTest1() throws BestPpnException, JsonProcessingException {
         LigneKbartDto kbart = new LigneKbartDto();
