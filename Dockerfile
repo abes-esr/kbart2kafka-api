@@ -38,5 +38,5 @@ ENV TZ=Europe/Paris
 ARG KAFKA_SERVER_ARG
 ENV KAFKA_SERVER_ENV=${KAFKA_SERVER_ARG}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN echo ${KAFKA_SERVER}
+RUN echo ${KAFKA_SERVER_ARG}
 ENTRYPOINT ["java","-jar","-DkafkaServer=${KAFKA_SERVER_ENV}","/app/bacon2kafka-api.jar"]
