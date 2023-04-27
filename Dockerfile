@@ -31,6 +31,7 @@ RUN mvn --batch-mode \
 #FROM tomcat:9-jdk17 as api-image
 #COPY --from=build-image /build/web/target/*.war /usr/local/tomcat/webapps/ROOT.war
 #CMD [ "catalina.sh", "run" ]
+ARG KAFKA_SERVER_ARG
 FROM eclipse-temurin:17-jre as bacon2kafka-api-image
 WORKDIR /app/
 COPY --from=build-image /build/target/*.jar /app/bacon2kafka-api.jar
