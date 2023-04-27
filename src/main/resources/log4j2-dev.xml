@@ -7,7 +7,7 @@
         <Property name="logFileName">${bundle:application:application.name}</Property>
         <Property name="errorFileName">${bundle:application:application.name}_error</Property>
         <Property name="debugFileName">${bundle:application:application.name}_debug</Property>
-        <Property name="kafkaServer">${bundle:application-dev:spring.kafka.producer.bootstrap-servers}</Property>
+        <Property name="kafkaServer">${env:SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS}</Property>
 
         <!-- Politique de gestion des fichiers -->
         <Property name="sizeTriggerPolicy">100 MB</Property>
@@ -76,7 +76,7 @@
             <Policies>
                 <!-- On exécute les stratégies de création de nouveau fichier et de suppresion :
                 - Au démarrage de l'application
-                - Si l'un des fichiers atteint 10 MB
+                - Si l'un des fichiers atteint ${sizeTriggerPolicy}
                 - Si la date du filePattern nécessite un nouveau fichier -->
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="${sizeTriggerPolicy}" />
@@ -109,7 +109,7 @@
             <Policies>
                 <!-- On exécute les stratégies de création de nouveau fichier et de suppresion :
                 - Au démarrage de l'application
-                - Si l'un des fichiers atteint 10 MB
+                - Si l'un des fichiers atteint ${sizeTriggerPolicy}
                 - Si la date du filePattern nécessite un nouveau fichier -->
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="${sizeTriggerPolicy}" />
