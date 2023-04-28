@@ -14,4 +14,9 @@ public class SubField {
 
     @JacksonXmlText(value = true)
     private String value;
+
+    @Override
+    public String toString() {
+        return "code : " + code + " / value " + value;
+    }
 }

@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
@@ -59,6 +60,8 @@ public class KafkaController {
             }
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Une url dans un champ title_url du kbart n'est pas correcte");
         }
     }
 
