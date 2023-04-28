@@ -5,17 +5,23 @@ import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
 import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
+import fr.abes.kafkaconvergence.entity.basexml.notice.Datafield;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
+import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
+import fr.abes.kafkaconvergence.utils.Utils;
+import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Getter
@@ -44,7 +50,7 @@ public class BestPpnService {
         this.topicProducer = topicProducer;
     }
 
-    public String getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException, BestPpnException {
+    public String getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException, BestPpnException, URISyntaxException {
 
         Map<String, Integer> ppnElecResultList = new HashMap<>();
         Set<String> ppnPrintResultList = new HashSet<>();
@@ -69,13 +75,16 @@ public class BestPpnService {
         return getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
     }
 
-    public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws JsonProcessingException {
+    public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
         log.debug("Entrée dans onlineId2Ppn");
-        getResultFromCall(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider), this.scoreOnlineId2PpnElect, ppnElecResultList, ppnPrintResultList);
+        getResultFromCall(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider), kbart.getTitle_url(), this.scoreOnlineId2PpnElect, ppnElecResultList, ppnPrintResultList);
     }
 
-    public void feedPpnListFromPrint(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws JsonProcessingException {
+    public void feedPpnListFromPrint(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
         log.debug("Entrée dans printId2Ppn");
+        getResultFromCall(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider), kbart.getTitle_url(),  this.scorePrintId2PpnElect, ppnElecResultList, ppnPrintResultList);
+
+
         ResultWsSudocDto resultCallWs = service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider);
         ResultWsSudocDto resultWithTypeElectronique = resultCallWs.getPpnWithTypeElectronique();
         if (resultWithTypeElectronique != null) {
@@ -89,11 +98,11 @@ public class BestPpnService {
         }
     }
 
-    private void getResultFromCall(ResultWsSudocDto resultCallWs, int score, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) {
+    private void getResultFromCall(ResultWsSudocDto resultCallWs, String titleUrl, int score, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws URISyntaxException, IOException, IllegalPpnException {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
-                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) {
+                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && checkUrlInNotice(ppn.getPpn(), titleUrl)) {
                     if (!ppnElecResultList.isEmpty()) {
                         if (ppnElecResultList.containsKey(ppn.getPpn())) {
                             Integer value = ppnElecResultList.get(ppn.getPpn()) + (score / nbPpnElec);
@@ -113,6 +122,37 @@ public class BestPpnService {
                 }
             }
         }
+    }
+
+    public boolean checkUrlInNotice(String ppn, String titleUrl) throws IOException, IllegalPpnException, URISyntaxException {
+        log.debug("entrée dans checkUrlInNotice " + titleUrl);
+        if (titleUrl == null || titleUrl.contains("doi.org")) {
+            log.debug("titleUrl null ou contient doi.org");
+            return true;
+        }
+        String domain = Utils.extractDomainFromUrl(titleUrl);
+        //récupération notice dans la base pour analyse
+        NoticeXml notice = noticeService.getNoticeByPpn(ppn);
+        List<Datafield> zones856 = notice.getZoneDollarUWithoutDollar5("856");
+        for(Datafield zone : zones856) {
+            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).collect(Collectors.toList())) {
+                if (sousZone.getValue().contains(domain)) {
+                    log.debug("Url trouvée dans 856");
+                    return true;
+                }
+            }
+        }
+        List<Datafield> zone859 = notice.getZoneDollarUWithoutDollar5("859");
+        for (Datafield zone : zone859) {
+            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).collect(Collectors.toList())) {
+                if (sousZone.getValue().contains(domain)) {
+                    log.debug("Url trouvée dans 859");
+                    return true;
+                }
+            }
+        }
+        log.debug("Url non trouvée dans notice");
+        return false;
     }
 
     public void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
