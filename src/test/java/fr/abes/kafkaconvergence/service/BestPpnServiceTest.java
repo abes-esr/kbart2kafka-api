@@ -7,9 +7,7 @@ import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
 import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
-import fr.abes.kafkaconvergence.entity.basexml.notice.Datafield;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
-import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
@@ -25,7 +23,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
 
-import javax.xml.crypto.Data;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -428,7 +425,7 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test with 0 FromOnline & 1 elecFromPrint")
-    void getBestPpnTest08() throws IllegalPpnException, IOException, BestPpnException {
+    void getBestPpnTest08() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "urlProvider";
         //  Create a ResultWsSudocDto for elec
         ResultWsSudocDto resultElec = new ResultWsSudocDto();
@@ -460,6 +457,7 @@ class BestPpnServiceTest {
         kbart.setPublication_title("Titre");
         kbart.setFirst_author("Auteur");
         kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url(null);
 
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
