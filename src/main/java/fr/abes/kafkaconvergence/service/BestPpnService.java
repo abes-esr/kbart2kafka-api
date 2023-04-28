@@ -82,9 +82,6 @@ public class BestPpnService {
 
     public void feedPpnListFromPrint(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
         log.debug("Entrée dans printId2Ppn");
-//        getResultFromCall(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider), kbart.getTitle_url(),  this.scorePrintId2PpnElect, ppnElecResultList, ppnPrintResultList);
-
-
         ResultWsSudocDto resultCallWs = service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider);
         ResultWsSudocDto resultWithTypeElectronique = resultCallWs.getPpnWithTypeElectronique();
         if (resultWithTypeElectronique != null) {
