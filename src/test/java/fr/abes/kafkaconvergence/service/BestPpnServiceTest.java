@@ -7,9 +7,7 @@ import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
 import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
-import fr.abes.kafkaconvergence.entity.basexml.notice.Datafield;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
-import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
@@ -25,7 +23,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
 
-import javax.xml.crypto.Data;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -425,6 +422,53 @@ class BestPpnServiceTest {
 
     //@Test
     //@DisplayName("Test with ppn 233081976 bacon")
+
+    @Test
+    @DisplayName("Test with 0 FromOnline & 1 elecFromPrint")
+    void getBestPpnTest08() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "urlProvider";
+        //  Create a ResultWsSudocDto for elec
+        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+        resultElec.setPpns(ppnWithTypeDto);
+
+        //  Create PpnWithTypeDto for elec
+        PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
+        ppnWithType3.setPpn("200000001");
+        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        PpnWithTypeDto ppnWithType4 = new PpnWithTypeDto();
+        ppnWithType4.setPpn("200000002");
+        ppnWithType4.setType(TYPE_SUPPORT.IMPRIME);
+        //  Create a List of PpnWithListDto for print
+        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
+        ppnWithTypePrintDto.add(ppnWithType3);
+        ppnWithTypePrintDto.add(ppnWithType4);
+        //  Create a ResultWsSudocDto for print
+        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+        resultPrint.setPpns(ppnWithTypePrintDto);
+
+        //  Create a LigneKbartDto
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setOnline_identifier("1292-8399");
+        kbart.setPrint_identifier("2-84358-095-1");
+        kbart.setPublication_type("serial");
+        kbart.setDate_monograph_published_print("");
+        kbart.setDate_monograph_published_online("DateOnline");
+        kbart.setPublication_title("Titre");
+        kbart.setFirst_author("Auteur");
+        kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url(null);
+
+        //  Mock
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+
+        //  Appel du service
+        String result = bestPpnService.getBestPpn(kbart, provider);
+
+        //  Vérification
+        Assertions.assertEquals("200000001", result);
+    }
 
     @Test
     @DisplayName("test best ppn with score : 1 seule notice électronique")
