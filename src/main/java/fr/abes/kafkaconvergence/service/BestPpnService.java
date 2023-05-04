@@ -184,12 +184,12 @@ public class BestPpnService {
     public String getBestPpnByScore(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws BestPpnException, JsonProcessingException {
         Map<String, Integer> ppnElecScore = getMaxValuesFromMap(ppnElecResultList);
         switch (ppnElecScore.size()) {
-            case 0:
+            case 0 -> {
                 switch (ppnPrintResultList.size()) {
                     case 0 -> {
                         log.debug("Envoi kbart et provider vers kafka");
                         topicProducer.sendPrintNotice(null, kbart, provider);
-                        }
+                    }
                     case 1 -> {
                         log.debug("envoi ppn imprimé " + ppnPrintResultList.stream().toList().get(0) + ", kbart et provider");
                         topicProducer.sendPrintNotice(ppnPrintResultList.stream().toList().get(0), kbart, provider);
@@ -197,12 +197,14 @@ public class BestPpnService {
                     default ->
                             throw new BestPpnException("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
                 }
-                break;
-            case 1:
+            }
+            case 1 -> {
                 return ppnElecScore.keySet().stream().findFirst().get();
-            default:
+            }
+            default -> {
                 log.error("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
                 throw new BestPpnException("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
+            }
         }
         return "";
     }

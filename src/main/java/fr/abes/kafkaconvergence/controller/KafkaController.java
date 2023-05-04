@@ -41,10 +41,14 @@ public class KafkaController {
     @PostMapping("/kbart2Kafka")
     public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException, BestPpnException, IllegalPpnException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+
             CheckFiles.verifyFile(file, HEADER_TO_CHECK);
             String provider = CheckFiles.getProviderFromFilename(file);
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
             String line;
+            int nbLines = 0;
+            int nbLinesWithBestPpn = 0;
+            int nbLinesWithoutBestPpn = 0;
             while ((line = reader.readLine()) != null) {
                 if (!line.contains(HEADER_TO_CHECK)) {
                     String[] tsvElementsOnOneLine = line.split("\t");
@@ -55,9 +59,16 @@ public class KafkaController {
                         String bestPpn = service.getBestPpn(ligneKbartDto, provider);
                         ligneKbartDto.setBestPpn(bestPpn);
                     }
+                    if(ligneKbartDto.isBestPpnEmpty()){
+                        nbLinesWithoutBestPpn++;
+                    } else {
+                        nbLinesWithBestPpn++;
+                    }
+                    nbLines++;
                     topicProducer.sendKbart(ligneKbartDto);
                 }
             }
+            log.info(file.getOriginalFilename()+ " : { nbLines : " + nbLines + ", nbLinesWithBestPpn : " + nbLinesWithBestPpn + ", nbLinesWithoutBestPpn : " + nbLinesWithoutBestPpn + " }");
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
         } catch (URISyntaxException e) {
