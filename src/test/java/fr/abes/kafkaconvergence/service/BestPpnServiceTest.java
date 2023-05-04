@@ -527,4 +527,59 @@ class BestPpnServiceTest {
         Assertions.assertTrue(result.isEmpty());
     }
 
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleUrl() {
+        /*
+        TODO pierre attention si un objet kbart ne contient pas de valeur sur
+        publication_title, publication_type, online_identifier, print_identifier
+        NPE au lancement du test passage dans bestPpnService.extractDOI
+        */
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_url("https://doi.org/10.1006/jmbi.1998.2354");
+
+        Assertions.assertEquals("10.1006/jmbi.1998.2354", bestPpnService.extractDOI(kbart));
+    }
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleId() {
+        /*
+        TODO pierre attention si un objet kbart ne contient pas de valeur sur
+        publication_title, publication_type, online_identifier, print_identifier
+        NPE au lancement du test passage dans bestPpnService.extractDOI
+        */
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_id("https://doi.org/10.1006/jmbi.1998.2354");
+
+        Assertions.assertEquals("10.1006/jmbi.1998.2354", bestPpnService.extractDOI(kbart));
+    }
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleIdetTitleurl_priorisationTitleUrl() {
+        /*
+        TODO pierre attention si un objet kbart ne contient pas de valeur sur
+        publication_title, publication_type, online_identifier, print_identifier
+        NPE au lancement du test passage dans bestPpnService.extractDOI
+        */
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("online");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_id("https://doi.org/10.51257/a-v2-r7420");
+        kbart.setTitle_url("https://doi.org/10.1038/issn.1476-4687");
+
+        Assertions.assertEquals("10.1038/issn.1476-4687", bestPpnService.extractDOI(kbart));
+    }
 }

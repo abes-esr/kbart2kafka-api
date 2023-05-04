@@ -22,6 +22,10 @@ target/
 *.ipr
 *.gdsl
 
+### Acceptance tests ###
+acceptance
+/acceptance/
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -44,3 +48,5 @@ hs_err_pid*
 ## Fichier de propriétés de test contenant les identifiants / mdp
 **/test/resources/application.properties
 **/resources/log4j2-localhost.xml
+
+
