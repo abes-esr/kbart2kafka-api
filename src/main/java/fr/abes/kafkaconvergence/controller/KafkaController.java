@@ -6,14 +6,18 @@ import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
+import fr.abes.kafkaconvergence.service.EmailServiceImpl;
 import fr.abes.kafkaconvergence.service.TopicProducer;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +25,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.NoSuchFileException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
@@ -30,8 +39,13 @@ import java.net.URISyntaxException;
 public class KafkaController {
     private final TopicProducer topicProducer;
     private final BestPpnService service;
-
     private static final String HEADER_TO_CHECK = "publication_title";
+
+    @Value("${spring.mail.username}")
+    private String recipent;
+
+    @Autowired
+    private EmailServiceImpl emailServiceImpl;
 
     @ApiOperation("Reads a TSV file, calculates the best PPN and sends the answer to Kafka")
     @ApiResponses({
@@ -43,6 +57,8 @@ public class KafkaController {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             CheckFiles.verifyFile(file, HEADER_TO_CHECK);
             String provider = CheckFiles.getProviderFromFilename(file);
+            //  Créer une liste pour stocker les statistiques de l'analyse du kbart
+            List<LigneKbartDto> dataLines = new ArrayList<>();
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
             String line;
             while ((line = reader.readLine()) != null) {
@@ -54,17 +70,28 @@ public class KafkaController {
                     if (ligneKbartDto.isBestPpnEmpty()) {
                         String bestPpn = service.getBestPpn(ligneKbartDto, provider);
                         ligneKbartDto.setBestPpn(bestPpn);
+                        dataLines.add(ligneKbartDto);
                     }
                     topicProducer.sendKbart(ligneKbartDto);
                 }
             }
+            //  Envoi du mail récapitulatif
+            emailServiceImpl.sendMailWithAttachment(Objects.requireNonNull(file.getOriginalFilename()).substring(0 ,file.getOriginalFilename().length() - 4), dataLines);
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Une url dans un champ title_url du kbart n'est pas correcte");
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
         }
     }
 
+    //  Envoi d'un mail avec pièce jointe
+//    @PostMapping(value = "/sendMailWithAttachment")
+//    public void sendMailWithAttachment() throws MessagingException, NoSuchFileException, DirectoryNotEmptyException {
+//        List<LigneKbartDto> list = new ArrayList<>();
+//        emailServiceImpl.sendMailWithAttachment("Rapport de traitement BestPPN ", list);
+//    }
 
     /**
      * Construction de la dto

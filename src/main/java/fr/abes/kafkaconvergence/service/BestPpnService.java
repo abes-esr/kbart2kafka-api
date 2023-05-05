@@ -12,7 +12,6 @@ import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import fr.abes.kafkaconvergence.utils.Utils;
-import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -194,14 +193,17 @@ public class BestPpnService {
                         log.debug("envoi ppn imprimé " + ppnPrintResultList.stream().toList().get(0) + ", kbart et provider");
                         topicProducer.sendPrintNotice(ppnPrintResultList.stream().toList().get(0), kbart, provider);
                     }
-                    default ->
-                            throw new BestPpnException("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
+                    default -> {
+                        kbart.setErrorType("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
+                        throw new BestPpnException("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
+                    }
                 }
                 break;
             case 1:
                 return ppnElecScore.keySet().stream().findFirst().get();
             default:
-                log.error("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
+                kbart.setErrorType("Les ppn électroniques " + ppnElecScore.toString() + " ont le même score");
+                log.error("Les ppn électroniques " + String.join(", ", ppnElecScore.toString()) + " ont le même score");
                 throw new BestPpnException("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
         }
         return "";

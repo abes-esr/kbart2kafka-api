@@ -420,9 +420,6 @@ class BestPpnServiceTest {
         Assertions.assertEquals("100000001", result);
     }
 
-    //@Test
-    //@DisplayName("Test with ppn 233081976 bacon")
-
     @Test
     @DisplayName("Test with 0 FromOnline & 1 elecFromPrint")
     void getBestPpnTest08() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
