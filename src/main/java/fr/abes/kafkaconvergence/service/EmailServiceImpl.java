@@ -1,46 +1,69 @@
 package fr.abes.kafkaconvergence.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVWriter;
-import com.opencsv.bean.*;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.dto.MailDto;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
+@Slf4j
 @Service
 public class EmailServiceImpl implements EmailService {
-    @Autowired
-    private JavaMailSender javaMailSender;
 
     @Value("${spring.mail.username}")
     private String sender;
 
+    @Value("${mail.ws.url}")
+    protected String url;
+
     @Override
     public void sendMailWithAttachment(String packageName, List<LigneKbartDto> dataLines) throws MessagingException {
-        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-        MimeMessageHelper mimeMessageHelper;
-
         try {
-            //  Création du message
-            mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
-            mimeMessageHelper.setFrom(this.sender);
-            mimeMessageHelper.setTo(this.sender);
-            mimeMessageHelper.setText("");
-            mimeMessageHelper.setSubject("Rapport de traitement BestPPN " + packageName);
+            //  Création du chemin d'accès pour le fichier .csv
+            Path csvPath = Path.of("Rapport de traitement BestPPN " + packageName + ".csv");
 
             //  Création du fichier
-            Path csvPath = Path.of("Rapport de traitement BestPPN " + packageName + ".csv");
+            createAttachment(dataLines, csvPath);
+
+            //  Création du mail
+            String requestJson = mailToJSON(sender, "Rapport de traitement BestPPN " + packageName + ".csv", "");
+
+            //  Récupération du fichier
+            File file = csvPath.toFile();
+
+            //  Envoi du message par mail
+            sendMail(requestJson, file);
+
+            //  Suppression du csv temporaire
+            Files.deleteIfExists(csvPath);
+
+        } catch (IOException | CsvRequiredFieldEmptyException | CsvDataTypeMismatchException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void createAttachment(List<LigneKbartDto> dataLines, Path csvPath) throws CsvRequiredFieldEmptyException, CsvDataTypeMismatchException, IOException {
+        try {
+            //  Création du fichier
             Writer writer = Files.newBufferedWriter(csvPath);
 
             //  Création du header
@@ -61,23 +84,57 @@ public class EmailServiceImpl implements EmailService {
 
             //  Ferme le Writer
             writer.close();
-
-            //  Récupérer le fichier csv
-            FileSystemResource file = new FileSystemResource("Rapport de traitement BestPPN " + packageName + ".csv");
-
-            //  Attache le fichier au message
-            mimeMessageHelper.addAttachment("Rapport de traitement BestPPN " + packageName + ".csv", file);
-
-            //  Envoi du message par mail
-            javaMailSender.send(mimeMessage);
-
-            //  Suppression du csv temporaire
-            Files.deleteIfExists(csvPath);
-
-        } catch (MessagingException e) {
-            throw new MessagingException("Une erreur est survenue lors de l'envoi du mail. Veuillez réessayer. Détails : " + e);
         } catch (IOException | CsvRequiredFieldEmptyException | CsvDataTypeMismatchException e) {
             throw new RuntimeException(e);
         }
     }
+
+    protected void sendMail(String requestJson, File f) {
+        //  Création du l'adresse du ws d'envoi de mails
+        HttpPost uploadFile = new HttpPost(url + "htmlMailAttachment/");
+
+        //  Création du builder
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.addTextBody("mail", requestJson, ContentType.APPLICATION_JSON);
+
+        try {
+            builder.addBinaryBody(
+                    "attachment",
+                    new FileInputStream(f),
+                    ContentType.APPLICATION_OCTET_STREAM,
+                    f.getName()
+            );
+        } catch (FileNotFoundException e) {
+            log.error("Le fichier n'a pas été trouvé. " + e.toString());
+        }
+
+        //  Envoi du mail
+        HttpEntity multipart = builder.build();
+        uploadFile.setEntity(multipart);
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            httpClient.execute(uploadFile);
+        } catch (IOException e) {
+            log.error("Erreur lors de l'envoi du mail. " + e.toString());
+        }
+    }
+
+    protected String mailToJSON(String to, String subject, String text) {
+        String json = "";
+        ObjectMapper mapper = new ObjectMapper();
+        MailDto mail = new MailDto();
+        mail.setApp("item");
+        mail.setTo(to.split(";"));
+        mail.setCc(new String[]{});
+        mail.setCci(new String[]{});
+        mail.setSubject(subject);
+        mail.setText(text);
+        try {
+            json = mapper.writeValueAsString(mail);
+        } catch (JsonProcessingException e) {
+            log.error("Erreur lors du la création du mail. " + e.toString());
+        }
+        return json;
+    }
+
 }
