@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +40,9 @@ public class BestPpnService {
 
     @Value("${score.dat.to.ppn}")
     private int scoreDat2Ppn;
+
+    @Value("${doi.pattern.url.raw}")
+    private String doiPattern;
 
     private final NoticeService noticeService;
 
@@ -74,6 +78,18 @@ public class BestPpnService {
 
         return getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
     }
+
+    public String extractDOI(LigneKbartDto kbart) {
+        if (kbart.getTitle_url() != null && !kbart.getTitle_url().isEmpty()){
+            return Pattern.compile(doiPattern).matcher(kbart.getTitle_url()).find() ? kbart.getTitle_url().split("doi.org/")[kbart.getTitle_url().split("doi.org/").length - 1] : "";
+        }
+        if (kbart.getTitle_id() != null && !kbart.getTitle_id().isEmpty()){
+            return Pattern.compile(doiPattern).matcher(kbart.getTitle_id()).find() ? kbart.getTitle_id().split("doi.org/")[kbart.getTitle_id().split("doi.org/").length - 1] : "";
+        }
+        return "";
+    }
+
+    //TODO faire une getter qui recuperera la DOI, puis le placer en apramètre dans une méthode feedPpnListFromDOI
 
     public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
         log.debug("Entrée dans onlineId2Ppn");
