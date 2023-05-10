@@ -1,5 +1,6 @@
 package fr.abes.kafkaconvergence.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -55,10 +56,12 @@ public class LigneKbartDto {
                 (this.print_identifier.isEmpty() ? "" : " / print_identifier : " + this.print_identifier);
     }
 
+    @JsonIgnore
     public String getAuthor() {
         return (!this.first_author.isEmpty()) ? this.first_author : this.first_editor;
     }
 
+    @JsonIgnore
     public boolean isBestPpnEmpty() {
         return this.bestPpn == null || this.bestPpn.isEmpty();
     }

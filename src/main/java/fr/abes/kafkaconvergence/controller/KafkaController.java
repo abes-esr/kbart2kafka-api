@@ -14,9 +14,13 @@ import io.swagger.annotations.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.ThreadContext;
+import org.apache.tomcat.util.descriptor.web.ContextEnvironment;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.naming.Context;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -49,6 +53,8 @@ public class KafkaController {
             int nbLines = 0;
             int nbLinesWithBestPpn = 0;
             int nbLinesWithoutBestPpn = 0;
+            //ajout nom du fichier dans contexte applicatif pour récupération par log4j
+            ThreadContext.put("package", file.getOriginalFilename());
             while ((line = reader.readLine()) != null) {
                 if (!line.contains(HEADER_TO_CHECK)) {
                     String[] tsvElementsOnOneLine = line.split("\t");
@@ -68,7 +74,7 @@ public class KafkaController {
                     topicProducer.sendKbart(ligneKbartDto);
                 }
             }
-            log.info(file.getOriginalFilename()+ " : { nbLines : " + nbLines + ", nbLinesWithBestPpn : " + nbLinesWithBestPpn + ", nbLinesWithoutBestPpn : " + nbLinesWithoutBestPpn + " }");
+            log.info("{ nbLines : " + nbLines + ", nbLinesWithBestPpn : " + nbLinesWithBestPpn + ", nbLinesWithoutBestPpn : " + nbLinesWithoutBestPpn + " }");
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
         } catch (URISyntaxException e) {
