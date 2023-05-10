@@ -12,7 +12,6 @@ import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import fr.abes.kafkaconvergence.utils.Utils;
-import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,18 +102,18 @@ public class BestPpnService {
                     if (!ppnElecResultList.isEmpty()) {
                         if (ppnElecResultList.containsKey(ppn.getPpn())) {
                             Integer value = ppnElecResultList.get(ppn.getPpn()) + (score / nbPpnElec);
-                            log.debug("PPN Electronique : " + ppn + " / score : " + value);
+                            log.info("PPN Electronique : " + ppn + " / score : " + value);
                             ppnElecResultList.put(ppn.getPpn(), value);
                         } else {
-                            log.debug("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
+                            log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
                             ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
                         }
                     } else {
-                        log.debug("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
+                        log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
                         ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
                     }
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
-                    log.debug("PPN Imprimé : " + ppn);
+                    log.info("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
                 }
             }
