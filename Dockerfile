@@ -14,7 +14,7 @@ ENV LC_ALL fr_FR.UTF-8
 # On lance la compilation Java
 # On débute par une mise en cache docker des dépendances Java
 # cf https://www.baeldung.com/ops/docker-cache-maven-dependencies
-COPY ./pom.xml /build/bacon2kafka-api/pom.xml
+COPY ./pom.xml /build/kbart2kafka-api/pom.xml
 RUN mvn verify --fail-never
 # et la compilation du code Java
 COPY ./   /build/
@@ -31,9 +31,9 @@ RUN mvn --batch-mode \
 #FROM tomcat:9-jdk17 as api-image
 #COPY --from=build-image /build/web/target/*.war /usr/local/tomcat/webapps/ROOT.war
 #CMD [ "catalina.sh", "run" ]
-FROM eclipse-temurin:17-jre as bacon2kafka-api-image
+FROM eclipse-temurin:17-jre as kbart2kafka-api-image
 WORKDIR /app/
-COPY --from=build-image /build/target/*.jar /app/bacon2kafka-api.jar
+COPY --from=build-image /build/target/*.jar /app/kbart2kafka-api.jar
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-ENTRYPOINT ["java","-jar","/app/bacon2kafka-api.jar"]
+ENTRYPOINT ["java","-jar","/app/kbart2kafka-api.jar"]

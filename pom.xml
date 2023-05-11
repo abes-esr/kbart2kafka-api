@@ -15,8 +15,8 @@
     <name>kafka-convergence</name>
     <description>Poc dans le cadre du projet convergence</description>
     <properties>
-        <finalName>bacon2kafka-api-${project.artifactId}-${project.version}</finalName>
-        <warName>bacon2kafka-api</warName>
+        <finalName>kbart2kafka-api-${project.artifactId}-${project.version}</finalName>
+        <warName>kbart2kafka-api</warName>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -262,7 +262,7 @@
     </build>
 
     <scm>
-        <connection>scm:git:https://github.com/abes-esr/bacon2kafka-api.git</connection>
+        <connection>scm:git:https://github.com/abes-esr/kbart2kafka-api.git</connection>
         <tag>HEAD</tag>
     </scm>
 
