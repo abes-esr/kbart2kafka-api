@@ -74,7 +74,7 @@ public class BestPpnService {
             feedPpnListFromDat(kbart, ppnElecResultList, ppnPrintResultList);
         }
         if (ppnElecResultList.isEmpty()) {
-            log.error("BestPpn " + kbart.toString() + " Aucun bestPpn trouvé.");
+            log.error("BestPpn " + kbart + " Aucun bestPpn trouvé.");
         }
 
         return getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
