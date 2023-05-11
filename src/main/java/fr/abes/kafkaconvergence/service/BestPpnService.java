@@ -1,10 +1,7 @@
 package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.abes.kafkaconvergence.dto.LigneKbartDto;
-import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
-import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
-import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
+import fr.abes.kafkaconvergence.dto.*;
 import fr.abes.kafkaconvergence.entity.basexml.notice.Datafield;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
@@ -75,6 +72,9 @@ public class BestPpnService {
         if (ppnElecResultList.isEmpty()) {
             log.error("BestPpn " + kbart.toString() + " Aucun bestPpn trouvé.");
         }
+        if (!Objects.equals(extractDOI(kbart), "")){
+            feedPpnListFromDoi(kbart, provider, ppnElecResultList, ppnPrintResultList);
+        }
 
         return getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
     }
@@ -88,8 +88,6 @@ public class BestPpnService {
         }
         return "";
     }
-
-    //TODO faire une getter qui recuperera la DOI, puis le placer en apramètre dans une méthode feedPpnListFromDOI
 
     public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
         log.debug("Entrée dans onlineId2Ppn");
@@ -195,6 +193,10 @@ public class BestPpnService {
                 }
             }
         }
+    }
+
+    public void feedPpnListFromDoi(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
+        ResultDoi2PpnWebDto resultDoi2PpnWebDto = service.callDoi2Ppn(extractDOI(kbart), provider);
     }
 
     public String getBestPpnByScore(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws BestPpnException, JsonProcessingException {
