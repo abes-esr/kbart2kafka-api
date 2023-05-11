@@ -57,8 +57,7 @@ public class BestPpnService {
         Set<String> ppnPrintResultList = new HashSet<>();
 
         if (!kbart.getPublication_type().isEmpty()) {
-            provider = Objects.equals(kbart.getPublication_type(), PUBLICATION_TYPE.serial.toString()) ? "" : provider;
-            System.out.println(provider);
+            provider = kbart.getPublication_type().equals(PUBLICATION_TYPE.serial.toString()) ? "" : provider;
             if (!kbart.getOnline_identifier().isEmpty()) {
                 log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getOnline_identifier() + " / provider : " + provider);
                 feedPpnListFromOnline(kbart, provider, ppnElecResultList, ppnPrintResultList);
