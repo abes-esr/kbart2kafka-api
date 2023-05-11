@@ -10,6 +10,7 @@ import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
+import fr.abes.kafkaconvergence.utils.PUBLICATION_TYPE;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import fr.abes.kafkaconvergence.utils.Utils;
 import lombok.Getter;
@@ -59,6 +60,7 @@ public class BestPpnService {
         Set<String> ppnPrintResultList = new HashSet<>();
 
         if (!kbart.getPublication_type().isEmpty()) {
+            provider = kbart.getPublication_type().equals(PUBLICATION_TYPE.serial.toString()) ? "" : provider;
             if (!kbart.getOnline_identifier().isEmpty()) {
                 log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getOnline_identifier() + " / provider : " + provider);
                 feedPpnListFromOnline(kbart, provider, ppnElecResultList, ppnPrintResultList);
