@@ -3,6 +3,7 @@ package fr.abes.kafkaconvergence.entity.basexml.notice;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,6 +11,7 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Représente une notice au format d'export UnimarcXML
@@ -78,5 +80,16 @@ public class NoticeXml {
     public String getPpn() {
         Optional<Controlfield> ppn = controlfields.stream().filter(cf -> cf.getTag().equals("001")).findFirst();
         return ppn.map(Controlfield::getValue).orElse(null);
+    }
+
+    public List<Datafield> getZoneDollarUWithoutDollar5(String zoneToCheck) {
+        List<Datafield> result = new ArrayList<>();
+        List<Datafield> zone856 = datafields.stream().filter(datafield -> datafield.getTag().equals(zoneToCheck)).collect(Collectors.toList());
+        zone856.forEach(zone -> {
+            if (zone.getSubFields().stream().noneMatch(sousZone -> sousZone.getCode().equals("5"))) {
+                result.add(zone);
+            }
+        });
+        return result;
     }
 }

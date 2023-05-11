@@ -25,6 +25,7 @@ import org.springframework.core.io.Resource;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -70,8 +71,8 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test with 1 elecFromOnline & 1 printFromOnline")
-    void getBestPpnTest01() throws IllegalPpnException, IOException, BestPpnException {
-        String provider = "urlProvider";
+    void getBestPpnTest01() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -102,10 +103,12 @@ class BestPpnServiceTest {
         kbart.setPublication_title("Titre");
         kbart.setFirst_author("Auteur");
         kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url("https://www.test.fr/test");
 
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
         String result = bestPpnService.getBestPpn(kbart, provider);
@@ -116,8 +119,8 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test with 1 elecFromOnline & 1 elecFromPrint")
-    void getBestPpnTest02() throws IllegalPpnException, IOException, BestPpnException {
-        String provider = "urlProvider";
+    void getBestPpnTest02() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -153,10 +156,12 @@ class BestPpnServiceTest {
         kbart.setPublication_title("Titre");
         kbart.setFirst_author("Auteur");
         kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url("https://www.test.fr/test");
 
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
         String result = bestPpnService.getBestPpn(kbart, provider);
@@ -167,8 +172,8 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test sum of scores")
-    void getBestPpnTest03() throws IllegalPpnException, IOException, BestPpnException {
-        String provider = "urlProvider";
+    void getBestPpnTest03() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -204,10 +209,12 @@ class BestPpnServiceTest {
         kbart.setPublication_title("Titre");
         kbart.setFirst_author("Auteur");
         kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url("https://www.test.fr/test");
 
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
         String result = bestPpnService.getBestPpn(kbart, provider);
@@ -218,8 +225,8 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test throw BestPpnException same score")
-    void getBestPpnTest04() throws IOException {
-        String provider = "urlProvider";
+    void getBestPpnTest04() throws IOException, IllegalPpnException {
+        String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -250,10 +257,12 @@ class BestPpnServiceTest {
         kbart.setPublication_title("Titre");
         kbart.setFirst_author("Auteur");
         kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url("https://www.test.fr/test");
 
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Vérification
         BestPpnException result = Assertions.assertThrows(BestPpnException.class, ()-> bestPpnService.getBestPpn(kbart, provider));
@@ -317,8 +326,8 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test printFromPrint & 2 printFromDat ")
-    void getBestPpnTest06() throws IllegalPpnException, IOException, BestPpnException {
-        String provider = "urlProvider";
+    void getBestPpnTest06() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "";
 
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -361,6 +370,101 @@ class BestPpnServiceTest {
 
         //  Vérification
         Assertions.assertEquals("300000001", result);
+    }
+
+    @Test
+    @DisplayName("Test with 1 elecFromOnline & 1 printFromOnline & titleUrl is null")
+    void getBestPpnTest07() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "";
+        //  Create PpnWithTypeDto for elec
+        PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
+        ppnWithType1.setPpn("100000001");
+        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
+        ppnWithType2.setPpn("100000002");
+        ppnWithType2.setType(TYPE_SUPPORT.IMPRIME);
+        //  Create a List of PpnWithListDto for elec
+        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+        ppnWithTypeDto.add(ppnWithType1);
+        ppnWithTypeDto.add(ppnWithType2);
+        //  Create a ResultWsSudocDto for elec
+        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+        resultElec.setPpns(ppnWithTypeDto);
+
+        //  Create a List of PpnWithListDto for print
+        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
+        //  Create a ResultWsSudocDto for print
+        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+        resultPrint.setPpns(ppnWithTypePrintDto);
+
+        //  Create a LigneKbartDto
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setOnline_identifier("1292-8399");
+        kbart.setPrint_identifier("2-84358-095-1");
+        kbart.setPublication_type("serial");
+        kbart.setDate_monograph_published_online("DateOnline");
+        kbart.setPublication_title("Titre");
+        kbart.setFirst_author("Auteur");
+        kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url(null);
+
+        //  Mock
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
+
+        //  Appel du service
+        String result = bestPpnService.getBestPpn(kbart, provider);
+
+        //  Vérification
+        Assertions.assertEquals("100000001", result);
+    }
+
+    @Test
+    @DisplayName("Test with 0 FromOnline & 1 elecFromPrint")
+    void getBestPpnTest08() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "";
+        //  Create a ResultWsSudocDto for elec
+        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+        resultElec.setPpns(ppnWithTypeDto);
+
+        //  Create PpnWithTypeDto for elec
+        PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
+        ppnWithType3.setPpn("200000001");
+        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        PpnWithTypeDto ppnWithType4 = new PpnWithTypeDto();
+        ppnWithType4.setPpn("200000002");
+        ppnWithType4.setType(TYPE_SUPPORT.IMPRIME);
+        //  Create a List of PpnWithListDto for print
+        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
+        ppnWithTypePrintDto.add(ppnWithType3);
+        ppnWithTypePrintDto.add(ppnWithType4);
+        //  Create a ResultWsSudocDto for print
+        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+        resultPrint.setPpns(ppnWithTypePrintDto);
+
+        //  Create a LigneKbartDto
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setOnline_identifier("1292-8399");
+        kbart.setPrint_identifier("2-84358-095-1");
+        kbart.setPublication_type("serial");
+        kbart.setDate_monograph_published_print("");
+        kbart.setDate_monograph_published_online("DateOnline");
+        kbart.setPublication_title("Titre");
+        kbart.setFirst_author("Auteur");
+        kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url(null);
+
+        //  Mock
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+
+        //  Appel du service
+        String result = bestPpnService.getBestPpn(kbart, provider);
+
+        //  Vérification
+        Assertions.assertEquals("200000001", result);
     }
 
     @Test
@@ -420,4 +524,59 @@ class BestPpnServiceTest {
         Assertions.assertTrue(result.isEmpty());
     }
 
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleUrl() {
+        /*
+        TODO pierre attention si un objet kbart ne contient pas de valeur sur
+        publication_title, publication_type, online_identifier, print_identifier
+        NPE au lancement du test passage dans bestPpnService.extractDOI
+        */
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_url("https://doi.org/10.1006/jmbi.1998.2354");
+
+        Assertions.assertEquals("10.1006/jmbi.1998.2354", bestPpnService.extractDOI(kbart));
+    }
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleId() {
+        /*
+        TODO pierre attention si un objet kbart ne contient pas de valeur sur
+        publication_title, publication_type, online_identifier, print_identifier
+        NPE au lancement du test passage dans bestPpnService.extractDOI
+        */
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_id("https://doi.org/10.1006/jmbi.1998.2354");
+
+        Assertions.assertEquals("10.1006/jmbi.1998.2354", bestPpnService.extractDOI(kbart));
+    }
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleIdetTitleurl_priorisationTitleUrl() {
+        /*
+        TODO pierre attention si un objet kbart ne contient pas de valeur sur
+        publication_title, publication_type, online_identifier, print_identifier
+        NPE au lancement du test passage dans bestPpnService.extractDOI
+        */
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("online");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_id("https://doi.org/10.51257/a-v2-r7420");
+        kbart.setTitle_url("https://doi.org/10.1038/issn.1476-4687");
+
+        Assertions.assertEquals("10.1038/issn.1476-4687", bestPpnService.extractDOI(kbart));
+    }
 }

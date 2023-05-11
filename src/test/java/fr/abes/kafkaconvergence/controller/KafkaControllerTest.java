@@ -3,13 +3,12 @@ package fr.abes.kafkaconvergence.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.configuration.MapperConfig;
 import fr.abes.kafkaconvergence.configuration.RestConfiguration;
-import fr.abes.kafkaconvergence.entity.PpnResultList;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.ExceptionControllerHandler;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.service.BestPpnService;
+import fr.abes.kafkaconvergence.service.EmailServiceImpl;
 import fr.abes.kafkaconvergence.service.TopicProducer;
-import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +47,9 @@ public class KafkaControllerTest {
 
     @MockBean
     BestPpnService service;
+
+    @MockBean
+    EmailServiceImpl emailServiceImpl;
 
     @Autowired
     ObjectMapper objectMapper;
