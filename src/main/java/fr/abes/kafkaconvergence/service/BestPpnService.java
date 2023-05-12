@@ -82,10 +82,10 @@ public class BestPpnService {
 
     public String extractDOI(LigneKbartDto kbart) {
         if (kbart.getTitle_url() != null && !kbart.getTitle_url().isEmpty()){
-            return Pattern.compile(doiPattern).matcher(kbart.getTitle_url()).find() ? kbart.getTitle_url().split("doi.org/")[kbart.getTitle_url().split("doi.org/").length - 1] : "";
+            return Pattern.compile(this.doiPattern).matcher(kbart.getTitle_url()).find() ? kbart.getTitle_url().split("doi.org/")[kbart.getTitle_url().split("doi.org/").length - 1] : "";
         }
         if (kbart.getTitle_id() != null && !kbart.getTitle_id().isEmpty()){
-            return Pattern.compile(doiPattern).matcher(kbart.getTitle_id()).find() ? kbart.getTitle_id().split("doi.org/")[kbart.getTitle_id().split("doi.org/").length - 1] : "";
+            return Pattern.compile(this.doiPattern).matcher(kbart.getTitle_id()).find() ? kbart.getTitle_id().split("doi.org/")[kbart.getTitle_id().split("doi.org/").length - 1] : "";
         }
         return "";
     }
