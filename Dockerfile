@@ -15,7 +15,7 @@ ENV LC_ALL fr_FR.UTF-8
 # On débute par une mise en cache docker des dépendances Java
 # cf https://www.baeldung.com/ops/docker-cache-maven-dependencies
 COPY ./pom.xml /build/kbart2kafka-api/pom.xml
-RUN mvn verify --fail-never
+RUN mvn -f /build/kbart2kafka-api/pom.xml verify --fail-never
 # et la compilation du code Java
 COPY ./   /build/
 
