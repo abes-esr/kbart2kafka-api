@@ -20,7 +20,7 @@ RUN mvn -f /build/kbart2kafka-api/pom.xml verify --fail-never
 COPY ./   /build/
 
 RUN mvn --batch-mode \
-        -Dmaven.test.skip=true \
+        -Dmaven.test.skip=false \
         -Duser.timezone=Europe/Paris \
         -Duser.language=fr \
         package spring-boot:repackage
