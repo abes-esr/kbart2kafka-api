@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,8 +24,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,8 +38,8 @@ public class KafkaController {
     private final BestPpnService service;
     private static final String HEADER_TO_CHECK = "publication_title";
 
-    @Value("${spring.mail.username}")
-    private String recipent;
+//    @Value("${mail.ws.recipient}")
+//    private String recipent;
 
     @Autowired
     private EmailServiceImpl emailServiceImpl;
