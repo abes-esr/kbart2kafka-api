@@ -10,6 +10,7 @@ import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
+import fr.abes.kafkaconvergence.utils.PUBLICATION_TYPE;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import fr.abes.kafkaconvergence.utils.Utils;
 import lombok.Getter;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +41,9 @@ public class BestPpnService {
     @Value("${score.dat.to.ppn}")
     private int scoreDat2Ppn;
 
+    @Value("${doi.pattern.url.raw}")
+    private String doiPattern;
+
     private final NoticeService noticeService;
 
     private final TopicProducer topicProducer;
@@ -55,6 +60,7 @@ public class BestPpnService {
         Set<String> ppnPrintResultList = new HashSet<>();
 
         if (!kbart.getPublication_type().isEmpty()) {
+            provider = kbart.getPublication_type().equals(PUBLICATION_TYPE.serial.toString()) ? "" : provider;
             if (!kbart.getOnline_identifier().isEmpty()) {
                 log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getOnline_identifier() + " / provider : " + provider);
                 feedPpnListFromOnline(kbart, provider, ppnElecResultList, ppnPrintResultList);
@@ -68,10 +74,20 @@ public class BestPpnService {
             feedPpnListFromDat(kbart, ppnElecResultList, ppnPrintResultList);
         }
         if (ppnElecResultList.isEmpty()) {
-            log.error("BestPpn " + kbart.toString() + " Aucun bestPpn trouvé.");
+            log.error("BestPpn " + kbart + " Aucun bestPpn trouvé.");
         }
 
         return getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
+    }
+
+    public String extractDOI(LigneKbartDto kbart) {
+        if (kbart.getTitle_url() != null && !kbart.getTitle_url().isEmpty()){
+            return Pattern.compile(this.doiPattern).matcher(kbart.getTitle_url()).find() ? kbart.getTitle_url().split("doi.org/")[kbart.getTitle_url().split("doi.org/").length - 1] : "";
+        }
+        if (kbart.getTitle_id() != null && !kbart.getTitle_id().isEmpty()){
+            return Pattern.compile(this.doiPattern).matcher(kbart.getTitle_id()).find() ? kbart.getTitle_id().split("doi.org/")[kbart.getTitle_id().split("doi.org/").length - 1] : "";
+        }
+        return "";
     }
 
     public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
@@ -193,15 +209,18 @@ public class BestPpnService {
                         log.debug("envoi ppn imprimé " + ppnPrintResultList.stream().toList().get(0) + ", kbart et provider");
                         topicProducer.sendPrintNotice(ppnPrintResultList.stream().toList().get(0), kbart, provider);
                     }
-                    default ->
-                            throw new BestPpnException("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
+                    default -> {
+                        kbart.setErrorType("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
+                        throw new BestPpnException("Plusieurs ppn imprimés (" + String.join(", ", ppnPrintResultList) + ") ont été trouvés.");
+                    }
                 }
             }
             case 1 -> {
                 return ppnElecScore.keySet().stream().findFirst().get();
             }
             default -> {
-                log.error("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
+                kbart.setErrorType("Les ppn électroniques " + ppnElecScore.toString() + " ont le même score");
+                log.error("Les ppn électroniques " + String.join(", ", ppnElecScore.toString()) + " ont le même score");
                 throw new BestPpnException("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
             }
         }

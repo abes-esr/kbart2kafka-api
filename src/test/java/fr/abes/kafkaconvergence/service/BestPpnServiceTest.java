@@ -72,7 +72,7 @@ class BestPpnServiceTest {
     @Test
     @DisplayName("Test with 1 elecFromOnline & 1 printFromOnline")
     void getBestPpnTest01() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
-        String provider = "urlProvider";
+        String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -120,7 +120,7 @@ class BestPpnServiceTest {
     @Test
     @DisplayName("Test with 1 elecFromOnline & 1 elecFromPrint")
     void getBestPpnTest02() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
-        String provider = "urlProvider";
+        String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -173,7 +173,7 @@ class BestPpnServiceTest {
     @Test
     @DisplayName("Test sum of scores")
     void getBestPpnTest03() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
-        String provider = "urlProvider";
+        String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -226,7 +226,7 @@ class BestPpnServiceTest {
     @Test
     @DisplayName("Test throw BestPpnException same score")
     void getBestPpnTest04() throws IOException, IllegalPpnException {
-        String provider = "urlProvider";
+        String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -327,7 +327,7 @@ class BestPpnServiceTest {
     @Test
     @DisplayName("Test printFromPrint & 2 printFromDat ")
     void getBestPpnTest06() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
-        String provider = "urlProvider";
+        String provider = "";
 
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -375,7 +375,7 @@ class BestPpnServiceTest {
     @Test
     @DisplayName("Test with 1 elecFromOnline & 1 printFromOnline & titleUrl is null")
     void getBestPpnTest07() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
-        String provider = "urlProvider";
+        String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
@@ -420,13 +420,10 @@ class BestPpnServiceTest {
         Assertions.assertEquals("100000001", result);
     }
 
-    //@Test
-    //@DisplayName("Test with ppn 233081976 bacon")
-
     @Test
     @DisplayName("Test with 0 FromOnline & 1 elecFromPrint")
     void getBestPpnTest08() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
-        String provider = "urlProvider";
+        String provider = "";
         //  Create a ResultWsSudocDto for elec
         ResultWsSudocDto resultElec = new ResultWsSudocDto();
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -527,4 +524,59 @@ class BestPpnServiceTest {
         Assertions.assertTrue(result.isEmpty());
     }
 
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleUrl() {
+        /*
+        TODO pierre attention si un objet kbart ne contient pas de valeur sur
+        publication_title, publication_type, online_identifier, print_identifier
+        NPE au lancement du test passage dans bestPpnService.extractDOI
+        */
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_url("https://doi.org/10.1006/jmbi.1998.2354");
+
+        Assertions.assertEquals("10.1006/jmbi.1998.2354", bestPpnService.extractDOI(kbart));
+    }
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleId() {
+        /*
+        TODO pierre attention si un objet kbart ne contient pas de valeur sur
+        publication_title, publication_type, online_identifier, print_identifier
+        NPE au lancement du test passage dans bestPpnService.extractDOI
+        */
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_id("https://doi.org/10.1006/jmbi.1998.2354");
+
+        Assertions.assertEquals("10.1006/jmbi.1998.2354", bestPpnService.extractDOI(kbart));
+    }
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleIdetTitleurl_priorisationTitleUrl() {
+        /*
+        TODO pierre attention si un objet kbart ne contient pas de valeur sur
+        publication_title, publication_type, online_identifier, print_identifier
+        NPE au lancement du test passage dans bestPpnService.extractDOI
+        */
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("online");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_id("https://doi.org/10.51257/a-v2-r7420");
+        kbart.setTitle_url("https://doi.org/10.1038/issn.1476-4687");
+
+        Assertions.assertEquals("10.1038/issn.1476-4687", bestPpnService.extractDOI(kbart));
+    }
 }
