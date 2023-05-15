@@ -124,7 +124,7 @@ public class EmailServiceImpl implements EmailService {
         ObjectMapper mapper = new ObjectMapper();
         MailDto mail = new MailDto();
         mail.setApp("kbart2kafka");
-        mail.setTo(to.split(";"));
+        mail.setTo(to.split("////"));
         mail.setCc(new String[]{});
         mail.setCci(new String[]{});
         mail.setSubject(subject);
