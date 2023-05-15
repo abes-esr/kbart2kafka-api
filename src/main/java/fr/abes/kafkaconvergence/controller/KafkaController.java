@@ -17,16 +17,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.logging.log4j.ThreadContext;
+import org.apache.tomcat.util.descriptor.web.ContextEnvironment;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.naming.Context;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,8 +42,8 @@ public class KafkaController {
     private final BestPpnService service;
     private static final String HEADER_TO_CHECK = "publication_title";
 
-    @Value("${spring.mail.username}")
-    private String recipent;
+//    @Value("${mail.ws.recipient}")
+//    private String recipent;
 
     @Autowired
     private EmailServiceImpl emailServiceImpl;
@@ -55,12 +56,18 @@ public class KafkaController {
     @PostMapping("/kbart2Kafka")
     public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException, BestPpnException, IllegalPpnException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+
             CheckFiles.verifyFile(file, HEADER_TO_CHECK);
             String provider = CheckFiles.getProviderFromFilename(file);
             //  Créer une liste pour stocker les statistiques de l'analyse du kbart
             List<LigneKbartDto> dataLines = new ArrayList<>();
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
             String line;
+            int nbLines = 0;
+            int nbLinesWithBestPpn = 0;
+            int nbLinesWithoutBestPpn = 0;
+            //ajout nom du fichier dans contexte applicatif pour récupération par log4j
+            ThreadContext.put("package", file.getOriginalFilename());
             while ((line = reader.readLine()) != null) {
                 if (!line.contains(HEADER_TO_CHECK)) {
                     String[] tsvElementsOnOneLine = line.split("\t");
@@ -72,11 +79,18 @@ public class KafkaController {
                         ligneKbartDto.setBestPpn(bestPpn);
                         dataLines.add(ligneKbartDto);
                     }
+                    if(ligneKbartDto.isBestPpnEmpty()){
+                        nbLinesWithoutBestPpn++;
+                    } else {
+                        nbLinesWithBestPpn++;
+                    }
+                    nbLines++;
                     topicProducer.sendKbart(ligneKbartDto);
                 }
             }
             //  Envoi du mail récapitulatif
             emailServiceImpl.sendMailWithAttachment(Objects.requireNonNull(file.getOriginalFilename()).substring(0 ,file.getOriginalFilename().length() - 4), dataLines);
+            log.info("{ nbLines : " + nbLines + ", nbLinesWithBestPpn : " + nbLinesWithBestPpn + ", nbLinesWithoutBestPpn : " + nbLinesWithoutBestPpn + " }");
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
         } catch (URISyntaxException e) {

@@ -29,8 +29,8 @@ import java.util.List;
 @Service
 public class EmailServiceImpl implements EmailService {
 
-    @Value("${spring.mail.username}")
-    private String sender;
+    @Value("${mail.ws.recipient}")
+    private String recipient;
 
     @Value("${mail.ws.url}")
     protected String url;
@@ -45,7 +45,7 @@ public class EmailServiceImpl implements EmailService {
             createAttachment(dataLines, csvPath);
 
             //  Création du mail
-            String requestJson = mailToJSON(sender, "Rapport de traitement BestPPN " + packageName + ".csv", "");
+            String requestJson = mailToJSON(this.recipient, "Rapport de traitement BestPPN " + packageName + ".csv", "");
 
             //  Récupération du fichier
             File file = csvPath.toFile();
@@ -91,7 +91,7 @@ public class EmailServiceImpl implements EmailService {
 
     protected void sendMail(String requestJson, File f) {
         //  Création du l'adresse du ws d'envoi de mails
-        HttpPost uploadFile = new HttpPost(url + "htmlMailAttachment/");
+        HttpPost uploadFile = new HttpPost(this.url + "htmlMailAttachment/");
 
         //  Création du builder
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -123,7 +123,7 @@ public class EmailServiceImpl implements EmailService {
         String json = "";
         ObjectMapper mapper = new ObjectMapper();
         MailDto mail = new MailDto();
-        mail.setApp("item");
+        mail.setApp("kbart2kafka");
         mail.setTo(to.split(";"));
         mail.setCc(new String[]{});
         mail.setCci(new String[]{});
