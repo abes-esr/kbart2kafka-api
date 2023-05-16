@@ -9,21 +9,20 @@ import fr.abes.kafkaconvergence.service.BestPpnService;
 import fr.abes.kafkaconvergence.service.EmailServiceImpl;
 import fr.abes.kafkaconvergence.service.TopicProducer;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.logging.log4j.ThreadContext;
-import org.apache.tomcat.util.descriptor.web.ContextEnvironment;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.naming.Context;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -32,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Tag(name = "Convergence localhost", description = "Convergence localhost managements APIs")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @RestController
@@ -48,12 +48,17 @@ public class KafkaController {
     @Autowired
     private EmailServiceImpl emailServiceImpl;
 
-    @ApiOperation("Reads a TSV file, calculates the best PPN and sends the answer to Kafka")
-    @ApiResponses({
-            @ApiResponse(code = HttpServletResponse.SC_BAD_REQUEST, message = "Wrong file format", response = String.class),
-            @ApiResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message = "The server is not responding, please try again later", response = String.class)
-    })
-    @PostMapping("/kbart2Kafka")
+
+    @Operation(
+            summary = "Sends the best PPN to Kafka",
+            description = "Reads a TSV file, calculates the best PPN and sends the answer to Kafka",
+            responses = {
+                    @ApiResponse( responseCode = "200", description = "Le fichier a correctement été traité.", content = { @Content(schema = @Schema()) } ),
+                    @ApiResponse( responseCode = "400", description = "Un élément de la requête est mal formulé.", content = { @Content(schema = @Schema()) } ),
+                    @ApiResponse( responseCode = "500", description = "Une erreur interne au serveur a interrompu le traitement.", content = { @Content(schema = @Schema()) } ),
+            }
+    )
+    @PostMapping(value = "/kbart2Kafka", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, name = "kbart2kafka")
     public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException, BestPpnException, IllegalPpnException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
 

@@ -156,10 +156,15 @@
             <version>4.5.14</version>
         </dependency>
 
-        <!-- === SpringFox / documentation === -->
+        <!-- === SpringDoc / SpringFox / Swagger2 === -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.1.0</version>
+        </dependency>
         <dependency>
             <groupId>io.springfox</groupId>
-            <artifactId>springfox-boot-starter</artifactId>
+            <artifactId>springfox-swagger2</artifactId>
             <version>3.0.0</version>
         </dependency>
 
