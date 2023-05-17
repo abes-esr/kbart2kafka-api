@@ -13,21 +13,14 @@ import java.util.List;
 @Configuration
 public class OpenAPIConfig {
 
-    @Value("${kafkaconvergence.openapi.dev-url}")
+    @Value("${kafkaconvergence.openapi.url}")
     private String devUrl;
-
-    @Value("${kafkaconvergence.openapi.prod-url}")
-    private String prodUrl;
 
     @Bean
     public OpenAPI myOpenAPI() {
         Server devServer = new Server();
         devServer.setUrl(devUrl);
         devServer.setDescription("Server URL in Development environment");
-
-        Server prodServer = new Server();
-        prodServer.setUrl(prodUrl);
-        prodServer.setDescription("Server URL in Production environment");
 
         Contact contact = new Contact();
 //        contact.setEmail("");
@@ -44,6 +37,6 @@ public class OpenAPIConfig {
 //                .termsOfService("https://");
 //                .license(mitLicense);
 
-        return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
+        return new OpenAPI().info(info).servers(List.of(devServer));
     }
 }
