@@ -471,6 +471,17 @@ class BestPpnServiceTest {
     }
 
     @Test
+    @DisplayName("Test with 1 elecFromDoi")
+    void getBestPpnTest09() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "urlProvider";
+        //  Create a ResultWsSudocDto for elec
+        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+
+        //TODO finaliser TU
+    }
+
+    @Test
     @DisplayName("test best ppn with score : 1 seule notice électronique")
     void bestPpnWithScoreTest1() throws BestPpnException, JsonProcessingException {
         LigneKbartDto kbart = new LigneKbartDto();
@@ -519,6 +530,7 @@ class BestPpnServiceTest {
         Assertions.assertEquals(2 ,result.keySet().size());
         Assertions.assertEquals(20 ,result.get("2"));
         Assertions.assertEquals(20 ,result.get("3"));
+        Assertions.assertNull(result.get("1"));
     }
     @Test
     void testMaxVide(){

@@ -197,6 +197,10 @@ public class BestPpnService {
 
     public void feedPpnListFromDoi(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
         ResultDoi2PpnWebDto resultDoi2PpnWebDto = service.callDoi2Ppn(extractDOI(kbart), provider);
+        for (String ppn : resultDoi2PpnWebDto.getPpns()) {
+            log.debug("résultat : ppn" + ppn);
+            ppnElecResultList.put(ppn, 15 / resultDoi2PpnWebDto.getPpns().size());
+        }
     }
 
     public String getBestPpnByScore(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws BestPpnException, JsonProcessingException {
