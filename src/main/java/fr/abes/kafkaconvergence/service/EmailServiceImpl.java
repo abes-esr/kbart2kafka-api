@@ -56,6 +56,8 @@ public class EmailServiceImpl implements EmailService {
             //  Suppression du csv temporaire
             Files.deleteIfExists(csvPath);
 
+            log.info("L'email a été correctement envoyé.");
+
         } catch (IOException | CsvRequiredFieldEmptyException | CsvDataTypeMismatchException e) {
             throw new RuntimeException(e);
         }

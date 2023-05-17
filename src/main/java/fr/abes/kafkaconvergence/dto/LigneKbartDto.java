@@ -97,6 +97,8 @@ public class LigneKbartDto {
     @CsvBindByName(column = "bestPpn")
     @CsvBindByPosition(position = 25)
     private String bestPpn;
+
+    @JsonIgnore
     @CsvBindByName(column = "errorType")
     @CsvBindByPosition(position = 26)
     private String errorType;
