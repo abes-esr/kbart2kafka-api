@@ -10,6 +10,7 @@ import fr.abes.kafkaconvergence.service.EmailServiceImpl;
 import fr.abes.kafkaconvergence.service.TopicProducer;
 import fr.abes.kafkaconvergence.utils.CheckFiles;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -42,24 +43,20 @@ public class KafkaController {
     private final BestPpnService service;
     private static final String HEADER_TO_CHECK = "publication_title";
 
-//    @Value("${mail.ws.recipient}")
-//    private String recipent;
-
     @Autowired
     private EmailServiceImpl emailServiceImpl;
-
 
     @Operation(
             summary = "Sends the best PPN to Kafka",
             description = "Reads a TSV file, calculates the best PPN and sends the answer to Kafka",
             responses = {
-                    @ApiResponse( responseCode = "200", description = "Le fichier a correctement été traité.", content = { @Content(schema = @Schema()) } ),
-                    @ApiResponse( responseCode = "400", description = "Un élément de la requête est mal formulé.", content = { @Content(schema = @Schema()) } ),
-                    @ApiResponse( responseCode = "500", description = "Une erreur interne au serveur a interrompu le traitement.", content = { @Content(schema = @Schema()) } ),
+                    @ApiResponse( responseCode = "200", description = "The file has been correctly processed.", content = { @Content(schema = @Schema()) } ),
+                    @ApiResponse( responseCode = "400", description = "An element of the query is badly formulated.", content = { @Content(schema = @Schema()) } ),
+                    @ApiResponse( responseCode = "500", description = "An internal server error interrupted processing.", content = { @Content(schema = @Schema()) } ),
             }
     )
     @PostMapping(value = "/kbart2Kafka", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, name = "kbart2kafka")
-    public void kbart2kafka(@RequestParam("file") MultipartFile file) throws IOException, BestPpnException, IllegalPpnException {
+    public void kbart2kafka(@Parameter(description = "A .tsv (Tabulation-Separated Values) file.", required = true) @RequestParam("file") MultipartFile file) throws IOException, BestPpnException, IllegalPpnException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
 
             CheckFiles.verifyFile(file, HEADER_TO_CHECK);
@@ -104,13 +101,6 @@ public class KafkaController {
             throw new RuntimeException(e);
         }
     }
-
-    //  Envoi d'un mail avec pièce jointe
-//    @PostMapping(value = "/sendMailWithAttachment")
-//    public void sendMailWithAttachment() throws MessagingException, NoSuchFileException, DirectoryNotEmptyException {
-//        List<LigneKbartDto> list = new ArrayList<>();
-//        emailServiceImpl.sendMailWithAttachment("Rapport de traitement BestPPN ", list);
-//    }
 
     /**
      * Construction de la dto
