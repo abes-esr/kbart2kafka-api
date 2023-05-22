@@ -13,11 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 public class ResultDoi2PpnWebDto {
     @JsonProperty("ppns")
-    List<String> ppns = new ArrayList<>();
+    List<PpnWithTypeDto> ppns = new ArrayList<>();
     @JsonProperty("erreurs")
     List<String> erreurs = new ArrayList<>();
 
-    public void addPpn(String ppn) {
+    public void addPpn(PpnWithTypeDto ppn) {
         this.ppns.add(ppn);
     }
 }

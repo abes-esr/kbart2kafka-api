@@ -197,9 +197,15 @@ public class BestPpnService {
 
     public void feedPpnListFromDoi(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
         ResultDoi2PpnWebDto resultDoi2PpnWebDto = service.callDoi2Ppn(extractDOI(kbart), provider);
-        for (String ppn : resultDoi2PpnWebDto.getPpns()) {
-            log.debug("résultat : ppn" + ppn);
-            ppnElecResultList.put(ppn, 15 / resultDoi2PpnWebDto.getPpns().size());
+        for (PpnWithTypeDto ppn : resultDoi2PpnWebDto.getPpns()) {
+            if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)){
+                log.debug("résultat : ppn de type electronique" + ppn);
+                ppnElecResultList.put(ppn.getPpn(), 15 / resultDoi2PpnWebDto.getPpns().size());
+            }
+            if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)){
+                log.debug("résultat : ppn de type electronique" + ppn);
+                ppnPrintResultList.add(ppn.getPpn());
+            }
         }
     }
 
