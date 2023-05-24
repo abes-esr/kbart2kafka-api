@@ -114,25 +114,32 @@ public class BestPpnService {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
-                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && checkUrlInNotice(ppn.getPpn(), titleUrl)) {
-                    if (!ppnElecResultList.isEmpty()) {
-                        if (ppnElecResultList.containsKey(ppn.getPpn())) {
-                            Integer value = ppnElecResultList.get(ppn.getPpn()) + (score / nbPpnElec);
-                            log.info("PPN Electronique : " + ppn + " / score : " + value);
-                            ppnElecResultList.put(ppn.getPpn(), value);
-                        } else {
-                            log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
-                            ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
-                        }
-                    } else {
-                        log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
-                        ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
-                    }
+                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && !ppn.getProviderInNoticeIsPresent() && checkUrlInNotice(ppn.getPpn(), titleUrl)) {
+                    setScoreIfTypeSupportIsElectronique(score, ppnElecResultList, nbPpnElec, ppn);
+                    // TODO confirmer qu'il est attendu que le code suivant s'execute en cas de provider présent dans la notice (ppn.getProviderInNoticeIsPresent())
+                } else if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && ppn.getProviderInNoticeIsPresent()) {
+                    setScoreIfTypeSupportIsElectronique(score, ppnElecResultList, nbPpnElec, ppn);
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
                     log.info("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
                 }
             }
+        }
+    }
+
+    private void setScoreIfTypeSupportIsElectronique(int score, Map<String, Integer> ppnElecResultList, int nbPpnElec, PpnWithTypeDto ppn) {
+        if (!ppnElecResultList.isEmpty()) {
+            if (ppnElecResultList.containsKey(ppn.getPpn())) {
+                Integer value = ppnElecResultList.get(ppn.getPpn()) + (score / nbPpnElec);
+                log.info("PPN Electronique : " + ppn + " / score : " + value);
+                ppnElecResultList.put(ppn.getPpn(), value);
+            } else {
+                log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
+                ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
+            }
+        } else {
+            log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
+            ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
         }
     }
 
