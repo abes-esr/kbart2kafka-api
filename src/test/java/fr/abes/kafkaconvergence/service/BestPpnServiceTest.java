@@ -3,10 +3,7 @@ package fr.abes.kafkaconvergence.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import fr.abes.kafkaconvergence.dto.LigneKbartDto;
-import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
-import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
-import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
+import fr.abes.kafkaconvergence.dto.*;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
@@ -40,6 +37,9 @@ class BestPpnServiceTest {
 
     @MockBean
     TopicProducer topicProducer;
+
+    @MockBean
+    CheckUrlService checkUrlService;
 
     @MockBean
     WsService service;
@@ -108,6 +108,7 @@ class BestPpnServiceTest {
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(checkUrlService.checkUrlInNotice(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
@@ -161,6 +162,7 @@ class BestPpnServiceTest {
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(checkUrlService.checkUrlInNotice(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
@@ -214,6 +216,7 @@ class BestPpnServiceTest {
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(checkUrlService.checkUrlInNotice(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
@@ -225,7 +228,7 @@ class BestPpnServiceTest {
 
     @Test
     @DisplayName("Test throw BestPpnException same score")
-    void getBestPpnTest04() throws IOException, IllegalPpnException {
+    void getBestPpnTest04() throws IOException, IllegalPpnException, URISyntaxException {
         String provider = "";
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
@@ -262,6 +265,7 @@ class BestPpnServiceTest {
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(checkUrlService.checkUrlInNotice(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Vérification
@@ -411,6 +415,7 @@ class BestPpnServiceTest {
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(checkUrlService.checkUrlInNotice(Mockito.anyString(), Mockito.any())).thenReturn(true);
         Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
 
         //  Appel du service
@@ -459,7 +464,88 @@ class BestPpnServiceTest {
         //  Mock
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(checkUrlService.checkUrlInNotice(Mockito.anyString(), Mockito.any())).thenReturn(true);
 
+        //  Appel du service
+        String result = bestPpnService.getBestPpn(kbart, provider);
+
+        //  Vérification
+        Assertions.assertEquals("200000001", result);
+    }
+
+    @Test
+    @DisplayName("Test with 1 elecFromDoi")
+    void getBestPpnTest09() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "urlProvider";
+
+
+        //Creation d'une ligne kbart
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setOnline_identifier("9780470059616");
+        kbart.setPrint_identifier("9780470032565");
+        kbart.setTitle_url("https://onlinelibrary.wiley.com/doi/book/10.1002/9780470059616");
+        kbart.setFirst_author("Akyildiz");
+        kbart.setTitle_id("10.1002/9780470059616");
+        kbart.setCoverage_depth("fulltext");
+        kbart.setPublisher_name("John Wiley & Sons, Inc.");
+        kbart.setPublication_type("monograph");
+        kbart.setDate_monograph_published_print("2009");
+        kbart.setDate_monograph_published_online("2009");
+        kbart.setMonograph_edition("1");
+        kbart.setFirst_editor("Chichester");
+        kbart.setParent_publication_title_id("7630");
+        kbart.setAccess_type("P");
+
+
+        //Mock du service Doi -> Les ppn auront un score de 15 (car un seul ppn electro)
+        //  Create a ResultDoi2PpnWebDto
+        ResultWsSudocDto resultDoi = new ResultWsSudocDto();
+        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+        // Creation ppn electronique pour alimenter ResultDoi2PpnWebDto
+        PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
+        ppnWithType3.setPpn("123456789");
+        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithTypeDto.add(ppnWithType3);
+        // Creation ppn imprimé pour alimenter ResultDoi2PpnWebDto
+        PpnWithTypeDto ppnWithType4 = new PpnWithTypeDto();
+        ppnWithType4.setPpn("234567891");
+        ppnWithType4.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithTypeDto.add(ppnWithType4);
+        //Insertion dans la liste de résultat de ResultDoi2PpnWebDto
+        resultDoi.setPpns(ppnWithTypeDto);
+        Mockito.when(service.callDoi2Ppn(bestPpnService.extractDOI(kbart), provider)).thenReturn(resultDoi);
+
+
+        //Mock du service callOnlineId2Ppn -> les ppn auront un score de 10
+        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+        List<PpnWithTypeDto> ppnWithTypeDto2 = new ArrayList<>();
+        resultElec.setPpns(ppnWithTypeDto2);
+        PpnWithTypeDto ppnElectro = new PpnWithTypeDto();
+        ppnElectro.setPpn("200000001");
+        ppnElectro.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithTypeDto2.add(ppnElectro);
+        resultElec.setPpns(ppnWithTypeDto2);
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+
+
+        //Mock du service callPrintId2Ppn -> les ppn auront un score de 8
+        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+        List<PpnWithTypeDto> ppnWithTypeDto3 = new ArrayList<>();
+        resultPrint.setPpns(ppnWithTypeDto3);
+        PpnWithTypeDto ppnPrint = new PpnWithTypeDto();
+        ppnPrint.setPpn("200000002");
+        ppnPrint.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithTypeDto3.add(ppnPrint);
+        resultPrint.setPpns(ppnWithTypeDto3);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+
+        //Mock du service callDat2Ppn -> les ppn auront un score de 20
+        ResultDat2PpnWebDto resultDat2PpnWeb = new ResultDat2PpnWebDto();
+        resultDat2PpnWeb.addPpn("300000001");
+        resultDat2PpnWeb.addPpn("300000002");
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
+        Mockito.when(checkUrlService.checkUrlInNotice(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         //  Appel du service
         String result = bestPpnService.getBestPpn(kbart, provider);
 
@@ -516,6 +602,7 @@ class BestPpnServiceTest {
         Assertions.assertEquals(2 ,result.keySet().size());
         Assertions.assertEquals(20 ,result.get("2"));
         Assertions.assertEquals(20 ,result.get("3"));
+        Assertions.assertNull(result.get("1"));
     }
     @Test
     void testMaxVide(){
