@@ -77,9 +77,11 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
         ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setProviderInNoticeIsPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
         ppnWithType2.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType2.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
         ppnWithTypeDto.add(ppnWithType1);
@@ -119,6 +121,56 @@ class BestPpnServiceTest {
     }
 
     @Test
+    @DisplayName("Test with 1 elecFromOnline & 1 printFromOnline with no provider in notice")
+    void getBestPpnTest01_WithProviderInNoticeIsPresent() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "";
+        //  Create PpnWithTypeDto for elec
+        PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
+        ppnWithType1.setPpn("100000001");
+        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setProviderInNoticeIsPresent(true);
+        PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
+        ppnWithType2.setPpn("100000002");
+        ppnWithType2.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType2.setProviderInNoticeIsPresent(true);
+        //  Create a List of PpnWithListDto for elec
+        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+        ppnWithTypeDto.add(ppnWithType1);
+        ppnWithTypeDto.add(ppnWithType2);
+        //  Create a ResultWsSudocDto for elec
+        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+        resultElec.setPpns(ppnWithTypeDto);
+
+        //  Create a List of PpnWithListDto for print
+        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
+        //  Create a ResultWsSudocDto for print
+        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+        resultPrint.setPpns(ppnWithTypePrintDto);
+
+        //  Create a LigneKbartDto
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setOnline_identifier("1292-8399");
+        kbart.setPrint_identifier("2-84358-095-1");
+        kbart.setPublication_type("serial");
+        kbart.setDate_monograph_published_online("DateOnline");
+        kbart.setPublication_title("Titre");
+        kbart.setFirst_author("Auteur");
+        kbart.setDate_monograph_published_print("DatePrint");
+        kbart.setTitle_url("https://www.test.fr/test");
+
+        //  Mock
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(noticeService.getNoticeByPpn(Mockito.anyString())).thenReturn(this.noticeElec);
+
+        //  Appel du service
+        String result = bestPpnService.getBestPpn(kbart, provider);
+
+        //  Vérification
+        Assertions.assertEquals("100000001", result);
+    }
+
+    @Test
     @DisplayName("Test with 1 elecFromOnline & 1 elecFromPrint")
     void getBestPpnTest02() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "";
@@ -126,9 +178,11 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
         ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setProviderInNoticeIsPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
         ppnWithType2.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType2.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
         ppnWithTypeDto.add(ppnWithType1);
@@ -141,6 +195,7 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
         ppnWithType3.setPpn("200000001");
         ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType3.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for print
         List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
         ppnWithTypePrintDto.add(ppnWithType3);
@@ -180,9 +235,11 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
         ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setProviderInNoticeIsPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
         ppnWithType2.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType2.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
         ppnWithTypeDto.add(ppnWithType1);
@@ -195,6 +252,7 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
         ppnWithType3.setPpn("100000001");
         ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType3.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for print
         List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
         ppnWithTypePrintDto.add(ppnWithType3);
@@ -234,9 +292,11 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
         ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setProviderInNoticeIsPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
         ppnWithType2.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType2.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
         ppnWithTypeDto.add(ppnWithType1);
@@ -281,6 +341,7 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
         ppnWithType1.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType1.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
         ppnWithTypeDto.add(ppnWithType1);
@@ -292,6 +353,7 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithTypePrint1 = new PpnWithTypeDto();
         ppnWithTypePrint1.setPpn("200000001");
         ppnWithTypePrint1.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithTypePrint1.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for print
         List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
         ppnWithTypePrintDto.add(ppnWithTypePrint1);
@@ -384,9 +446,11 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
         ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setProviderInNoticeIsPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
         ppnWithType2.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType2.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
         ppnWithTypeDto.add(ppnWithType1);
@@ -438,9 +502,11 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
         ppnWithType3.setPpn("200000001");
         ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType3.setProviderInNoticeIsPresent(false);
         PpnWithTypeDto ppnWithType4 = new PpnWithTypeDto();
         ppnWithType4.setPpn("200000002");
         ppnWithType4.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType4.setProviderInNoticeIsPresent(false);
         //  Create a List of PpnWithListDto for print
         List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
         ppnWithTypePrintDto.add(ppnWithType3);
@@ -505,6 +571,7 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
         ppnWithType3.setPpn("123456789");
         ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType3.setProviderInNoticeIsPresent(true);
         ppnWithTypeDto.add(ppnWithType3);
         // Creation ppn imprimé pour alimenter ResultDoi2PpnWebDto
         PpnWithTypeDto ppnWithType4 = new PpnWithTypeDto();
@@ -523,6 +590,7 @@ class BestPpnServiceTest {
         PpnWithTypeDto ppnElectro = new PpnWithTypeDto();
         ppnElectro.setPpn("200000001");
         ppnElectro.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnElectro.setProviderInNoticeIsPresent(true);
         ppnWithTypeDto2.add(ppnElectro);
         resultElec.setPpns(ppnWithTypeDto2);
         Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);

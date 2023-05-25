@@ -49,7 +49,7 @@ public class CheckUrlService {
                 }
             }
         }
-        log.debug("Url non trouvée dans notice");
+        log.error("Pas de correspondance trouvée dans la notice avec l'url du provider.");
         return false;
     }
 }

@@ -78,7 +78,6 @@ public class BestPpnService {
             log.error("BestPpn " + kbart + " Aucun bestPpn trouvé.");
         }
 
-
         return getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
     }
 
@@ -116,25 +115,31 @@ public class BestPpnService {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
-                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)) {
-                    if (!ppnElecResultList.isEmpty()) {
-                        if (ppnElecResultList.containsKey(ppn.getPpn())) {
-                            Integer value = ppnElecResultList.get(ppn.getPpn()) + (score / nbPpnElec);
-                            log.info("PPN Electronique : " + ppn + " / score : " + value);
-                            ppnElecResultList.put(ppn.getPpn(), value);
-                        } else {
-                            log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
-                            ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
-                        }
-                    } else {
-                        log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
-                        ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
-                    }
+                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && !ppn.getProviderInNoticeIsPresent() && checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)) {
+                    setScoreIfTypeSupportIsElectronique(score, ppnElecResultList, nbPpnElec, ppn);
+                } else if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && ppn.getProviderInNoticeIsPresent()) {
+                    setScoreIfTypeSupportIsElectronique(score, ppnElecResultList, nbPpnElec, ppn);
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
                     log.info("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
                 }
             }
+        }
+    }
+
+    private void setScoreIfTypeSupportIsElectronique(int score, Map<String, Integer> ppnElecResultList, int nbPpnElec, PpnWithTypeDto ppn) {
+        if (!ppnElecResultList.isEmpty()) {
+            if (ppnElecResultList.containsKey(ppn.getPpn())) {
+                Integer value = ppnElecResultList.get(ppn.getPpn()) + (score / nbPpnElec);
+                log.info("PPN Electronique : " + ppn + " / score : " + value);
+                ppnElecResultList.put(ppn.getPpn(), value);
+            } else {
+                log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
+                ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
+            }
+        } else {
+            log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
+            ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
         }
     }
 
@@ -167,7 +172,7 @@ public class BestPpnService {
         }
     }
 
-    public void feedPpnListFromDoi(String doi, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
+    public void feedPpnListFromDoi(String doi, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException {
         ResultWsSudocDto resultDoi2PpnWebDto = service.callDoi2Ppn(doi, provider);
         for (PpnWithTypeDto ppn : resultDoi2PpnWebDto.getPpns()) {
             if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)){
