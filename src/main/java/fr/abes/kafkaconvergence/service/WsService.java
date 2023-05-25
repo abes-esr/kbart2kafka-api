@@ -29,6 +29,9 @@ public class WsService {
     @Value("${url.dat2Ppn}")
     private String urlDat2Ppn;
 
+    @Value("${url.doi2Ppn}")
+    private String urlDoi2Ppn;
+
     private final RestTemplate restTemplate;
     private final HttpHeaders headers;
 
@@ -77,6 +80,10 @@ public class WsService {
             searchDatWebDto.setDate(Integer.valueOf(date));
         }
         return mapper.readValue(postCall(urlDat2Ppn, mapper.writeValueAsString(searchDatWebDto)), ResultDat2PpnWebDto.class);
+    }
+
+    public ResultWsSudocDto callDoi2Ppn(String doi, @Nullable String provider) throws JsonProcessingException {
+        return mapper.readValue(getCall(urlDoi2Ppn, doi, provider), ResultWsSudocDto.class);
     }
 
 }

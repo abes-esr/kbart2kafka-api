@@ -1,18 +1,12 @@
 package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.abes.kafkaconvergence.dto.LigneKbartDto;
-import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
-import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
-import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
-import fr.abes.kafkaconvergence.entity.basexml.notice.Datafield;
+import fr.abes.kafkaconvergence.dto.*;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
-import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.PUBLICATION_TYPE;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
-import fr.abes.kafkaconvergence.utils.Utils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,10 +41,13 @@ public class BestPpnService {
 
     private final TopicProducer topicProducer;
 
-    public BestPpnService(WsService service, NoticeService noticeService, TopicProducer topicProducer) {
+    private final CheckUrlService checkUrlService;
+
+    public BestPpnService(WsService service, NoticeService noticeService, TopicProducer topicProducer, CheckUrlService checkUrlService) {
         this.service = service;
         this.noticeService = noticeService;
         this.topicProducer = topicProducer;
+        this.checkUrlService = checkUrlService;
     }
 
     public String getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException, BestPpnException, URISyntaxException {
@@ -69,6 +66,11 @@ public class BestPpnService {
                 feedPpnListFromPrint(kbart, provider, ppnElecResultList, ppnPrintResultList);
             }
         }
+        String doi = extractDOI(kbart);
+        if (!doi.isBlank()){
+            feedPpnListFromDoi(doi, provider, ppnElecResultList, ppnPrintResultList);
+        }
+
         if (ppnElecResultList.isEmpty()) {
             feedPpnListFromDat(kbart, ppnElecResultList, ppnPrintResultList);
         }
@@ -113,7 +115,7 @@ public class BestPpnService {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
-                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && !ppn.getProviderInNoticeIsPresent() && checkUrlInNotice(ppn.getPpn(), titleUrl)) {
+                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && !ppn.getProviderInNoticeIsPresent() && checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)) {
                     setScoreIfTypeSupportIsElectronique(score, ppnElecResultList, nbPpnElec, ppn);
                 } else if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && ppn.getProviderInNoticeIsPresent()) {
                     setScoreIfTypeSupportIsElectronique(score, ppnElecResultList, nbPpnElec, ppn);
@@ -139,37 +141,6 @@ public class BestPpnService {
             log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
             ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
         }
-    }
-
-    public boolean checkUrlInNotice(String ppn, String titleUrl) throws IOException, IllegalPpnException, URISyntaxException {
-        log.debug("entrée dans checkUrlInNotice " + titleUrl);
-        if (titleUrl == null || titleUrl.contains("doi.org")) {
-            log.debug("titleUrl null ou contient doi.org");
-            return true;
-        }
-        String domain = Utils.extractDomainFromUrl(titleUrl);
-        //récupération notice dans la base pour analyse
-        NoticeXml notice = noticeService.getNoticeByPpn(ppn);
-        List<Datafield> zones856 = notice.getZoneDollarUWithoutDollar5("856");
-        for(Datafield zone : zones856) {
-            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).toList()) {
-                if (sousZone.getValue().contains(domain)) {
-                    log.debug("Url trouvée dans 856");
-                    return true;
-                }
-            }
-        }
-        List<Datafield> zone859 = notice.getZoneDollarUWithoutDollar5("859");
-        for (Datafield zone : zone859) {
-            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).toList()) {
-                if (sousZone.getValue().contains(domain)) {
-                    log.debug("Url trouvée dans 859");
-                    return true;
-                }
-            }
-        }
-        log.error("Pas de correspondance trouvée dans la notice avec l'url du provider.");
-        return false;
     }
 
     public void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
@@ -201,6 +172,20 @@ public class BestPpnService {
         }
     }
 
+    public void feedPpnListFromDoi(String doi, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException {
+        ResultWsSudocDto resultDoi2PpnWebDto = service.callDoi2Ppn(doi, provider);
+        for (PpnWithTypeDto ppn : resultDoi2PpnWebDto.getPpns()) {
+            if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)){
+                log.debug("résultat : ppn de type electronique : " + ppn);
+                ppnElecResultList.put(ppn.getPpn(), 15 / resultDoi2PpnWebDto.getPpns().size());
+            }
+            if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)){
+                log.debug("résultat : ppn de type electronique : " + ppn);
+                ppnPrintResultList.add(ppn.getPpn());
+            }
+        }
+    }
+
     public String getBestPpnByScore(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws BestPpnException, JsonProcessingException {
         Map<String, Integer> ppnElecScore = getMaxValuesFromMap(ppnElecResultList);
         switch (ppnElecScore.size()) {
@@ -224,9 +209,11 @@ public class BestPpnService {
                 return ppnElecScore.keySet().stream().findFirst().get();
             }
             default -> {
-                kbart.setErrorType("Les ppn électroniques " + ppnElecScore.toString() + " ont le même score");
-                log.error("Les ppn électroniques " + String.join(", ", ppnElecScore.toString()) + " ont le même score");
-                throw new BestPpnException("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
+                String listPpn = String.join(", ", ppnElecScore.keySet());
+                String errorString = "Les ppn électroniques " + listPpn + " ont le même score";
+                kbart.setErrorType(errorString);
+                log.error(errorString);
+                throw new BestPpnException(errorString);
             }
         }
         return "";
