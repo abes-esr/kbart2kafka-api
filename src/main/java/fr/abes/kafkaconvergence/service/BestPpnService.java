@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 @Getter
@@ -116,7 +115,6 @@ public class BestPpnService {
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
                 if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && !ppn.getProviderInNoticeIsPresent() && checkUrlInNotice(ppn.getPpn(), titleUrl)) {
                     setScoreIfTypeSupportIsElectronique(score, ppnElecResultList, nbPpnElec, ppn);
-                    // TODO confirmer qu'il est attendu que le code suivant s'execute en cas de provider présent dans la notice (ppn.getProviderInNoticeIsPresent())
                 } else if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && ppn.getProviderInNoticeIsPresent()) {
                     setScoreIfTypeSupportIsElectronique(score, ppnElecResultList, nbPpnElec, ppn);
                 } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
@@ -154,7 +152,7 @@ public class BestPpnService {
         NoticeXml notice = noticeService.getNoticeByPpn(ppn);
         List<Datafield> zones856 = notice.getZoneDollarUWithoutDollar5("856");
         for(Datafield zone : zones856) {
-            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).collect(Collectors.toList())) {
+            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).toList()) {
                 if (sousZone.getValue().contains(domain)) {
                     log.debug("Url trouvée dans 856");
                     return true;
@@ -163,14 +161,14 @@ public class BestPpnService {
         }
         List<Datafield> zone859 = notice.getZoneDollarUWithoutDollar5("859");
         for (Datafield zone : zone859) {
-            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).collect(Collectors.toList())) {
+            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).toList()) {
                 if (sousZone.getValue().contains(domain)) {
                     log.debug("Url trouvée dans 859");
                     return true;
                 }
             }
         }
-        log.debug("Url non trouvée dans notice");
+        log.error("Pas de correspondance trouvée dans la notice avec l'url du provider.");
         return false;
     }
 
