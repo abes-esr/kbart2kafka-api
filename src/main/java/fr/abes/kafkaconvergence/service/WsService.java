@@ -3,7 +3,6 @@ package fr.abes.kafkaconvergence.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
-import fr.abes.kafkaconvergence.dto.ResultDoi2PpnWebDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.dto.SearchDatWebDto;
 import lombok.extern.slf4j.Slf4j;
@@ -83,8 +82,8 @@ public class WsService {
         return mapper.readValue(postCall(urlDat2Ppn, mapper.writeValueAsString(searchDatWebDto)), ResultDat2PpnWebDto.class);
     }
 
-    public ResultDoi2PpnWebDto callDoi2Ppn(String doi, @Nullable String provider) throws JsonProcessingException {
-        return mapper.readValue(getCall(urlDoi2Ppn, doi, provider), ResultDoi2PpnWebDto.class);
+    public ResultWsSudocDto callDoi2Ppn(String doi, @Nullable String provider) throws JsonProcessingException {
+        return mapper.readValue(getCall(urlDoi2Ppn, doi, provider), ResultWsSudocDto.class);
     }
 
 }
