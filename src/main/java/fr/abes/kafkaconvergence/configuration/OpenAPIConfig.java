@@ -13,37 +13,26 @@ import java.util.List;
 @Configuration
 public class OpenAPIConfig {
 
-    @Value("${kafkaconvergence.openapi.dev-url}")
-    private String devUrl;
-
-    @Value("${kafkaconvergence.openapi.prod-url}")
-    private String prodUrl;
+    @Value("${kafkaconvergence.openapi.url}")
+    private String url;
 
     @Bean
     public OpenAPI myOpenAPI() {
-        Server devServer = new Server();
-        devServer.setUrl(devUrl);
-        devServer.setDescription("Server URL in Development environment");
-
-        Server prodServer = new Server();
-        prodServer.setUrl(prodUrl);
-        prodServer.setDescription("Server URL in Production environment");
+        Server server = new Server();
+        server.setUrl(url);
+        server.setDescription("Server URL in Development environment");
 
         Contact contact = new Contact();
-//        contact.setEmail("");
         contact.setName("Convergence");
         contact.setUrl("https://");
-
-//        License mitLicense = new License().name("MIT License").url("https://choosealicense.com/licenses/mit/");
 
         Info info = new Info()
                 .title("Convergence API")
                 .version("1.0")
                 .contact(contact)
                 .description("This API reads a TSV file, calculates the best PPN and sends the answer to Kafka.");
-//                .termsOfService("https://");
-//                .license(mitLicense);
 
-        return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
+
+        return new OpenAPI().info(info).servers(List.of(server));
     }
 }
