@@ -6,6 +6,7 @@ import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.PpnKbartProviderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -26,13 +27,14 @@ public class TopicProducer {
     private final ObjectMapper mapper;
 
     public void sendKbart(LigneKbartDto kbart) throws JsonProcessingException {
-        log.info("Message envoyé : {}", mapper.writeValueAsString(kbart));
-        kafkaTemplate.send(topicKbart, Integer.valueOf(kbart.hashCode()).toString(), mapper.writeValueAsString(kbart));
+        log.debug("Message envoyé : {}", mapper.writeValueAsString(kbart));
+        String fileName = ThreadContext.get("package");
+        kafkaTemplate.send(topicKbart, fileName, mapper.writeValueAsString(kbart));
     }
 
     public void sendPrintNotice(String ppn, LigneKbartDto kbart, String provider) throws JsonProcessingException {
         PpnKbartProviderDto dto = new PpnKbartProviderDto(ppn, kbart, provider);
-        log.info("Message envoyé : {}", dto.toString());
+        log.debug("Message envoyé : {}", dto);
         kafkaTemplate.send(topicPpnKbartProvider, Integer.valueOf(dto.hashCode()).toString(), mapper.writeValueAsString(dto));
     }
 }
