@@ -55,7 +55,6 @@ class BestPpnServiceTest {
 
     private NoticeXml noticeElec;
 
-    private Utils utils;
 
     @BeforeEach
     void init() throws IOException {
@@ -442,6 +441,52 @@ class BestPpnServiceTest {
     }
 
     @Test
+    @DisplayName("Test printFromPrint & 0 printFromDat ")
+    void getBestPpnTest06_NoBestPpnByDat2Ppn() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
+        String provider = "";
+
+        //  Create a List of PpnWithListDto for elec
+        List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
+        //  Create a ResultWsSudocDto for elec
+        ResultWsSudocDto resultElec = new ResultWsSudocDto();
+        resultElec.setPpns(ppnWithTypeDto);
+
+        //  Create a List of PpnWithListDto for print
+        List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
+        //  Create a ResultWsSudocDto for print
+        ResultWsSudocDto resultPrint = new ResultWsSudocDto();
+        resultPrint.setPpns(ppnWithTypePrintDto);
+
+        //  Create a ResultDat2PpnWebDto
+        ResultDat2PpnWebDto resultDat2PpnWeb = new ResultDat2PpnWebDto();
+
+        //  Create a LigneKbartDto
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setOnline_identifier("1292-8399");
+        kbart.setPrint_identifier("2-84358-095-1");
+        kbart.setPublication_type("serial");
+        kbart.setDate_monograph_published_print("");
+        kbart.setDate_monograph_published_online("DateOnline");
+        kbart.setPublication_title("Titre");
+        kbart.setFirst_author("Auteur");
+        kbart.setDate_monograph_published_print("DatePrint");
+
+        //  Mock
+        Mockito.when(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider)).thenReturn(resultElec);
+        Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
+        Mockito.when(noticeService.getNoticeByPpn("300000001")).thenReturn(noticeElec);
+        Mockito.when(noticeService.getNoticeByPpn("300000002")).thenReturn(noticePrint);
+
+        //  Appel de la méthode
+        String result = bestPpnService.getBestPpn(kbart, provider);
+
+        //  Vérification
+        Assertions.assertEquals("", result);
+    }
+
+    @Test
     @DisplayName("Test with 1 elecFromOnline & 1 printFromOnline & titleUrl is null")
     void getBestPpnTest07() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "";
@@ -658,7 +703,7 @@ class BestPpnServiceTest {
         Map<String, Integer> map = new HashMap<>();
         map.put("1", 10);
         map.put("2", 20);
-        Map<String, Integer> result = utils.getMaxValuesFromMap(map);
+        Map<String, Integer> result = Utils.getMaxValuesFromMap(map);
         Assertions.assertEquals(1 ,result.keySet().size());
         Assertions.assertEquals(20 ,result.get("2"));
     }
@@ -669,7 +714,7 @@ class BestPpnServiceTest {
         map.put("1", 10);
         map.put("2", 20);
         map.put("3", 20);
-        Map<String, Integer> result = utils.getMaxValuesFromMap(map);
+        Map<String, Integer> result = Utils.getMaxValuesFromMap(map);
         Assertions.assertEquals(2 ,result.keySet().size());
         Assertions.assertEquals(20 ,result.get("2"));
         Assertions.assertEquals(20 ,result.get("3"));
@@ -678,7 +723,7 @@ class BestPpnServiceTest {
     @Test
     void testMaxVide(){
         Map<String, Integer> map = new HashMap<>();
-        Map<String, Integer> result = utils.getMaxValuesFromMap(map);
+        Map<String, Integer> result = Utils.getMaxValuesFromMap(map);
         Assertions.assertTrue(result.isEmpty());
     }
 }

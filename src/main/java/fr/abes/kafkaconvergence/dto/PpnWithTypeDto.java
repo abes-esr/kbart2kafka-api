@@ -10,7 +10,7 @@ public class PpnWithTypeDto {
     private String ppn;
     private TYPE_SUPPORT type;
 
-    private Boolean providerInNoticeIsPresent;
+    private Boolean providerInNoticeIsPresent = false;
 
     public PpnWithTypeDto(String ppn) {
         this.ppn = ppn;
