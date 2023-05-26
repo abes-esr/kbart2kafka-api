@@ -8,6 +8,7 @@ import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
+import fr.abes.kafkaconvergence.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +54,8 @@ class BestPpnServiceTest {
     private NoticeXml noticePrint;
 
     private NoticeXml noticeElec;
+
+    private Utils utils;
 
     @BeforeEach
     void init() throws IOException {
@@ -580,7 +583,7 @@ class BestPpnServiceTest {
         ppnWithTypeDto.add(ppnWithType4);
         //Insertion dans la liste de résultat de ResultDoi2PpnWebDto
         resultDoi.setPpns(ppnWithTypeDto);
-        Mockito.when(service.callDoi2Ppn(bestPpnService.extractDOI(kbart), provider)).thenReturn(resultDoi);
+        Mockito.when(service.callDoi2Ppn(Utils.extractDOI(kbart), provider)).thenReturn(resultDoi);
 
 
         //Mock du service callOnlineId2Ppn -> les ppn auront un score de 10
@@ -655,7 +658,7 @@ class BestPpnServiceTest {
         Map<String, Integer> map = new HashMap<>();
         map.put("1", 10);
         map.put("2", 20);
-        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
+        Map<String, Integer> result = utils.getMaxValuesFromMap(map);
         Assertions.assertEquals(1 ,result.keySet().size());
         Assertions.assertEquals(20 ,result.get("2"));
     }
@@ -666,7 +669,7 @@ class BestPpnServiceTest {
         map.put("1", 10);
         map.put("2", 20);
         map.put("3", 20);
-        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
+        Map<String, Integer> result = utils.getMaxValuesFromMap(map);
         Assertions.assertEquals(2 ,result.keySet().size());
         Assertions.assertEquals(20 ,result.get("2"));
         Assertions.assertEquals(20 ,result.get("3"));
@@ -675,63 +678,7 @@ class BestPpnServiceTest {
     @Test
     void testMaxVide(){
         Map<String, Integer> map = new HashMap<>();
-        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
+        Map<String, Integer> result = utils.getMaxValuesFromMap(map);
         Assertions.assertTrue(result.isEmpty());
-    }
-
-
-    @Test
-    void extractDOItestAvecPresenceDOIdanstitleUrl() {
-        /*
-        TODO pierre attention si un objet kbart ne contient pas de valeur sur
-        publication_title, publication_type, online_identifier, print_identifier
-        NPE au lancement du test passage dans bestPpnService.extractDOI
-        */
-        LigneKbartDto kbart = new LigneKbartDto();
-        kbart.setPublication_title("testtitle");
-        kbart.setPublication_type("testtype");
-        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
-        kbart.setPrint_identifier("print");
-
-        kbart.setTitle_url("https://doi.org/10.1006/jmbi.1998.2354");
-
-        Assertions.assertEquals("10.1006/jmbi.1998.2354", bestPpnService.extractDOI(kbart));
-    }
-
-    @Test
-    void extractDOItestAvecPresenceDOIdanstitleId() {
-        /*
-        TODO pierre attention si un objet kbart ne contient pas de valeur sur
-        publication_title, publication_type, online_identifier, print_identifier
-        NPE au lancement du test passage dans bestPpnService.extractDOI
-        */
-        LigneKbartDto kbart = new LigneKbartDto();
-        kbart.setPublication_title("testtitle");
-        kbart.setPublication_type("testtype");
-        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
-        kbart.setPrint_identifier("print");
-
-        kbart.setTitle_id("https://doi.org/10.1006/jmbi.1998.2354");
-
-        Assertions.assertEquals("10.1006/jmbi.1998.2354", bestPpnService.extractDOI(kbart));
-    }
-
-    @Test
-    void extractDOItestAvecPresenceDOIdanstitleIdetTitleurl_priorisationTitleUrl() {
-        /*
-        TODO pierre attention si un objet kbart ne contient pas de valeur sur
-        publication_title, publication_type, online_identifier, print_identifier
-        NPE au lancement du test passage dans bestPpnService.extractDOI
-        */
-        LigneKbartDto kbart = new LigneKbartDto();
-        kbart.setPublication_title("testtitle");
-        kbart.setPublication_type("testtype");
-        kbart.setOnline_identifier("online");
-        kbart.setPrint_identifier("print");
-
-        kbart.setTitle_id("https://doi.org/10.51257/a-v2-r7420");
-        kbart.setTitle_url("https://doi.org/10.1038/issn.1476-4687");
-
-        Assertions.assertEquals("10.1038/issn.1476-4687", bestPpnService.extractDOI(kbart));
     }
 }
