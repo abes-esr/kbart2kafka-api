@@ -57,11 +57,11 @@ public class BestPpnService {
 
         if (!kbart.getPublication_type().isEmpty()) {
             provider = kbart.getPublication_type().equals(PUBLICATION_TYPE.serial.toString()) ? "" : provider;
-            if (!kbart.getOnline_identifier().isEmpty()) {
+            if (kbart.getOnline_identifier() != null && !kbart.getOnline_identifier().isEmpty()) {
                 log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getOnline_identifier() + " / provider : " + provider);
                 feedPpnListFromOnline(kbart, provider, ppnElecScoredList, ppnPrintResultList);
             }
-            if (!kbart.getPrint_identifier().isEmpty()) {
+            if (kbart.getPrint_identifier() != null && !kbart.getPrint_identifier().isEmpty()) {
                 log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getPrint_identifier() + " / provider : " + provider);
                 feedPpnListFromPrint(kbart, provider, ppnElecScoredList, ppnPrintResultList);
             }
@@ -87,11 +87,11 @@ public class BestPpnService {
         log.debug("Entrée dans printId2Ppn");
         ResultWsSudocDto resultCallWs = service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider);
         ResultWsSudocDto resultWithTypeElectronique = resultCallWs.getPpnWithTypeElectronique();
-        if (resultWithTypeElectronique != null) {
+        if (resultWithTypeElectronique != null && !resultWithTypeElectronique.getPpns().isEmpty()) {
             setScoreToEveryPpnFromResultWS(resultWithTypeElectronique, kbart.getTitle_url(), this.scorePrintId2PpnElect, ppnElecScoredList, ppnPrintResultList);
         }
         ResultWsSudocDto resultWithTypeImprime = resultCallWs.getPpnWithTypeImprime();
-        if (resultWithTypeImprime != null) {
+        if (resultWithTypeElectronique != null && !resultWithTypeImprime.getPpns().isEmpty()) {
             setScoreToEveryPpnFromResultWS(resultWithTypeImprime, kbart.getTitle_url(), this.scoreErrorType, ppnElecScoredList, ppnPrintResultList);
         }
     }
@@ -105,7 +105,7 @@ public class BestPpnService {
             log.debug("Appel dat2ppn :  date_monograph_published_print : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
             resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
         }
-        if(resultDat2PpnWeb != null) {
+        if(resultDat2PpnWeb != null && !resultDat2PpnWeb.getPpns().isEmpty()) {
             for (String ppn : resultDat2PpnWeb.getPpns()) {
                 log.debug("résultat : ppn " + ppn);
                 NoticeXml notice = noticeService.getNoticeByPpn(ppn);
