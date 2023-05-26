@@ -55,6 +55,8 @@ class BestPpnServiceTest {
 
     private NoticeXml noticeElec;
 
+    private Utils utils;
+
     @BeforeEach
     void init() throws IOException {
         String xml = IOUtils.toString(new FileInputStream(xmlFileNoticeElec.getFile()), StandardCharsets.UTF_8);
@@ -656,7 +658,7 @@ class BestPpnServiceTest {
         Map<String, Integer> map = new HashMap<>();
         map.put("1", 10);
         map.put("2", 20);
-        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
+        Map<String, Integer> result = utils.getMaxValuesFromMap(map);
         Assertions.assertEquals(1 ,result.keySet().size());
         Assertions.assertEquals(20 ,result.get("2"));
     }
@@ -667,7 +669,7 @@ class BestPpnServiceTest {
         map.put("1", 10);
         map.put("2", 20);
         map.put("3", 20);
-        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
+        Map<String, Integer> result = utils.getMaxValuesFromMap(map);
         Assertions.assertEquals(2 ,result.keySet().size());
         Assertions.assertEquals(20 ,result.get("2"));
         Assertions.assertEquals(20 ,result.get("3"));
@@ -676,7 +678,7 @@ class BestPpnServiceTest {
     @Test
     void testMaxVide(){
         Map<String, Integer> map = new HashMap<>();
-        Map<String, Integer> result = bestPpnService.getMaxValuesFromMap(map);
+        Map<String, Integer> result = utils.getMaxValuesFromMap(map);
         Assertions.assertTrue(result.isEmpty());
     }
 }

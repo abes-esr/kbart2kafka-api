@@ -74,9 +74,6 @@ public class BestPpnService {
         if (ppnElecScoredList.isEmpty()) {
             feedPpnListFromDat(kbart, ppnElecScoredList, ppnPrintResultList);
         }
-        if (ppnElecScoredList.isEmpty()) {
-            log.error("BestPpn " + kbart + " Aucun bestPpn trouvé.");
-        }
 
         return getBestPpnByScore(kbart, provider, ppnElecScoredList, ppnPrintResultList);
     }
@@ -159,9 +156,10 @@ public class BestPpnService {
     }
 
     public String getBestPpnByScore(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws BestPpnException, JsonProcessingException {
-        Map<String, Integer> ppnElecScore = getMaxValuesFromMap(ppnElecResultList);
+        Map<String, Integer> ppnElecScore = Utils.getMaxValuesFromMap(ppnElecResultList);
         switch (ppnElecScore.size()) {
             case 0 -> {
+                log.info("Aucun ppn électronique trouvé." + kbart);
                 switch (ppnPrintResultList.size()) {
                     case 0 -> {
                         log.debug("Envoi kbart et provider vers kafka");
@@ -189,18 +187,5 @@ public class BestPpnService {
             }
         }
         return "";
-    }
-
-    public <K, V extends Comparable<? super V>> Map<K, V> getMaxValuesFromMap(Map<K, V> map) {
-        Map<K, V> maxKeys = new HashMap<>();
-        if (!map.isEmpty()) {
-            V maxValue = Collections.max(map.values());
-            for (Map.Entry<K, V> entry : map.entrySet()) {
-                if (entry.getValue().equals(maxValue)) {
-                    maxKeys.put(entry.getKey(), entry.getValue());
-                }
-            }
-        }
-        return maxKeys;
     }
 }

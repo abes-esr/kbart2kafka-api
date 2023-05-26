@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Utils {
@@ -28,5 +31,18 @@ public class Utils {
             return Pattern.compile(doiPattern).matcher(kbart.getTitle_id()).find() ? kbart.getTitle_id().split("doi.org/")[kbart.getTitle_id().split("doi.org/").length - 1] : "";
         }
         return "";
+    }
+
+    public static <K, V extends Comparable<? super V>> Map<K, V> getMaxValuesFromMap(Map<K, V> map) {
+        Map<K, V> maxKeys = new HashMap<>();
+        if (!map.isEmpty()) {
+            V maxValue = Collections.max(map.values());
+            for (Map.Entry<K, V> entry : map.entrySet()) {
+                if (entry.getValue().equals(maxValue)) {
+                    maxKeys.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return maxKeys;
     }
 }
