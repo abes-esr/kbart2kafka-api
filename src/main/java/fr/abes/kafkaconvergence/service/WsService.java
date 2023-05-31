@@ -115,7 +115,13 @@ public class WsService {
         Map<String, String> params = new HashMap<>();
         params.put("doi", doi);
         params.put("provider", provider);
-        return mapper.readValue(getCall(urlDoi2Ppn, params), ResultWsSudocDto.class);
+        ResultWsSudocDto result = new ResultWsSudocDto();
+        try {
+            result = mapper.readValue(getCall(urlDoi2Ppn, params), ResultWsSudocDto.class);
+        } catch (RestClientException ex) {
+            log.info("doi : {} / provider {} : Impossible d'accéder au ws doi2ppn.", doi, provider);
+        }
+        return result;
     }
 
 }
