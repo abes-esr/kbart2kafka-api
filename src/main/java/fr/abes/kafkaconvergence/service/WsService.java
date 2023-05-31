@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -53,7 +55,7 @@ public class WsService {
         return restTemplate.postForObject(url, entity, String.class);
     }
 
-    public String getCall(String url, String... params) {
+    public String getRestCall(String url, String... params) {
         StringBuilder formedUrl = new StringBuilder(url);
         for (String param : params) {
             formedUrl.append("/");
@@ -63,12 +65,27 @@ public class WsService {
         return restTemplate.getForObject(formedUrl.toString(), String.class);
     }
 
+    public String getCall(String url, Map<String, String> params) {
+        StringBuilder formedUrl = new StringBuilder(url);
+        if (!params.isEmpty()) {
+            formedUrl.append("?");
+            for (String key : params.keySet()) {
+                formedUrl.append(key);
+                formedUrl.append("=");
+                formedUrl.append(params.get(key));
+                formedUrl.append("&");
+            }
+            formedUrl.deleteCharAt(formedUrl.length() - 1);
+        }
+        log.info(formedUrl.toString());
+        return restTemplate.getForObject(formedUrl.toString(), String.class);
+    }
     public ResultWsSudocDto callOnlineId2Ppn(String type, String id, @Nullable String provider) throws JsonProcessingException {
-        return mapper.readValue((provider != "") ? getCall(urlOnlineId2Ppn, type, id, provider) : getCall(urlOnlineId2Ppn, type, id), ResultWsSudocDto.class);
+        return mapper.readValue((provider != "") ? getRestCall(urlOnlineId2Ppn, type, id, provider) : getRestCall(urlOnlineId2Ppn, type, id), ResultWsSudocDto.class);
     }
 
     public ResultWsSudocDto callPrintId2Ppn(String type, String id, @Nullable String provider) throws JsonProcessingException {
-        return mapper.readValue((provider != "") ? getCall(urlPrintId2Ppn, type, id, provider) : getCall(urlPrintId2Ppn, type, id), ResultWsSudocDto.class);
+        return mapper.readValue((provider != "") ? getRestCall(urlPrintId2Ppn, type, id, provider) : getRestCall(urlPrintId2Ppn, type, id), ResultWsSudocDto.class);
     }
 
     public ResultDat2PpnWebDto callDat2Ppn(String date, String author, String title) throws JsonProcessingException {
@@ -83,7 +100,10 @@ public class WsService {
     }
 
     public ResultWsSudocDto callDoi2Ppn(String doi, @Nullable String provider) throws JsonProcessingException {
-        return mapper.readValue(getCall(urlDoi2Ppn, doi, provider), ResultWsSudocDto.class);
+        Map<String, String> params = new HashMap<>();
+        params.put("doi", doi);
+        params.put("provider" , provider);
+        return mapper.readValue(getCall(urlDoi2Ppn, params), ResultWsSudocDto.class);
     }
 
 }
