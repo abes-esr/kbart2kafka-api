@@ -1,6 +1,5 @@
 package fr.abes.kafkaconvergence.service;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,7 +25,7 @@ public class WsServiceTest {
         String url = "http://www.serviceTest.com/service/type/id";
         Mockito.when(restTemplate.getForObject(url, String.class)).thenReturn("test");
 
-        Assertions.assertEquals("test", wsService.getCall("http://www.serviceTest.com/service", "type", "id"));
+        Assertions.assertEquals("test", wsService.getRestCall("http://www.serviceTest.com/service", "type", "id"));
     }
 
     @Test
