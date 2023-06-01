@@ -44,9 +44,9 @@
             </properties>
         </profile>
         <profile>
-            <id>tests</id>
+            <id>test</id>
             <properties>
-                <spring.profiles.active>tests</spring.profiles.active>
+                <spring.profiles.active>test</spring.profiles.active>
             </properties>
         </profile>
         <profile>
