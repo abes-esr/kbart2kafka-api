@@ -1,13 +1,8 @@
 package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.abes.kafkaconvergence.dto.LigneKbartDto;
-import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
-import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
-import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
-import fr.abes.kafkaconvergence.entity.basexml.notice.Datafield;
+import fr.abes.kafkaconvergence.dto.*;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
-import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.PUBLICATION_TYPE;
@@ -21,8 +16,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 @Getter
@@ -38,97 +31,113 @@ public class BestPpnService {
     @Value("${score.error.type.notice}")
     private int scoreErrorType;
 
+    @Value("${score.doi.to.ppn}")
+    private int scoreDoi2Ppn;
+
     @Value("${score.dat.to.ppn}")
     private int scoreDat2Ppn;
-
-    @Value("${doi.pattern.url.raw}")
-    private String doiPattern;
 
     private final NoticeService noticeService;
 
     private final TopicProducer topicProducer;
 
-    public BestPpnService(WsService service, NoticeService noticeService, TopicProducer topicProducer) {
+    private final CheckUrlService checkUrlService;
+
+    public BestPpnService(WsService service, NoticeService noticeService, TopicProducer topicProducer, CheckUrlService checkUrlService) {
         this.service = service;
         this.noticeService = noticeService;
         this.topicProducer = topicProducer;
+        this.checkUrlService = checkUrlService;
     }
 
     public String getBestPpn(LigneKbartDto kbart, String provider) throws IOException, IllegalPpnException, BestPpnException, URISyntaxException {
 
-        Map<String, Integer> ppnElecResultList = new HashMap<>();
+        Map<String, Integer> ppnElecScoredList = new HashMap<>();
         Set<String> ppnPrintResultList = new HashSet<>();
 
         if (!kbart.getPublication_type().isEmpty()) {
             provider = kbart.getPublication_type().equals(PUBLICATION_TYPE.serial.toString()) ? "" : provider;
-            if (!kbart.getOnline_identifier().isEmpty()) {
+            if (kbart.getOnline_identifier() != null && !kbart.getOnline_identifier().isEmpty()) {
                 log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getOnline_identifier() + " / provider : " + provider);
-                feedPpnListFromOnline(kbart, provider, ppnElecResultList, ppnPrintResultList);
+                feedPpnListFromOnline(kbart, provider, ppnElecScoredList, ppnPrintResultList);
             }
-            if (!kbart.getPrint_identifier().isEmpty()) {
+            if (kbart.getPrint_identifier() != null && !kbart.getPrint_identifier().isEmpty()) {
                 log.debug("paramètres en entrée : type : " + kbart.getPublication_type() + " / id : " + kbart.getPrint_identifier() + " / provider : " + provider);
-                feedPpnListFromPrint(kbart, provider, ppnElecResultList, ppnPrintResultList);
+                feedPpnListFromPrint(kbart, provider, ppnElecScoredList, ppnPrintResultList);
             }
         }
-        if (ppnElecResultList.isEmpty()) {
-            feedPpnListFromDat(kbart, ppnElecResultList, ppnPrintResultList);
-        }
-        if (ppnElecResultList.isEmpty()) {
-            log.error("BestPpn " + kbart + " Aucun bestPpn trouvé.");
+        String doi = Utils.extractDOI(kbart);
+        if (!doi.isBlank()){
+            feedPpnListFromDoi(doi, provider, ppnElecScoredList, ppnPrintResultList);
         }
 
-        return getBestPpnByScore(kbart, provider, ppnElecResultList, ppnPrintResultList);
+        if (ppnElecScoredList.isEmpty()) {
+            feedPpnListFromDat(kbart, ppnElecScoredList, ppnPrintResultList);
+        }
+
+        return getBestPpnByScore(kbart, provider, ppnElecScoredList, ppnPrintResultList);
     }
 
-    public String extractDOI(LigneKbartDto kbart) {
-        if (kbart.getTitle_url() != null && !kbart.getTitle_url().isEmpty()){
-            return Pattern.compile(this.doiPattern).matcher(kbart.getTitle_url()).find() ? kbart.getTitle_url().split("doi.org/")[kbart.getTitle_url().split("doi.org/").length - 1] : "";
-        }
-        if (kbart.getTitle_id() != null && !kbart.getTitle_id().isEmpty()){
-            return Pattern.compile(this.doiPattern).matcher(kbart.getTitle_id()).find() ? kbart.getTitle_id().split("doi.org/")[kbart.getTitle_id().split("doi.org/").length - 1] : "";
-        }
-        return "";
-    }
-
-    public void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
+    private void feedPpnListFromOnline(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecScoredList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
         log.debug("Entrée dans onlineId2Ppn");
-        getResultFromCall(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider), kbart.getTitle_url(), this.scoreOnlineId2PpnElect, ppnElecResultList, ppnPrintResultList);
+        setScoreToEveryPpnFromResultWS(service.callOnlineId2Ppn(kbart.getPublication_type(), kbart.getOnline_identifier(), provider), kbart.getTitle_url(), this.scoreOnlineId2PpnElect, ppnElecScoredList, ppnPrintResultList);
     }
 
-    public void feedPpnListFromPrint(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
+    private void feedPpnListFromPrint(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecScoredList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException, URISyntaxException {
         log.debug("Entrée dans printId2Ppn");
         ResultWsSudocDto resultCallWs = service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider);
         ResultWsSudocDto resultWithTypeElectronique = resultCallWs.getPpnWithTypeElectronique();
-        if (resultWithTypeElectronique != null) {
-            // lunch service
-            getResultFromCall(resultWithTypeElectronique, kbart.getTitle_url(), this.scoreErrorType, ppnElecResultList, ppnPrintResultList);
+        if (resultWithTypeElectronique != null && !resultWithTypeElectronique.getPpns().isEmpty()) {
+            setScoreToEveryPpnFromResultWS(resultWithTypeElectronique, kbart.getTitle_url(), this.scorePrintId2PpnElect, ppnElecScoredList, ppnPrintResultList);
         }
         ResultWsSudocDto resultWithTypeImprime = resultCallWs.getPpnWithTypeImprime();
-        if (resultWithTypeImprime != null) {
-            // lunch service
-            getResultFromCall(resultWithTypeImprime, kbart.getTitle_url(), this.scorePrintId2PpnElect, ppnElecResultList, ppnPrintResultList);
+        if (resultWithTypeElectronique != null && !resultWithTypeImprime.getPpns().isEmpty()) {
+            setScoreToEveryPpnFromResultWS(resultWithTypeImprime, kbart.getTitle_url(), this.scoreErrorType, ppnElecScoredList, ppnPrintResultList);
         }
     }
 
-    private void getResultFromCall(ResultWsSudocDto resultCallWs, String titleUrl, int score, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws URISyntaxException, IOException, IllegalPpnException {
+    private void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecScoredList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
+        ResultDat2PpnWebDto resultDat2PpnWeb = null;
+        if (!kbart.getDate_monograph_published_online().isEmpty()) {
+            log.debug("Appel dat2ppn :  date_monograph_published_online : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
+            resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
+        } else if (ppnElecScoredList.isEmpty() && !kbart.getDate_monograph_published_print().isEmpty()) {
+            log.debug("Appel dat2ppn :  date_monograph_published_print : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
+            resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
+        }
+        if(resultDat2PpnWeb != null && !resultDat2PpnWeb.getPpns().isEmpty()) {
+            for (String ppn : resultDat2PpnWeb.getPpns()) {
+                log.debug("résultat : ppn " + ppn);
+                NoticeXml notice = noticeService.getNoticeByPpn(ppn);
+                if (notice.isNoticeElectronique()) {
+                    ppnElecScoredList.put(ppn, scoreDat2Ppn);
+                } else if (notice.isNoticeImprimee()) {
+                    ppnPrintResultList.add(ppn);
+                }
+            }
+        }
+    }
+
+    private void feedPpnListFromDoi(String doi, String provider, Map<String, Integer> ppnElecScoredList, Set<String> ppnPrintResultList) throws IOException {
+        ResultWsSudocDto resultWS = service.callDoi2Ppn(doi, provider);
+        int nbPpnElec = (int) resultWS.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
+        for(PpnWithTypeDto ppn : resultWS.getPpns()){
+            if(ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)){
+                setScoreToPpnElect(scoreDoi2Ppn,ppnElecScoredList,nbPpnElec,ppn);
+            } else {
+                log.info("PPN Imprimé : " + ppn);
+                ppnPrintResultList.add(ppn.getPpn());
+            }
+        }
+    }
+
+    private void setScoreToEveryPpnFromResultWS(ResultWsSudocDto resultCallWs, String titleUrl, int score, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws URISyntaxException, IOException, IllegalPpnException {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
-                if (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && checkUrlInNotice(ppn.getPpn(), titleUrl)) {
-                    if (!ppnElecResultList.isEmpty()) {
-                        if (ppnElecResultList.containsKey(ppn.getPpn())) {
-                            Integer value = ppnElecResultList.get(ppn.getPpn()) + (score / nbPpnElec);
-                            log.info("PPN Electronique : " + ppn + " / score : " + value);
-                            ppnElecResultList.put(ppn.getPpn(), value);
-                        } else {
-                            log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
-                            ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
-                        }
-                    } else {
-                        log.info("PPN Electronique : " + ppn + " / score : " + score / nbPpnElec);
-                        ppnElecResultList.put(ppn.getPpn(), (score / nbPpnElec));
-                    }
-                } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
+                if ((ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && !ppn.getProviderInNoticeIsPresent() && checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)) || (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && ppn.getProviderInNoticeIsPresent())) {
+                    setScoreToPpnElect(score, ppnElecResultList, nbPpnElec, ppn);
+                } else {
                     log.info("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
                 }
@@ -136,70 +145,21 @@ public class BestPpnService {
         }
     }
 
-    public boolean checkUrlInNotice(String ppn, String titleUrl) throws IOException, IllegalPpnException, URISyntaxException {
-        log.debug("entrée dans checkUrlInNotice " + titleUrl);
-        if (titleUrl == null || titleUrl.contains("doi.org")) {
-            log.debug("titleUrl null ou contient doi.org");
-            return true;
+    private void setScoreToPpnElect(int score, Map<String, Integer> ppnElecScoredList, int nbPpnElec, PpnWithTypeDto ppn) {
+        if (!ppnElecScoredList.isEmpty() && ppnElecScoredList.containsKey(ppn.getPpn())) {
+            Integer value = ppnElecScoredList.get(ppn.getPpn()) + (score / nbPpnElec);
+            ppnElecScoredList.put(ppn.getPpn(), value);
+        } else {
+            ppnElecScoredList.put(ppn.getPpn(), (score / nbPpnElec));
         }
-        String domain = Utils.extractDomainFromUrl(titleUrl);
-        //récupération notice dans la base pour analyse
-        NoticeXml notice = noticeService.getNoticeByPpn(ppn);
-        List<Datafield> zones856 = notice.getZoneDollarUWithoutDollar5("856");
-        for(Datafield zone : zones856) {
-            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).collect(Collectors.toList())) {
-                if (sousZone.getValue().contains(domain)) {
-                    log.debug("Url trouvée dans 856");
-                    return true;
-                }
-            }
-        }
-        List<Datafield> zone859 = notice.getZoneDollarUWithoutDollar5("859");
-        for (Datafield zone : zone859) {
-            for (SubField sousZone : zone.getSubFields().stream().filter(sousZone -> sousZone.getCode().equals("u")).collect(Collectors.toList())) {
-                if (sousZone.getValue().contains(domain)) {
-                    log.debug("Url trouvée dans 859");
-                    return true;
-                }
-            }
-        }
-        log.debug("Url non trouvée dans notice");
-        return false;
-    }
-
-    public void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
-        if (!kbart.getDate_monograph_published_online().isEmpty()) {
-            log.debug("Appel dat2ppn :  date_monograph_published_online : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
-            ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
-            for (String ppn : resultDat2PpnWeb.getPpns()) {
-                log.debug("résultat : ppn " + ppn);
-                NoticeXml notice = noticeService.getNoticeByPpn(ppn);
-                if (notice.isNoticeElectronique()) {
-                    ppnElecResultList.put(ppn, scoreDat2Ppn);
-                } else if (notice.isNoticeImprimee()) {
-                    ppnPrintResultList.add(ppn);
-                }
-            }
-        }
-        if (ppnElecResultList.isEmpty() && !kbart.getDate_monograph_published_print().isEmpty()) {
-            log.debug("Appel dat2ppn :  date_monograph_published_print : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
-            ResultDat2PpnWebDto resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
-            for (String ppn : resultDat2PpnWeb.getPpns()) {
-                log.debug("résultat : ppn " + ppn);
-                NoticeXml notice = noticeService.getNoticeByPpn(ppn);
-                if (notice.isNoticeImprimee()) {
-                    ppnPrintResultList.add(ppn);
-                } else if (notice.isNoticeElectronique()) {
-                    ppnElecResultList.put(ppn, scoreDat2Ppn);
-                }
-            }
-        }
+        log.info("PPN Electronique : " + ppn + " / score : " + ppnElecScoredList.get(ppn.getPpn()));
     }
 
     public String getBestPpnByScore(LigneKbartDto kbart, String provider, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws BestPpnException, JsonProcessingException {
-        Map<String, Integer> ppnElecScore = getMaxValuesFromMap(ppnElecResultList);
+        Map<String, Integer> ppnElecScore = Utils.getMaxValuesFromMap(ppnElecResultList);
         switch (ppnElecScore.size()) {
             case 0 -> {
+                log.info("Aucun ppn électronique trouvé." + kbart);
                 switch (ppnPrintResultList.size()) {
                     case 0 -> {
                         log.debug("Envoi kbart et provider vers kafka");
@@ -219,24 +179,13 @@ public class BestPpnService {
                 return ppnElecScore.keySet().stream().findFirst().get();
             }
             default -> {
-                kbart.setErrorType("Les ppn électroniques " + ppnElecScore.toString() + " ont le même score");
-                log.error("Les ppn électroniques " + String.join(", ", ppnElecScore.toString()) + " ont le même score");
-                throw new BestPpnException("Les ppn électroniques " + String.join(", ", ppnElecScore.keySet()) + " ont le même score");
+                String listPpn = String.join(", ", ppnElecScore.keySet());
+                String errorString = "Les ppn électroniques " + listPpn + " ont le même score";
+                kbart.setErrorType(errorString);
+                log.error(errorString);
+                throw new BestPpnException(errorString);
             }
         }
         return "";
-    }
-
-    public <K, V extends Comparable<? super V>> Map<K, V> getMaxValuesFromMap(Map<K, V> map) {
-        Map<K, V> maxKeys = new HashMap<>();
-        if (!map.isEmpty()) {
-            V maxValue = Collections.max(map.values());
-            for (Map.Entry<K, V> entry : map.entrySet()) {
-                if (entry.getValue().equals(maxValue)) {
-                    maxKeys.put(entry.getKey(), entry.getValue());
-                }
-            }
-        }
-        return maxKeys;
     }
 }

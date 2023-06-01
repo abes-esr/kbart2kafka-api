@@ -13,9 +13,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -28,6 +31,9 @@ public class WsService {
 
     @Value("${url.dat2Ppn}")
     private String urlDat2Ppn;
+
+    @Value("${url.doi2Ppn}")
+    private String urlDoi2Ppn;
 
     private final RestTemplate restTemplate;
     private final HttpHeaders headers;
@@ -50,7 +56,7 @@ public class WsService {
         return restTemplate.postForObject(url, entity, String.class);
     }
 
-    public String getCall(String url, String... params) {
+    public String getRestCall(String url, String... params) throws RestClientException {
         StringBuilder formedUrl = new StringBuilder(url);
         for (String param : params) {
             formedUrl.append("/");
@@ -60,23 +66,62 @@ public class WsService {
         return restTemplate.getForObject(formedUrl.toString(), String.class);
     }
 
+    public String getCall(String url, Map<String, String> params) throws RestClientException {
+        StringBuilder formedUrl = new StringBuilder(url);
+        if (!params.isEmpty()) {
+            formedUrl.append("?");
+            for (String key : params.keySet()) {
+                formedUrl.append(key);
+                formedUrl.append("=");
+                formedUrl.append(params.get(key));
+                formedUrl.append("&");
+            }
+            formedUrl.deleteCharAt(formedUrl.length() - 1);
+        }
+        log.info(formedUrl.toString());
+        return restTemplate.getForObject(formedUrl.toString(), String.class);
+    }
+
     public ResultWsSudocDto callOnlineId2Ppn(String type, String id, @Nullable String provider) throws JsonProcessingException {
-        return mapper.readValue((provider != "") ? getCall(urlOnlineId2Ppn, type, id, provider) : getCall(urlOnlineId2Ppn, type, id), ResultWsSudocDto.class);
+        return getResultWsSudocDto(type, id, provider, urlOnlineId2Ppn);
     }
 
     public ResultWsSudocDto callPrintId2Ppn(String type, String id, @Nullable String provider) throws JsonProcessingException {
-        return mapper.readValue((provider != "") ? getCall(urlPrintId2Ppn, type, id, provider) : getCall(urlPrintId2Ppn, type, id), ResultWsSudocDto.class);
+        return getResultWsSudocDto(type, id, provider, urlPrintId2Ppn);
+    }
+
+    private ResultWsSudocDto getResultWsSudocDto(String type, String id, @Nullable String provider, String url) throws JsonProcessingException {
+        ResultWsSudocDto result = new ResultWsSudocDto();
+        try {
+            result = mapper.readValue((provider != "") ? getRestCall(url, type, id, provider) : getRestCall(url, type, id), ResultWsSudocDto.class);
+        } catch (RestClientException ex) {
+            log.info("URL : {} / id : {} / provider : {} : Aucun PPN ne correspond à la recherche.", url, id, provider);
+        }
+        return result;
     }
 
     public ResultDat2PpnWebDto callDat2Ppn(String date, String author, String title) throws JsonProcessingException {
         SearchDatWebDto searchDatWebDto = new SearchDatWebDto(title);
-        if(!author.isEmpty()){
+        if (!author.isEmpty()) {
             searchDatWebDto.setAuteur(author);
         }
-        if(!date.isEmpty()){
+        if (!date.isEmpty()) {
             searchDatWebDto.setDate(Integer.valueOf(date));
         }
         return mapper.readValue(postCall(urlDat2Ppn, mapper.writeValueAsString(searchDatWebDto)), ResultDat2PpnWebDto.class);
+    }
+
+    public ResultWsSudocDto callDoi2Ppn(String doi, @Nullable String provider) throws JsonProcessingException {
+        Map<String, String> params = new HashMap<>();
+        params.put("doi", doi);
+        params.put("provider", provider);
+        ResultWsSudocDto result = new ResultWsSudocDto();
+        try {
+            result = mapper.readValue(getCall(urlDoi2Ppn, params), ResultWsSudocDto.class);
+        } catch (RestClientException ex) {
+            log.info("doi : {} / provider {} : Impossible d'accéder au ws doi2ppn.", doi, provider);
+        }
+        return result;
     }
 
 }
