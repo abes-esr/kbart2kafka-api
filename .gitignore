@@ -50,3 +50,4 @@ hs_err_pid*
 **/resources/log4j2-localhost.xml
 
 
+/src/test/acceptance/
