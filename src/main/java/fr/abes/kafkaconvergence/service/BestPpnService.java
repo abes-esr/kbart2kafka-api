@@ -92,7 +92,10 @@ public class BestPpnService {
         }
         ResultWsSudocDto resultWithTypeImprime = resultCallWs.getPpnWithTypeImprime();
         if (resultWithTypeImprime != null && !resultWithTypeImprime.getPpns().isEmpty()) {
-            //TODO : Cas ou les ppns enfants sont imprimées
+            for (PpnWithTypeDto ppn:resultWithTypeImprime.getPpns()) {
+                log.info("PPN Imprimé : " + ppn);
+                ppnPrintResultList.add(ppn.getPpn());
+            }
         }
 
         ResultWsSudocDto resultWsWithErrorTypeRacine = resultCallWs.getPpnRacineWithErrorType();
