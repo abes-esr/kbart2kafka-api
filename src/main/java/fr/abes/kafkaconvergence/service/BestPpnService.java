@@ -91,8 +91,16 @@ public class BestPpnService {
             setScoreToEveryPpnFromResultWS(resultWithTypeElectronique, kbart.getTitle_url(), this.scorePrintId2PpnElect, ppnElecScoredList, ppnPrintResultList);
         }
         ResultWsSudocDto resultWithTypeImprime = resultCallWs.getPpnWithTypeImprime();
-        if (resultWithTypeElectronique != null && !resultWithTypeImprime.getPpns().isEmpty()) {
-            setScoreToEveryPpnFromResultWS(resultWithTypeImprime, kbart.getTitle_url(), this.scoreErrorType, ppnElecScoredList, ppnPrintResultList);
+        if (resultWithTypeImprime != null && !resultWithTypeImprime.getPpns().isEmpty()) {
+            for (PpnWithTypeDto ppn:resultWithTypeImprime.getPpns()) {
+                log.info("PPN Imprimé : " + ppn);
+                ppnPrintResultList.add(ppn.getPpn());
+            }
+        }
+
+        ResultWsSudocDto resultWsWithErrorTypeRacine = resultCallWs.getPpnRacineWithErrorType();
+        if (resultWsWithErrorTypeRacine != null && !resultWsWithErrorTypeRacine.getPpns().isEmpty()) {
+            setScoreToEveryPpnFromResultWS(resultWsWithErrorTypeRacine, kbart.getTitle_url(), this.scoreErrorType, ppnElecScoredList, ppnPrintResultList);
         }
     }
 
