@@ -32,4 +32,16 @@ public class ResultWsSudocDto {
         result.setErreurs(this.erreurs);
         return result;
     }
+
+    public ResultWsSudocDto getPpnRacineWithErrorType() {
+        ResultWsSudocDto result = new ResultWsSudocDto();
+        List<PpnWithTypeDto> ppnsRacines = new ArrayList<>();
+        this.erreurs.stream().filter(message -> message.startsWith("Le PPN ") && message.endsWith(" n'est pas une ressource imprimée"))
+                .forEach(
+                        message -> ppnsRacines.add(new PpnWithTypeDto(message.substring(7, 16), TYPE_SUPPORT.ELECTRONIQUE))
+                );
+        result.setPpns(ppnsRacines);
+        result.setErreurs(this.erreurs);
+        return result;
+    }
 }
