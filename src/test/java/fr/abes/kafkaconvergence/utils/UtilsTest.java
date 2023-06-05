@@ -29,11 +29,6 @@ class UtilsTest {
 
     @Test
     void extractDOItestAvecPresenceDOIdanstitleUrl() {
-        /*
-        TODO pierre attention si un objet kbart ne contient pas de valeur sur
-        publication_title, publication_type, online_identifier, print_identifier
-        NPE au lancement du test passage dans bestPpnService.extractDOI
-        */
         LigneKbartDto kbart = new LigneKbartDto();
         kbart.setPublication_title("testtitle");
         kbart.setPublication_type("testtype");
@@ -47,11 +42,6 @@ class UtilsTest {
 
     @Test
     void extractDOItestAvecPresenceDOIdanstitleId() {
-        /*
-        TODO pierre attention si un objet kbart ne contient pas de valeur sur
-        publication_title, publication_type, online_identifier, print_identifier
-        NPE au lancement du test passage dans bestPpnService.extractDOI
-        */
         LigneKbartDto kbart = new LigneKbartDto();
         kbart.setPublication_title("testtitle");
         kbart.setPublication_type("testtype");
@@ -59,6 +49,19 @@ class UtilsTest {
         kbart.setPrint_identifier("print");
 
         kbart.setTitle_id("https://doi.org/10.1006/jmbi.1998.2354");
+
+        Assertions.assertEquals("10.1006/jmbi.1998.2354", Utils.extractDOI(kbart));
+    }
+
+    @Test
+    void extractDOItestAvecPresenceDOIdanstitleUrlMaisSansPrefixeDOI() {
+        LigneKbartDto kbart = new LigneKbartDto();
+        kbart.setPublication_title("testtitle");
+        kbart.setPublication_type("testtype");
+        kbart.setOnline_identifier("10.1006/jmbi.1998.2354");
+        kbart.setPrint_identifier("print");
+
+        kbart.setTitle_url("10.1006/jmbi.1998.2354");
 
         Assertions.assertEquals("10.1006/jmbi.1998.2354", Utils.extractDOI(kbart));
     }
