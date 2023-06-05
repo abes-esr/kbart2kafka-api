@@ -24,4 +24,5 @@ public class PpnWithTypeDto {
     public boolean isProviderPresent() {
         return providerPresent;
     }
+
 }
