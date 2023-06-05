@@ -143,7 +143,8 @@ public class BestPpnService {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
-                if ((ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && !ppn.getProviderInNoticeIsPresent() && checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)) || (ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE) && ppn.getProviderInNoticeIsPresent())) {
+                if ((ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) && (ppn.isProviderPresent() ||
+                    (!ppn.isProviderPresent() && checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)))) {
                     setScoreToPpnElect(score, ppnElecResultList, nbPpnElec, ppn);
                 } else {
                     log.info("PPN Imprimé : " + ppn);
