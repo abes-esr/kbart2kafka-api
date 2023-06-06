@@ -143,6 +143,7 @@ public class BestPpnService {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
+                //todo: controle du type de notice ? pas de control sur le provider si "serial"
                 if ((ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) && (ppn.isProviderPresent() ||
                     (!ppn.isProviderPresent() && checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)))) {
                     setScoreToPpnElect(score, ppnElecResultList, nbPpnElec, ppn);

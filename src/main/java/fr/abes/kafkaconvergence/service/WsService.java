@@ -93,7 +93,7 @@ public class WsService {
     private ResultWsSudocDto getResultWsSudocDto(String type, String id, @Nullable String provider, String url) throws JsonProcessingException {
         ResultWsSudocDto result = new ResultWsSudocDto();
         try {
-            result = mapper.readValue((provider != "") ? getRestCall(url, type, id, provider) : getRestCall(url, type, id), ResultWsSudocDto.class);
+            result = mapper.readValue((provider != null && !provider.equals("")) ? getRestCall(url, type, id, provider) : getRestCall(url, type, id), ResultWsSudocDto.class);
         } catch (RestClientException ex) {
             log.info("URL : {} / id : {} / provider : {} : Aucun PPN ne correspond à la recherche.", url, id, provider);
         }
