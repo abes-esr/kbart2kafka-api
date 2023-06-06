@@ -8,6 +8,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
@@ -22,13 +23,25 @@ public class Utils {
     }
 
     public static String extractDOI(LigneKbartDto kbart) {
-        String doiPattern = "doi.org/(?<doi>10.\\d{0,15}.\\d{0,15}.+)";
+        String doiPattern = "10.\\d{0,15}.\\d{0,15}.+";
 
         if (kbart.getTitle_url() != null && !kbart.getTitle_url().isEmpty()){
-            return Pattern.compile(doiPattern).matcher(kbart.getTitle_url()).find() ? kbart.getTitle_url().split("doi.org/")[kbart.getTitle_url().split("doi.org/").length - 1] : "";
+            Pattern pattern = Pattern.compile(doiPattern);
+            Matcher matcher = pattern.matcher(kbart.getTitle_url());
+            if (matcher.find()) {
+                return matcher.group(0);
+            } else {
+                return "";
+            }
         }
         if (kbart.getTitle_id() != null && !kbart.getTitle_id().isEmpty()){
-            return Pattern.compile(doiPattern).matcher(kbart.getTitle_id()).find() ? kbart.getTitle_id().split("doi.org/")[kbart.getTitle_id().split("doi.org/").length - 1] : "";
+            Pattern pattern = Pattern.compile(doiPattern);
+            Matcher matcher = pattern.matcher(kbart.getTitle_id());
+            if (matcher.find()) {
+                return matcher.group(0);
+            } else {
+                return "";
+            }
         }
         return "";
     }
