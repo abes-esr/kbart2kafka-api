@@ -144,12 +144,11 @@ public class BestPpnService {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
                 //todo: controle du type de notice ? pas de control sur le provider si "serial"
-                if ((ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) && (ppn.isProviderPresent() ||
-                    (!ppn.isProviderPresent() && checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)))) {
-                    setScoreToPpnElect(score, ppnElecResultList, nbPpnElec, ppn);
-                } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)){
+                if(ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
                     log.info("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
+                } else if (ppn.isProviderPresent() || checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)){
+                    setScoreToPpnElect(score, ppnElecResultList, nbPpnElec, ppn);
                 } else {
                     log.error("Le PPN " + ppn + " n'a pas de provider trouvé");
                 }
