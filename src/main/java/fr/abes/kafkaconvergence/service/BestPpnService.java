@@ -146,9 +146,11 @@ public class BestPpnService {
                 if ((ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)) && (ppn.isProviderPresent() ||
                     (!ppn.isProviderPresent() && checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)))) {
                     setScoreToPpnElect(score, ppnElecResultList, nbPpnElec, ppn);
-                } else {
+                } else if (ppn.getType().equals(TYPE_SUPPORT.IMPRIME)){
                     log.info("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
+                } else {
+                    log.error("Le PPN " + ppn + " n'a pas de provider trouvé");
                 }
             }
         }
