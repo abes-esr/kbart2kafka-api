@@ -10,7 +10,7 @@ public class PpnWithTypeDto {
     private String ppn;
     private TYPE_SUPPORT type;
 
-    private Boolean providerInNoticeIsPresent = false;
+    private Boolean providerPresent = false;
 
     public PpnWithTypeDto(String ppn) {
         this.ppn = ppn;
@@ -20,4 +20,9 @@ public class PpnWithTypeDto {
         this.ppn = ppn;
         this.type = type;
     }
+
+    public boolean isProviderPresent() {
+        return providerPresent;
+    }
+
 }
