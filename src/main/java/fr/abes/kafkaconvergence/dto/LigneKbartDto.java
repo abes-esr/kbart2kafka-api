@@ -123,6 +123,7 @@ public class LigneKbartDto {
         return CheckFiles.getDateFromFile(date_first_issue_online);
     }
 
+    @JsonIgnore
     public String getAnneeFromDate_first_issue_online() {
         return this.date_first_issue_online;
     }
@@ -131,6 +132,7 @@ public class LigneKbartDto {
         return CheckFiles.getDateFromFile(date_last_issue_online);
     }
 
+    @JsonIgnore
     public String getAnneeFromDate_last_issue_online() {
         return this.date_last_issue_online;
     }
@@ -139,6 +141,7 @@ public class LigneKbartDto {
         return CheckFiles.getDateFromFile(date_monograph_published_print);
     }
 
+    @JsonIgnore
     public String getAnneeFromDate_monograph_published_print() {
         return this.date_monograph_published_print;
     }
@@ -147,6 +150,7 @@ public class LigneKbartDto {
         return CheckFiles.getDateFromFile(date_monograph_published_online);
     }
 
+    @JsonIgnore
     public String getAnneeFromDate_monograph_published_online() {
         return this.date_monograph_published_online;
     }
