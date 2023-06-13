@@ -3,6 +3,7 @@ package fr.abes.kafkaconvergence.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvBindByPosition;
+import fr.abes.kafkaconvergence.utils.CheckFiles;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.ThreadContext;
@@ -119,31 +120,34 @@ public class LigneKbartDto {
     }
 
     public String getDate_first_issue_online() {
-        return getDateFromFile(date_first_issue_online);
+        return CheckFiles.getDateFromFile(date_first_issue_online);
     }
 
-
+    public String getAnneeFromDate_first_issue_online() {
+        return this.date_first_issue_online;
+    }
 
     public String getDate_last_issue_online() {
-        return getDateFromFile(date_last_issue_online);
+        return CheckFiles.getDateFromFile(date_last_issue_online);
+    }
+
+    public String getAnneeFromDate_last_issue_online() {
+        return this.date_last_issue_online;
     }
 
     public String getDate_monograph_published_print() {
-        return getDateFromFile(date_monograph_published_print);
+        return CheckFiles.getDateFromFile(date_monograph_published_print);
+    }
+
+    public String getAnneeFromDate_monograph_published_print() {
+        return this.date_monograph_published_print;
     }
 
     public String getDate_monograph_published_online() {
-        return getDateFromFile(date_monograph_published_online);
+        return CheckFiles.getDateFromFile(date_monograph_published_online);
     }
 
-    @JsonIgnore
-    private String getDateFromFile(String dateToComplement) {
-        if( dateToComplement.length()==4) {
-            String fileName = ThreadContext.get("package");
-            List<String> dateInFileName = List.of(fileName.substring(fileName.lastIndexOf('_') + 1, fileName.lastIndexOf(".tsv")).split("-"));
-
-            return dateInFileName.get(2) + "/" + dateInFileName.get(1) + "/" + dateToComplement;
-        }
-        return dateToComplement;
+    public String getAnneeFromDate_monograph_published_online() {
+        return this.date_monograph_published_online;
     }
 }

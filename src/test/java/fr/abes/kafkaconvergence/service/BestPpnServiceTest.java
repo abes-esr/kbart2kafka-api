@@ -593,7 +593,6 @@ class BestPpnServiceTest {
     void getBestPpnTest09() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "urlProvider";
 
-
         //Creation d'une ligne kbart
         LigneKbartDto kbart = new LigneKbartDto();
         kbart.setOnline_identifier("9780470059616");

@@ -91,27 +91,19 @@ public class BestPpnService {
             setScoreToEveryPpnFromResultWS(resultWithTypeElectronique, kbart.getTitle_url(), this.scorePrintId2PpnElect, ppnElecScoredList, ppnPrintResultList);
         }
         ResultWsSudocDto resultWithTypeImprime = resultCallWs.getPpnWithTypeImprime();
-        if (resultWithTypeImprime != null && !resultWithTypeImprime.getPpns().isEmpty()) {
-            for (PpnWithTypeDto ppn:resultWithTypeImprime.getPpns()) {
-                log.info("PPN Imprimé : " + ppn);
-                ppnPrintResultList.add(ppn.getPpn());
-            }
-        }
-
-        ResultWsSudocDto resultWsWithErrorTypeRacine = resultCallWs.getPpnRacineWithErrorType();
-        if (resultWsWithErrorTypeRacine != null && !resultWsWithErrorTypeRacine.getPpns().isEmpty()) {
-            setScoreToEveryPpnFromResultWS(resultWsWithErrorTypeRacine, kbart.getTitle_url(), this.scoreErrorType, ppnElecScoredList, ppnPrintResultList);
+        if (resultWithTypeElectronique != null && !resultWithTypeImprime.getPpns().isEmpty()) {
+            setScoreToEveryPpnFromResultWS(resultWithTypeImprime, kbart.getTitle_url(), this.scoreErrorType, ppnElecScoredList, ppnPrintResultList);
         }
     }
 
     private void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecScoredList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
         ResultDat2PpnWebDto resultDat2PpnWeb = null;
-        if (!kbart.getDate_monograph_published_online().isEmpty()) {
+        if (!kbart.getAnneeFromDate_monograph_published_online().isEmpty()) {
             log.debug("Appel dat2ppn :  date_monograph_published_online : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
-            resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
-        } else if (ppnElecScoredList.isEmpty() && !kbart.getDate_monograph_published_print().isEmpty()) {
+            resultDat2PpnWeb = service.callDat2Ppn(kbart.getAnneeFromDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
+        } else if (ppnElecScoredList.isEmpty() && !kbart.getAnneeFromDate_monograph_published_print().isEmpty()) {
             log.debug("Appel dat2ppn :  date_monograph_published_print : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
-            resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
+            resultDat2PpnWeb = service.callDat2Ppn(kbart.getAnneeFromDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
         }
         if(resultDat2PpnWeb != null && !resultDat2PpnWeb.getPpns().isEmpty()) {
             for (String ppn : resultDat2PpnWeb.getPpns()) {
