@@ -19,7 +19,7 @@ public class ResultWsSudocDto {
 
     public ResultWsSudocDto getPpnWithTypeElectronique() {
         ResultWsSudocDto result = new ResultWsSudocDto();
-        List<PpnWithTypeDto> ppnsSorted = new ArrayList<>(this.ppns.stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).toList());
+        List<PpnWithTypeDto> ppnsSorted = new ArrayList<>(this.ppns.stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getTypeSupport().equals(TYPE_SUPPORT.ELECTRONIQUE)).toList());
         result.setPpns(ppnsSorted);
         result.setErreurs(this.erreurs);
         return result;
@@ -27,7 +27,7 @@ public class ResultWsSudocDto {
 
     public ResultWsSudocDto getPpnWithTypeImprime() {
         ResultWsSudocDto result = new ResultWsSudocDto();
-        List<PpnWithTypeDto> ppnsSorted = new ArrayList<>(this.ppns.stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.IMPRIME)).toList());
+        List<PpnWithTypeDto> ppnsSorted = new ArrayList<>(this.ppns.stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getTypeSupport().equals(TYPE_SUPPORT.IMPRIME)).toList());
         result.setPpns(ppnsSorted);
         result.setErreurs(this.erreurs);
         return result;

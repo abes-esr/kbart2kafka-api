@@ -46,6 +46,10 @@ public class NoticeXml {
         return leader.charAt(5) == 'd';
     }
 
+    public boolean isMonographie() {
+        return (getTypeDocument() != null) && (getTypeDocument().length() >= 2) && (getTypeDocument().charAt(1) == 'a');
+    }
+
     public boolean isNoticeElectronique() {
         return getTypeDocument().startsWith("O");
     }
