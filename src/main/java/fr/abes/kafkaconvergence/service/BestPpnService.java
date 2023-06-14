@@ -1,7 +1,10 @@
 package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.abes.kafkaconvergence.dto.*;
+import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
+import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
+import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
@@ -16,7 +19,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Getter
@@ -144,7 +150,6 @@ public class BestPpnService {
         if (!resultCallWs.getPpns().isEmpty()) {
             int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getTypeSupport().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
-                //todo: controle du type de notice ? pas de control sur le provider si "serial"
                 if(ppn.getTypeSupport().equals(TYPE_SUPPORT.IMPRIME)) {
                     log.info("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
