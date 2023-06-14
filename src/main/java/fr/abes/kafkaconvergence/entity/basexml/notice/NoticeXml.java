@@ -3,7 +3,6 @@ package fr.abes.kafkaconvergence.entity.basexml.notice;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -44,10 +43,6 @@ public class NoticeXml {
      */
     public boolean isDeleted() {
         return leader.charAt(5) == 'd';
-    }
-
-    public boolean isMonographie() {
-        return (getTypeDocument() != null) && (getTypeDocument().length() >= 2) && (getTypeDocument().charAt(1) == 'a');
     }
 
     public boolean isNoticeElectronique() {
