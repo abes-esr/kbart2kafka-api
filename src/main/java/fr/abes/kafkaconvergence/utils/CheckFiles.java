@@ -1,11 +1,13 @@
 package fr.abes.kafkaconvergence.utils;
 
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 public class CheckFiles {
     /**
@@ -79,5 +81,15 @@ public class CheckFiles {
         CheckFiles.isFileWithTSVExtension(file);
         CheckFiles.detectTabulations(file);
         CheckFiles.detectHeaderPresence(header, file);
+    }
+
+    public static String getDateFromFile(String dateToComplement) {
+        if( dateToComplement.length()==4) {
+            String fileName = ThreadContext.get("package");
+            List<String> dateInFileName = List.of(fileName.substring(fileName.lastIndexOf('_') + 1, fileName.lastIndexOf(".tsv")).split("-"));
+
+            return dateInFileName.get(2) + "/" + dateInFileName.get(1) + "/" + dateToComplement;
+        }
+        return dateToComplement;
     }
 }

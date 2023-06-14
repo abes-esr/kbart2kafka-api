@@ -9,6 +9,7 @@ import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
 import fr.abes.kafkaconvergence.dto.MailDto;
+import fr.abes.kafkaconvergence.dto.PackageKbartDto;
 import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
@@ -36,7 +37,7 @@ public class EmailServiceImpl implements EmailService {
     protected String url;
 
     @Override
-    public void sendMailWithAttachment(String packageName, List<LigneKbartDto> dataLines) throws MessagingException {
+    public void sendMailWithAttachment(String packageName, PackageKbartDto dataLines) throws MessagingException {
         try {
             //  Création du chemin d'accès pour le fichier .csv
             Path csvPath = Path.of("Rapport de traitement BestPPN " + packageName + ".csv");
@@ -63,7 +64,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    protected void createAttachment(List<LigneKbartDto> dataLines, Path csvPath) throws CsvRequiredFieldEmptyException, CsvDataTypeMismatchException, IOException {
+    protected void createAttachment(PackageKbartDto dataLines, Path csvPath) throws CsvRequiredFieldEmptyException, CsvDataTypeMismatchException, IOException {
         try {
             //  Création du fichier
             Writer writer = Files.newBufferedWriter(csvPath);
@@ -78,8 +79,8 @@ public class EmailServiceImpl implements EmailService {
             csvWriter.writeNext(header);
 
             //  Création du beanToCsvBuilder avec le writer de type LigneKbartDto.class
-            StatefulBeanToCsvBuilder<LigneKbartDto> builder = new StatefulBeanToCsvBuilder<>(writer);
-            StatefulBeanToCsv<LigneKbartDto> beanWriter = builder.build();
+            StatefulBeanToCsvBuilder<PackageKbartDto> builder = new StatefulBeanToCsvBuilder<>(writer);
+            StatefulBeanToCsv<PackageKbartDto> beanWriter = builder.build();
 
             //  Peuple le fichier csv avec les données
             beanWriter.write(dataLines);

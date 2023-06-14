@@ -1,12 +1,15 @@
 package fr.abes.kafkaconvergence.utils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,4 +61,7 @@ public class Utils {
         }
         return maxKeys;
     }
+
+
+
 }

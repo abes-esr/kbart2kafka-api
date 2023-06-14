@@ -10,6 +10,7 @@ import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import fr.abes.kafkaconvergence.utils.Utils;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.ThreadContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -592,7 +593,6 @@ class BestPpnServiceTest {
     void getBestPpnTest09() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "urlProvider";
 
-
         //Creation d'une ligne kbart
         LigneKbartDto kbart = new LigneKbartDto();
         kbart.setOnline_identifier("9780470059616");
@@ -655,6 +655,16 @@ class BestPpnServiceTest {
         resultPrint.setPpns(ppnWithTypeDto3);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
 
+        //Mock du service callDat2Ppn -> les ppn auront un score de 20
+        ResultDat2PpnWebDto resultDat2PpnWeb = new ResultDat2PpnWebDto();
+        resultDat2PpnWeb.addPpn("300000001");
+        resultDat2PpnWeb.addPpn("300000002");
+
+        ThreadContext.put("package","truc_truc_2000-12-31.tsv");
+
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
+        Mockito.when(checkUrlService.checkUrlInNotice(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         //  Appel du service
         String result = bestPpnService.getBestPpn(kbart, provider);
 

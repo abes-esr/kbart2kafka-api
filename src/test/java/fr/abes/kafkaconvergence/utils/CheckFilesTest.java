@@ -1,6 +1,7 @@
 package fr.abes.kafkaconvergence.utils;
 
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
+import org.apache.logging.log4j.ThreadContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -57,5 +58,11 @@ class CheckFilesTest {
 
         file = new MockMultipartFile("Cairn_Global_Ouvrages-General_2023-02-15.txt", "Cairn_Global_Ouvrages-General_2023-02-15.txt", null, (byte[]) null);
         Assertions.assertEquals("cairn", CheckFiles.getProviderFromFilename(file));
+    }
+
+    @Test
+    void getDateFromFile() {
+        ThreadContext.put("package", "OPENEDITION_GLOBAL_JOURNALS-OPENACCESS-FREEMIUM_2020-04-02.tsv");
+        Assertions.assertEquals("02/04/2023", CheckFiles.getDateFromFile("2023"));
     }
 }

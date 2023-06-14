@@ -2,6 +2,7 @@ package fr.abes.kafkaconvergence.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.dto.PackageKbartDto;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
@@ -62,7 +63,7 @@ public class KafkaController {
             CheckFiles.verifyFile(file, HEADER_TO_CHECK);
             String provider = CheckFiles.getProviderFromFilename(file);
             //  Créer une liste pour stocker les statistiques de l'analyse du kbart
-            List<LigneKbartDto> dataLines = new ArrayList<>();
+            PackageKbartDto packageKbartDto = new PackageKbartDto();
             //lecture fichier, ligne par ligne, creation objet java pour chaque ligne
             String line;
             int nbLines = 0;
@@ -79,19 +80,19 @@ public class KafkaController {
                     if (ligneKbartDto.isBestPpnEmpty()) {
                         String bestPpn = service.getBestPpn(ligneKbartDto, provider);
                         ligneKbartDto.setBestPpn(bestPpn);
-                        dataLines.add(ligneKbartDto);
                     }
+                    packageKbartDto.addKbartDto(ligneKbartDto);
                     if(ligneKbartDto.isBestPpnEmpty()){
                         nbLinesWithoutBestPpn++;
                     } else {
                         nbLinesWithBestPpn++;
                     }
                     nbLines++;
-                    topicProducer.sendKbart(ligneKbartDto);
                 }
             }
+            topicProducer.sendKbart(packageKbartDto);
             //  Envoi du mail récapitulatif
-            emailServiceImpl.sendMailWithAttachment(Objects.requireNonNull(file.getOriginalFilename()).substring(0 ,file.getOriginalFilename().length() - 4), dataLines);
+            emailServiceImpl.sendMailWithAttachment(Objects.requireNonNull(file.getOriginalFilename()).substring(0 ,file.getOriginalFilename().length() - 4), packageKbartDto);
             log.info("{ nbLines : " + nbLines + ", nbLinesWithBestPpn : " + nbLinesWithBestPpn + ", nbLinesWithoutBestPpn : " + nbLinesWithoutBestPpn + " }");
         } catch (IllegalFileFormatException ex) {
             throw new IllegalArgumentException(ex.getMessage());
