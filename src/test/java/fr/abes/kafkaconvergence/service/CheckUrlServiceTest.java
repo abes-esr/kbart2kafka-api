@@ -1,5 +1,6 @@
 package fr.abes.kafkaconvergence.service;
 
+import fr.abes.kafkaconvergence.entity.basexml.notice.Controlfield;
 import fr.abes.kafkaconvergence.entity.basexml.notice.Datafield;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.entity.basexml.notice.SubField;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 @SpringBootTest(classes = {CheckUrlService.class})
 class CheckUrlServiceTest {
@@ -34,7 +36,7 @@ class CheckUrlServiceTest {
     void checkUrlInNoticeNullNotice() throws IllegalPpnException, IOException, URISyntaxException {
         NoticeXml notice = new NoticeXml();
         Mockito.when(noticeService.getNoticeByPpn("111111111")).thenReturn(notice);
-        Assertions.assertFalse(checkUrlService.checkUrlInNotice("111111111", "http://wwww.test.com/"));
+        Assertions.assertFalse(checkUrlService.checkUrlInNotice("111111111", "http://www.test.com/"));
     }
 
     @Test
@@ -48,6 +50,7 @@ class CheckUrlServiceTest {
         zone856.setSubFields(Lists.newArrayList(dollaru));
         notice.setDatafields(Lists.newArrayList(zone856));
         Mockito.when(noticeService.getNoticeByPpn("111111111")).thenReturn(notice);
+
         Assertions.assertTrue(checkUrlService.checkUrlInNotice("111111111", "http://www.test.com/"));
     }
 

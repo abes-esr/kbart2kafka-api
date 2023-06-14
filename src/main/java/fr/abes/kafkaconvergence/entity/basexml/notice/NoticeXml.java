@@ -3,7 +3,6 @@ package fr.abes.kafkaconvergence.entity.basexml.notice;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

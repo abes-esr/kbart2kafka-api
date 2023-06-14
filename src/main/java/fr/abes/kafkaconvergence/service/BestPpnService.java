@@ -1,11 +1,15 @@
 package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.abes.kafkaconvergence.dto.*;
+import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
+import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
+import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.PUBLICATION_TYPE;
+import fr.abes.kafkaconvergence.utils.TYPE_DOCUMENT;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import fr.abes.kafkaconvergence.utils.Utils;
 import lombok.Getter;
@@ -15,7 +19,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Getter
@@ -120,9 +127,9 @@ public class BestPpnService {
 
     private void feedPpnListFromDoi(String doi, String provider, Map<String, Integer> ppnElecScoredList, Set<String> ppnPrintResultList) throws IOException {
         ResultWsSudocDto resultWS = service.callDoi2Ppn(doi, provider);
-        int nbPpnElec = (int) resultWS.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
+        int nbPpnElec = (int) resultWS.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getTypeSupport().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
         for(PpnWithTypeDto ppn : resultWS.getPpns()){
-            if(ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)){
+            if(ppn.getTypeSupport().equals(TYPE_SUPPORT.ELECTRONIQUE)){
                 setScoreToPpnElect(scoreDoi2Ppn,ppnElecScoredList,nbPpnElec,ppn);
             } else {
                 log.info("PPN Imprimé : " + ppn);
@@ -133,13 +140,12 @@ public class BestPpnService {
 
     private void setScoreToEveryPpnFromResultWS(ResultWsSudocDto resultCallWs, String titleUrl, int score, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws URISyntaxException, IOException, IllegalPpnException {
         if (!resultCallWs.getPpns().isEmpty()) {
-            int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
+            int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getTypeSupport().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
-                //todo: controle du type de notice ? pas de control sur le provider si "serial"
-                if(ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
+                if(ppn.getTypeSupport().equals(TYPE_SUPPORT.IMPRIME)) {
                     log.info("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
-                } else if (ppn.isProviderPresent() || checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)){
+                } else if (ppn.getTypeDocument() != TYPE_DOCUMENT.MONOGRAPHIE || ppn.isProviderPresent() || checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)){
                     setScoreToPpnElect(score, ppnElecResultList, nbPpnElec, ppn);
                 } else {
                     log.error("Le PPN " + ppn + " n'a pas de provider trouvé");
