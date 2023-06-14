@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
 import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.dto.SearchDatWebDto;
+import fr.abes.kafkaconvergence.utils.ExecutionTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -82,10 +83,12 @@ public class WsService {
         return restTemplate.getForObject(formedUrl.toString(), String.class);
     }
 
+    @ExecutionTime
     public ResultWsSudocDto callOnlineId2Ppn(String type, String id, @Nullable String provider) throws JsonProcessingException {
         return getResultWsSudocDto(type, id, provider, urlOnlineId2Ppn);
     }
 
+    @ExecutionTime
     public ResultWsSudocDto callPrintId2Ppn(String type, String id, @Nullable String provider) throws JsonProcessingException {
         return getResultWsSudocDto(type, id, provider, urlPrintId2Ppn);
     }
@@ -106,6 +109,7 @@ public class WsService {
         return result;
     }
 
+    @ExecutionTime
     public ResultDat2PpnWebDto callDat2Ppn(String date, String author, String title) throws JsonProcessingException {
         SearchDatWebDto searchDatWebDto = new SearchDatWebDto(title);
         if (!author.isEmpty()) {
@@ -117,6 +121,7 @@ public class WsService {
         return mapper.readValue(postCall(urlDat2Ppn, mapper.writeValueAsString(searchDatWebDto)), ResultDat2PpnWebDto.class);
     }
 
+    @ExecutionTime
     public ResultWsSudocDto callDoi2Ppn(String doi, @Nullable String provider) throws JsonProcessingException {
         Map<String, String> params = new HashMap<>();
         params.put("doi", doi);
