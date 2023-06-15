@@ -1,11 +1,15 @@
 package fr.abes.kafkaconvergence.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import fr.abes.kafkaconvergence.dto.*;
+import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.dto.PpnWithTypeDto;
+import fr.abes.kafkaconvergence.dto.ResultDat2PpnWebDto;
+import fr.abes.kafkaconvergence.dto.ResultWsSudocDto;
 import fr.abes.kafkaconvergence.entity.basexml.notice.NoticeXml;
 import fr.abes.kafkaconvergence.exception.BestPpnException;
 import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.PUBLICATION_TYPE;
+import fr.abes.kafkaconvergence.utils.TYPE_DOCUMENT;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import fr.abes.kafkaconvergence.utils.Utils;
 import lombok.Getter;
@@ -15,7 +19,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Getter
@@ -91,27 +98,19 @@ public class BestPpnService {
             setScoreToEveryPpnFromResultWS(resultWithTypeElectronique, kbart.getTitle_url(), this.scorePrintId2PpnElect, ppnElecScoredList, ppnPrintResultList);
         }
         ResultWsSudocDto resultWithTypeImprime = resultCallWs.getPpnWithTypeImprime();
-        if (resultWithTypeImprime != null && !resultWithTypeImprime.getPpns().isEmpty()) {
-            for (PpnWithTypeDto ppn:resultWithTypeImprime.getPpns()) {
-                log.info("PPN Imprimé : " + ppn);
-                ppnPrintResultList.add(ppn.getPpn());
-            }
-        }
-
-        ResultWsSudocDto resultWsWithErrorTypeRacine = resultCallWs.getPpnRacineWithErrorType();
-        if (resultWsWithErrorTypeRacine != null && !resultWsWithErrorTypeRacine.getPpns().isEmpty()) {
-            setScoreToEveryPpnFromResultWS(resultWsWithErrorTypeRacine, kbart.getTitle_url(), this.scoreErrorType, ppnElecScoredList, ppnPrintResultList);
+        if (resultWithTypeElectronique != null && !resultWithTypeImprime.getPpns().isEmpty()) {
+            setScoreToEveryPpnFromResultWS(resultWithTypeImprime, kbart.getTitle_url(), this.scoreErrorType, ppnElecScoredList, ppnPrintResultList);
         }
     }
 
     private void feedPpnListFromDat(LigneKbartDto kbart, Map<String, Integer> ppnElecScoredList, Set<String> ppnPrintResultList) throws IOException, IllegalPpnException {
         ResultDat2PpnWebDto resultDat2PpnWeb = null;
-        if (!kbart.getDate_monograph_published_online().isEmpty()) {
-            log.debug("Appel dat2ppn :  date_monograph_published_online : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
-            resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
-        } else if (ppnElecScoredList.isEmpty() && !kbart.getDate_monograph_published_print().isEmpty()) {
-            log.debug("Appel dat2ppn :  date_monograph_published_print : " + kbart.getDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
-            resultDat2PpnWeb = service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
+        if (!kbart.getAnneeFromDate_monograph_published_online().isEmpty()) {
+            log.debug("Appel dat2ppn :  date_monograph_published_online : " + kbart.getAnneeFromDate_monograph_published_online() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
+            resultDat2PpnWeb = service.callDat2Ppn(kbart.getAnneeFromDate_monograph_published_online(), kbart.getAuthor(), kbart.getPublication_title());
+        } else if (ppnElecScoredList.isEmpty() && !kbart.getAnneeFromDate_monograph_published_print().isEmpty()) {
+            log.debug("Appel dat2ppn :  date_monograph_published_print : " + kbart.getAnneeFromDate_monograph_published_print() + " / publication_title : " + kbart.getPublication_title() + " auteur : " + kbart.getAuthor());
+            resultDat2PpnWeb = service.callDat2Ppn(kbart.getAnneeFromDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title());
         }
         if(resultDat2PpnWeb != null && !resultDat2PpnWeb.getPpns().isEmpty()) {
             for (String ppn : resultDat2PpnWeb.getPpns()) {
@@ -128,9 +127,9 @@ public class BestPpnService {
 
     private void feedPpnListFromDoi(String doi, String provider, Map<String, Integer> ppnElecScoredList, Set<String> ppnPrintResultList) throws IOException {
         ResultWsSudocDto resultWS = service.callDoi2Ppn(doi, provider);
-        int nbPpnElec = (int) resultWS.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
+        int nbPpnElec = (int) resultWS.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getTypeSupport().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
         for(PpnWithTypeDto ppn : resultWS.getPpns()){
-            if(ppn.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)){
+            if(ppn.getTypeSupport().equals(TYPE_SUPPORT.ELECTRONIQUE)){
                 setScoreToPpnElect(scoreDoi2Ppn,ppnElecScoredList,nbPpnElec,ppn);
             } else {
                 log.info("PPN Imprimé : " + ppn);
@@ -141,13 +140,12 @@ public class BestPpnService {
 
     private void setScoreToEveryPpnFromResultWS(ResultWsSudocDto resultCallWs, String titleUrl, int score, Map<String, Integer> ppnElecResultList, Set<String> ppnPrintResultList) throws URISyntaxException, IOException, IllegalPpnException {
         if (!resultCallWs.getPpns().isEmpty()) {
-            int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getType().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
+            int nbPpnElec = (int) resultCallWs.getPpns().stream().filter(ppnWithTypeDto -> ppnWithTypeDto.getTypeSupport().equals(TYPE_SUPPORT.ELECTRONIQUE)).count();
             for (PpnWithTypeDto ppn : resultCallWs.getPpns()) {
-                //todo: controle du type de notice ? pas de control sur le provider si "serial"
-                if(ppn.getType().equals(TYPE_SUPPORT.IMPRIME)) {
+                if(ppn.getTypeSupport().equals(TYPE_SUPPORT.IMPRIME)) {
                     log.info("PPN Imprimé : " + ppn);
                     ppnPrintResultList.add(ppn.getPpn());
-                } else if (ppn.isProviderPresent() || checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)){
+                } else if (ppn.getTypeDocument() != TYPE_DOCUMENT.MONOGRAPHIE || ppn.isProviderPresent() || checkUrlService.checkUrlInNotice(ppn.getPpn(), titleUrl)){
                     setScoreToPpnElect(score, ppnElecResultList, nbPpnElec, ppn);
                 } else {
                     log.error("Le PPN " + ppn + " n'a pas de provider trouvé");

@@ -1,6 +1,7 @@
 package fr.abes.kafkaconvergence.utils;
 
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import jdk.jshell.execution.Util;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -30,27 +31,24 @@ class UtilsTest {
     @Test
     void extractDOItestAvecPresenceDOIdanstitleUrl() {
         LigneKbartDto kbart = new LigneKbartDto();
-        kbart.setPublication_title("testtitle");
-        kbart.setPublication_type("testtype");
-        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
-        kbart.setPrint_identifier("print");
 
         kbart.setTitle_url("https://doi.org/10.1006/jmbi.1998.2354");
 
         Assertions.assertEquals("10.1006/jmbi.1998.2354", Utils.extractDOI(kbart));
+
+        kbart.setTitle_url(null);
+        Assertions.assertEquals("", Utils.extractDOI(kbart));
     }
 
     @Test
     void extractDOItestAvecPresenceDOIdanstitleId() {
         LigneKbartDto kbart = new LigneKbartDto();
-        kbart.setPublication_title("testtitle");
-        kbart.setPublication_type("testtype");
-        kbart.setOnline_identifier("https://doi.org/10.1006/jmbi.1998.2354");
-        kbart.setPrint_identifier("print");
-
         kbart.setTitle_id("https://doi.org/10.1006/jmbi.1998.2354");
 
         Assertions.assertEquals("10.1006/jmbi.1998.2354", Utils.extractDOI(kbart));
+
+        kbart.setTitle_id(null);
+        Assertions.assertEquals("", Utils.extractDOI(kbart));
     }
 
     @Test

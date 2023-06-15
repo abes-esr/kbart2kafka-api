@@ -3,6 +3,7 @@ package fr.abes.kafkaconvergence.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kafkaconvergence.dto.LigneKbartDto;
+import fr.abes.kafkaconvergence.dto.PackageKbartDto;
 import fr.abes.kafkaconvergence.dto.PpnKbartProviderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,12 @@ public class TopicProducer {
     private final ObjectMapper mapper;
 
     public void sendKbart(LigneKbartDto kbart) throws JsonProcessingException {
+        log.debug("Message envoyé : {}", mapper.writeValueAsString(kbart));
+        String fileName = ThreadContext.get("package");
+        kafkaTemplate.send(topicKbart, fileName, mapper.writeValueAsString(kbart));
+    }
+
+    public void sendKbart(PackageKbartDto kbart) throws JsonProcessingException {
         log.debug("Message envoyé : {}", mapper.writeValueAsString(kbart));
         String fileName = ThreadContext.get("package");
         kafkaTemplate.send(topicKbart, fileName, mapper.writeValueAsString(kbart));

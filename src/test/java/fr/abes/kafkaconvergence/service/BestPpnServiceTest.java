@@ -10,6 +10,7 @@ import fr.abes.kafkaconvergence.exception.IllegalPpnException;
 import fr.abes.kafkaconvergence.utils.TYPE_SUPPORT;
 import fr.abes.kafkaconvergence.utils.Utils;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.ThreadContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -78,11 +79,11 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
-        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType1.setProviderPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
-        ppnWithType2.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType2.setTypeSupport(TYPE_SUPPORT.IMPRIME);
         ppnWithType2.setProviderPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -129,11 +130,11 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
-        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType1.setProviderPresent(true);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
-        ppnWithType2.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType2.setTypeSupport(TYPE_SUPPORT.IMPRIME);
         ppnWithType2.setProviderPresent(true);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -179,11 +180,11 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
-        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType1.setProviderPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
-        ppnWithType2.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType2.setTypeSupport(TYPE_SUPPORT.IMPRIME);
         ppnWithType2.setProviderPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -196,7 +197,7 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
         ppnWithType3.setPpn("200000001");
-        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType3.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType3.setProviderPresent(false);
         //  Create a List of PpnWithListDto for print
         List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
@@ -236,11 +237,11 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
-        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType1.setProviderPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
-        ppnWithType2.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType2.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType2.setProviderPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -253,7 +254,7 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
         ppnWithType3.setPpn("100000001");
-        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType3.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType3.setProviderPresent(false);
         //  Create a List of PpnWithListDto for print
         List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
@@ -293,11 +294,11 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
-        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType1.setProviderPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
-        ppnWithType2.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType2.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType2.setProviderPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -342,7 +343,7 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for Online
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
-        ppnWithType1.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType1.setTypeSupport(TYPE_SUPPORT.IMPRIME);
         ppnWithType1.setProviderPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -354,7 +355,7 @@ class BestPpnServiceTest {
         //  Create a PpnWithTypeDto for print
         PpnWithTypeDto ppnWithTypePrint1 = new PpnWithTypeDto();
         ppnWithTypePrint1.setPpn("200000001");
-        ppnWithTypePrint1.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithTypePrint1.setTypeSupport(TYPE_SUPPORT.IMPRIME);
         ppnWithTypePrint1.setProviderPresent(false);
         //  Create a List of PpnWithListDto for print
         List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
@@ -493,11 +494,11 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType1 = new PpnWithTypeDto();
         ppnWithType1.setPpn("100000001");
-        ppnWithType1.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType1.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType1.setProviderPresent(false);
         PpnWithTypeDto ppnWithType2 = new PpnWithTypeDto();
         ppnWithType2.setPpn("100000002");
-        ppnWithType2.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType2.setTypeSupport(TYPE_SUPPORT.IMPRIME);
         ppnWithType2.setProviderPresent(false);
         //  Create a List of PpnWithListDto for elec
         List<PpnWithTypeDto> ppnWithTypeDto = new ArrayList<>();
@@ -549,11 +550,11 @@ class BestPpnServiceTest {
         //  Create PpnWithTypeDto for elec
         PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
         ppnWithType3.setPpn("200000001");
-        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType3.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType3.setProviderPresent(false);
         PpnWithTypeDto ppnWithType4 = new PpnWithTypeDto();
         ppnWithType4.setPpn("200000002");
-        ppnWithType4.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType4.setTypeSupport(TYPE_SUPPORT.IMPRIME);
         ppnWithType4.setProviderPresent(false);
         //  Create a List of PpnWithListDto for print
         List<PpnWithTypeDto> ppnWithTypePrintDto = new ArrayList<>();
@@ -592,7 +593,6 @@ class BestPpnServiceTest {
     void getBestPpnTest09() throws IllegalPpnException, IOException, BestPpnException, URISyntaxException {
         String provider = "urlProvider";
 
-
         //Creation d'une ligne kbart
         LigneKbartDto kbart = new LigneKbartDto();
         kbart.setOnline_identifier("9780470059616");
@@ -618,13 +618,13 @@ class BestPpnServiceTest {
         // Creation ppn electronique pour alimenter ResultDoi2PpnWebDto
         PpnWithTypeDto ppnWithType3 = new PpnWithTypeDto();
         ppnWithType3.setPpn("123456789");
-        ppnWithType3.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnWithType3.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnWithType3.setProviderPresent(true);
         ppnWithTypeDto.add(ppnWithType3);
         // Creation ppn imprimé pour alimenter ResultDoi2PpnWebDto
         PpnWithTypeDto ppnWithType4 = new PpnWithTypeDto();
         ppnWithType4.setPpn("234567891");
-        ppnWithType4.setType(TYPE_SUPPORT.IMPRIME);
+        ppnWithType4.setTypeSupport(TYPE_SUPPORT.IMPRIME);
         ppnWithTypeDto.add(ppnWithType4);
         //Insertion dans la liste de résultat de ResultDoi2PpnWebDto
         resultDoi.setPpns(ppnWithTypeDto);
@@ -637,7 +637,7 @@ class BestPpnServiceTest {
         resultElec.setPpns(ppnWithTypeDto2);
         PpnWithTypeDto ppnElectro = new PpnWithTypeDto();
         ppnElectro.setPpn("200000001");
-        ppnElectro.setType(TYPE_SUPPORT.ELECTRONIQUE);
+        ppnElectro.setTypeSupport(TYPE_SUPPORT.ELECTRONIQUE);
         ppnElectro.setProviderPresent(true);
         ppnWithTypeDto2.add(ppnElectro);
         resultElec.setPpns(ppnWithTypeDto2);
@@ -650,11 +650,21 @@ class BestPpnServiceTest {
         resultPrint.setPpns(ppnWithTypeDto3);
         PpnWithTypeDto ppnPrint = new PpnWithTypeDto();
         ppnPrint.setPpn("200000002");
-        ppnPrint.setType(TYPE_SUPPORT.IMPRIME);
+        ppnPrint.setTypeSupport(TYPE_SUPPORT.IMPRIME);
         ppnWithTypeDto3.add(ppnPrint);
         resultPrint.setPpns(ppnWithTypeDto3);
         Mockito.when(service.callPrintId2Ppn(kbart.getPublication_type(), kbart.getPrint_identifier(), provider)).thenReturn(resultPrint);
 
+        //Mock du service callDat2Ppn -> les ppn auront un score de 20
+        ResultDat2PpnWebDto resultDat2PpnWeb = new ResultDat2PpnWebDto();
+        resultDat2PpnWeb.addPpn("300000001");
+        resultDat2PpnWeb.addPpn("300000002");
+
+        ThreadContext.put("package","truc_truc_2000-12-31.tsv");
+
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_online(), kbart.getFirst_author(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
+        Mockito.when(service.callDat2Ppn(kbart.getDate_monograph_published_print(), kbart.getAuthor(), kbart.getPublication_title())).thenReturn(resultDat2PpnWeb);
+        Mockito.when(checkUrlService.checkUrlInNotice(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         //  Appel du service
         String result = bestPpnService.getBestPpn(kbart, provider);
 
