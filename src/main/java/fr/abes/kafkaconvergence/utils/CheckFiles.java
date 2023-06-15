@@ -60,6 +60,13 @@ public class CheckFiles {
         }
     }
 
+    public static void detectFileName(MultipartFile file) throws IllegalFileFormatException {
+        String filename = file.getOriginalFilename();
+        assert filename != null;
+        if(!filename.matches("(\\w+_\\w+_)+(\\d{4}-\\d{2}-\\d{2})+(.tsv)$")){
+            throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correcte");
+        }
+    }
 
     public static String getProviderFromFilename(MultipartFile file) {
         String filename = file.getOriginalFilename();
@@ -81,6 +88,7 @@ public class CheckFiles {
         CheckFiles.isFileWithTSVExtension(file);
         CheckFiles.detectTabulations(file);
         CheckFiles.detectHeaderPresence(header, file);
+        CheckFiles.detectFileName(file);
     }
 
     public static String getDateFromFile(String dateToComplement) {
