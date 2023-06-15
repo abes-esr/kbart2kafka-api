@@ -2,6 +2,7 @@ package fr.abes.kafkaconvergence.utils;
 
 import fr.abes.kafkaconvergence.exception.IllegalFileFormatException;
 import org.apache.logging.log4j.ThreadContext;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -26,6 +27,19 @@ class CheckFilesTest {
         IllegalFileFormatException erreur3 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.isFileWithTSVExtension(file3));
         Assertions.assertEquals("le fichier n'est pas au format tsv", erreur3.getMessage());
     }
+
+    @Test
+    void detectFileName() throws IllegalFileFormatException {
+        MultipartFile file = new MockMultipartFile("test_test_test_test1_1234-12-12.tsv", "test_test_test1_1234-12-12.tsv", "UTF-8", new byte[]{});
+        CheckFiles.detectFileName(file);
+
+        for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv","test_test_test_test_1234/12/12.tsv")) {
+            MultipartFile file2 = new MockMultipartFile(name, name, "UTF-8", new byte[]{});
+            IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file2));
+            Assertions.assertEquals("Le nom du fichier " + name + " n'est pas correcte", erreur2.getMessage());
+        }
+    }
+
 
     @Test
     void detectTabulations() throws IOException, IllegalFileFormatException {
