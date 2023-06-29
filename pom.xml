@@ -12,11 +12,11 @@
     <artifactId>kafka-convergence</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>kafka-convergence</name>
-    <description>Poc dans le cadre du projet convergence</description>
+    <name>kbart2kafka</name>
+    <description>chargement d'un fichier kbart dans kafka</description>
     <properties>
-        <finalName>kbart2kafka-api-${project.artifactId}-${project.version}</finalName>
-        <warName>kbart2kafka-api</warName>
+        <finalName>kbart2kafka-${project.artifactId}-${project.version}</finalName>
+        <jarName>kbart2kafka</jarName>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -72,10 +72,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
             <exclusions>
@@ -85,32 +81,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- BDD -->
-        <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc8</artifactId>
-            <version>21.3.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.oracle.database.xml</groupId>
-            <artifactId>xdb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
-        </dependency>
-
         <!-- === Logging === -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -135,21 +105,11 @@
             <version>2.3.5</version>
         </dependency>
 
-        <!-- permet de gérer les contraintes d'intégrité de la BDD et les champs not null -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-
         <!-- Utilitaires -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         <dependency>
             <groupId>com.opencsv</groupId>
@@ -160,24 +120,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpmime</artifactId>
             <version>4.5.14</version>
-        </dependency>
-
-        <!-- === SpringDoc === -->
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.1.0</version>
-        </dependency>
-
-        <!-- gestion des LocalDateTime -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-json</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-xml</artifactId>
-            <version>2.13.2</version>
         </dependency>
 
         <!-- TEST -->
@@ -210,7 +152,7 @@
 
     <!-- Pour que maven se charge de générer les releases -->
     <build>
-        <finalName>${warName}</finalName>
+        <finalName>${jarName}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -224,13 +166,6 @@
         </resources>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <version>3.3.1</version>
-                    <configuration>
-                        <failOnMissingWebXml>false</failOnMissingWebXml>
-                    </configuration>
-                </plugin>
                 <plugin>
                     <artifactId>maven-release-plugin</artifactId>
                     <version>3.0.0-M6</version>
@@ -257,7 +192,7 @@
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <version>2.3.5.RELEASE</version>
                     <configuration>
-                        <mainClass>fr.abes.kafkaconvergence.KafkaConvergenceApplication</mainClass>
+                        <mainClass>fr.abes.kbart2kafka.Kbart2kafkaApplication</mainClass>
                     </configuration>
                     <executions>
                         <execution>
