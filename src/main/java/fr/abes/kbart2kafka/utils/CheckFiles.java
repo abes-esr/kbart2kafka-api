@@ -1,23 +1,20 @@
 package fr.abes.kbart2kafka.utils;
 
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 
 public class CheckFiles {
     /**
      * Controle si le fichier à bien une extension tsv
      *
      * @param file fichier en entrée
-     * @throws IllegalFileFormatException
+     * @throws IllegalFileFormatException format de fichier non conforme
      */
-    public static void isFileWithTSVExtension(MultipartFile file) throws IllegalFileFormatException {
+    public static void isFileWithTSVExtension(File file) throws IllegalFileFormatException {
         //Filename extension control
-        String fileName = file.getOriginalFilename(); // get file name
-        if (fileName == null || fileName.isEmpty())
+        String fileName = file.getName(); // get file name
+        if (fileName.isEmpty())
             throw new IllegalFileFormatException("Le nom du fichier est vide"); // check if file name is valid
         String[] parts = fileName.split("\\."); // split by dot
         String extension = parts[parts.length - 1]; // get last part as extension
@@ -32,8 +29,8 @@ public class CheckFiles {
      * @param file fichier en entrée
      * @throws IOException erreur avec le fichier en entrée
      */
-    public static void detectTabulations(MultipartFile file) throws IOException, IllegalFileFormatException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+    public static void detectTabulations(File file) throws IOException, IllegalFileFormatException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!line.contains("\t")) {
@@ -48,10 +45,10 @@ public class CheckFiles {
      *
      * @param header terme à recherche dans l'entête
      * @param file   fichier en entrée
-     * @throws IOException
+     * @throws IOException impossible de lire le fichier
      */
-    public static void detectHeaderPresence(String header, MultipartFile file) throws IOException, IllegalFileFormatException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+    public static void detectHeaderPresence(String header, File file) throws IOException, IllegalFileFormatException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = reader.readLine();
             if (!line.contains(header))
                 throw new IllegalFileFormatException("Le champ " + header + " est absent de l'en tête du fichier");
@@ -66,7 +63,7 @@ public class CheckFiles {
      * @throws IllegalFileFormatException Format de fichier non conforme
      * @throws IOException Impossible de lire le fichier
      */
-    public static void verifyFile(MultipartFile file, String header) throws IllegalFileFormatException, IOException {
+    public static void verifyFile(File file, String header) throws IllegalFileFormatException, IOException {
         CheckFiles.isFileWithTSVExtension(file);
         CheckFiles.detectTabulations(file);
         CheckFiles.detectHeaderPresence(header, file);

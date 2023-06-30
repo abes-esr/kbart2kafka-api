@@ -3,7 +3,6 @@ package fr.abes.kbart2kafka.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
-import fr.abes.kbart2kafka.dto.PackageKbartDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.ThreadContext;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TopicProducer {
 
-    @Value("${topic.name.target.kbartt}")
+    @Value("${topic.name.target.kbart}")
     private String topicKbart;
 
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -29,9 +28,9 @@ public class TopicProducer {
         kafkaTemplate.send(topicKbart, fileName, mapper.writeValueAsString(kbart));
     }
 
-    public void sendKbart(PackageKbartDto kbart) throws JsonProcessingException {
-        log.debug("Message envoyé : {}", mapper.writeValueAsString(kbart));
-        String fileName = ThreadContext.get("package");
-        kafkaTemplate.send(topicKbart, fileName, mapper.writeValueAsString(kbart));
-    }
+//    public void sendKbart(PackageKbartDto kbart) throws JsonProcessingException {
+//        log.debug("Message envoyé : {}", mapper.writeValueAsString(kbart));
+//        String fileName = ThreadContext.get("package");
+//        kafkaTemplate.send(topicKbart, fileName, mapper.writeValueAsString(kbart));
+//    }
 }

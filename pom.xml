@@ -57,6 +57,7 @@
         </profile>
     </profiles>
     <dependencies>
+        <!-- === SpringFramework === -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -81,6 +82,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>6.0.6</version>
+        </dependency>
+
         <!-- === Logging === -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -105,7 +112,7 @@
             <version>2.3.5</version>
         </dependency>
 
-        <!-- Utilitaires -->
+        <!-- === Utilitaires === -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -121,13 +128,25 @@
             <artifactId>httpmime</artifactId>
             <version>4.5.14</version>
         </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
+        </dependency>
 
-        <!-- TEST -->
+        <!-- === Test === -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>6.0.6</version>
+        </dependency>
+
+        <!-- === Kafka === -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
@@ -146,6 +165,18 @@
                 </exclusion>
             </exclusions>
             <scope>test</scope>
+        </dependency>
+
+        <!-- === Jackson === -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>2.12.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.14.2</version>
         </dependency>
     </dependencies>
 
