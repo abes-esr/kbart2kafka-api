@@ -15,11 +15,13 @@ public class CheckFiles {
         //Filename extension control
         String fileName = file.getName(); // get file name
         if (fileName.isEmpty())
+            // TODO ajouter log.error
             throw new IllegalFileFormatException("Le nom du fichier est vide"); // check if file name is valid
         String[] parts = fileName.split("\\."); // split by dot
         String extension = parts[parts.length - 1]; // get last part as extension
         // compare with tsv ignoring case
         if (!extension.equalsIgnoreCase("tsv"))
+            // TODO ajouter log.error
             throw new IllegalFileFormatException("le fichier n'est pas au format tsv");
     }
 
@@ -34,6 +36,7 @@ public class CheckFiles {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!line.contains("\t")) {
+                    // TODO ajouter log.error
                     throw new IllegalFileFormatException("Le fichier ne contient pas de tabulation");
                 }
             }
@@ -51,6 +54,7 @@ public class CheckFiles {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = reader.readLine();
             if (!line.contains(header))
+                // TODO ajouter log.error
                 throw new IllegalFileFormatException("Le champ " + header + " est absent de l'en tête du fichier");
         }
     }

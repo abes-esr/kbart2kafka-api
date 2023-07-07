@@ -1,5 +1,6 @@
 package fr.abes.kbart2kafka;
 
+import fr.abes.kbart2kafka.dto.Header;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import fr.abes.kbart2kafka.kafka.TopicProducer;
@@ -14,6 +15,8 @@ import org.springframework.kafka.annotation.EnableKafka;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
 
 @Slf4j
@@ -22,7 +25,7 @@ import java.util.Scanner;
 public class Kbart2kafkaApplication implements CommandLineRunner {
 
 	@Value("${file.header}")
-	private String header;
+	private String kbartHeaderStructure;
 
 	@Autowired
 	private TopicProducer topicProducer;
@@ -48,14 +51,14 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
 			try {
 				//	Appelle du service de vérification de fichier
-				CheckFiles.verifyFile(tsvFile, header);
+				CheckFiles.verifyFile(tsvFile, kbartHeaderStructure);
 
 				// Calcul du nombre total de ligne
 				Scanner kbartTotalLines = new Scanner(tsvFile);
 				int totalNumberOfLine = 0;
 				while(kbartTotalLines.hasNextLine()){
 					String ligneKbart = kbartTotalLines.nextLine();
-					if(!ligneKbart.contains(header)) {
+					if(!ligneKbart.contains(kbartHeaderStructure)) {
 						totalNumberOfLine ++;
 					}
 				}
@@ -63,9 +66,14 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 				// Compteur du nombre de lignes dans le kbart
 				Scanner kbart = new Scanner(tsvFile);
 				int lineCounter = 0;
+
+				// Création de la date
+				String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+				Header header = new Header(tsvFile.getName() + "_" + date, totalNumberOfLine);
+
 				while (kbart.hasNextLine()) {
 					String ligneKbart = kbart.nextLine();
-					if (!ligneKbart.contains(header)) {
+					if (!ligneKbart.contains(kbartHeaderStructure)) {
 						lineCounter ++;
 
 						// Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
@@ -73,11 +81,14 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 						LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
 
 						//	Envoi de la ligne dans le producer
-						topicProducer.sendKbart(ligneKbartDto, tsvFile.getName().split(".tsv")[0], totalNumberOfLine, lineCounter);
+						// TODO créer une DTO Header contenant le nom_du_fichier_yyyy-MM-dd.tsv , le nombre total de ligne , la ligne en cours
+
+						header.setCurrentLine(lineCounter);
+						topicProducer.sendKbart(ligneKbartDto, header);
 					}
 				}
 				// Envoi du message de fin de traitement dans le producer
-				topicProducer.sendKbart(tsvFile.getName().split(".tsv")[0]);
+				topicProducer.sendKbart(header);
 			} catch (Exception e) {
 				throw new IOException(e);
 			} catch (IllegalFileFormatException e) {

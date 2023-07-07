@@ -2,14 +2,19 @@ package fr.abes.kbart2kafka.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.abes.kbart2kafka.dto.Header;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,27 +31,34 @@ public class TopicProducer {
     @Value("${topic.name.target.kbart}")
     private String topicKbart;
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     private final ObjectMapper mapper;
 
     /**
      * Envoi une ligne d'un kbart dans un topic kafka
      * @param kbart un fichier kbart
-     * @param kbartName le nom du fichier (sans son extension)
-     * @param totalNumberOfLine nombre total de lignes dans le fichier kbart (excepté la première ligne d'en-tête)
-     * @param lineNumber nombre de la ligne courante
+     * @param header le nom du fichier avec son extension, la date, le nombre de ligne du kbart
      * @throws JsonProcessingException Exception pour tous les problèmes de traitement de contenu JSON
      */
-    public void sendKbart(LigneKbartDto kbart, String kbartName, int totalNumberOfLine, int lineNumber) throws JsonProcessingException {
-        // Création du header
-        List<Header> headers = new ArrayList<>();
-        String totalLine = totalNumberOfLine + " lignes.";
-        headers.add(new RecordHeader("ligne " + lineNumber + " sur ", totalLine.getBytes()));
+    public void sendKbart(LigneKbartDto kbart, Header header) throws JsonProcessingException {
 
-        // Création du message et envoi
-        ProducerRecord<String, String> message = new ProducerRecord<>(topicKbart, 0, kbartName, mapper.writeValueAsString(kbart), headers);
+        Message<String> message = MessageBuilder
+                .withPayload(mapper.writeValueAsString(kbart))
+                .setHeader(KafkaHeaders.TOPIC, topicKbart)
+                .setHeader(header.getFileName(), header.getCurrentLine() + "/" + header.getTotalNumberOfLine())
+                .build();
+
         kafkaTemplate.send(message);
+
+//        // Création du header
+//        List<RecordHeader> headers = new ArrayList<>();
+//        headers.add(new RecordHeader(header.getFileName(), String.valueOf(header.getCurrentLine() + "/" + header.getTotalNumberOfLine()).getBytes()));
+//
+//        // Création du message et envoi
+//        ProducerRecord<String, String> message1 = new ProducerRecord<>(topicKbart, 0, "", kbart, headers);
+//        kafkaTemplate.send(message1);
 
         // Log
         log.debug("Message envoyé : {}", mapper.writeValueAsString(kbart));
@@ -54,14 +66,29 @@ public class TopicProducer {
 
     /**
      * Envoi le message de fin de traitement d'un kbart dans un topic kafka
-     * @param kbartName le nom du fichier (sans son extension)
+     * @param header le nom du fichier avec son extension, la date, le nombre de ligne du kbart
      */
-    public void sendKbart(String kbartName) {
-        // Création du message et envoi
-        ProducerRecord<String, String> message = new ProducerRecord<>(topicKbart, 0, kbartName, "OK");
+    public void sendKbart(Header header) {
+
+        Message<String> message = MessageBuilder
+                .withPayload("OK")
+                .setHeader(KafkaHeaders.TOPIC, topicKbart)
+                .setHeader(header.getFileName(), header.getCurrentLine() + "/" + header.getTotalNumberOfLine())
+                .build();
+
         kafkaTemplate.send(message);
 
+
+//        // Création du header
+//        List<RecordHeader> headers = new ArrayList<>();
+//        headers.add(new RecordHeader(header.getFileName(), String.valueOf(header.getCurrentLine() + "/" + header.getTotalNumberOfLine()).getBytes()));
+//
+//        // Création du message et envoi
+//        ProducerRecord<String, String> message1 = new ProducerRecord<>(topicKbart, 0, "", "Ok", headers);
+//
+//        kafkaTemplate.send(message1);
+
         // Log
-        log.debug("Message envoyé : {}", "Le kbart " + kbartName + " a été traité dans son intégralité.");
+        log.debug("Message envoyé : {}", "Le kbart " + header + " a été traité dans son intégralité.");
     }
 }
