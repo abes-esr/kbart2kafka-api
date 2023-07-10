@@ -1,9 +1,11 @@
 package fr.abes.kbart2kafka.utils;
 
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 
+@Slf4j
 public class CheckFiles {
     /**
      * Controle si le fichier à bien une extension tsv
@@ -14,15 +16,17 @@ public class CheckFiles {
     public static void isFileWithTSVExtension(File file) throws IllegalFileFormatException {
         //Filename extension control
         String fileName = file.getName(); // get file name
-        if (fileName.isEmpty())
-            // TODO ajouter log.error
+        if (fileName.isEmpty()) {
+            log.error("Message envoyé : {}", "Le nom du fichier est vide");
             throw new IllegalFileFormatException("Le nom du fichier est vide"); // check if file name is valid
+            }
         String[] parts = fileName.split("\\."); // split by dot
         String extension = parts[parts.length - 1]; // get last part as extension
         // compare with tsv ignoring case
-        if (!extension.equalsIgnoreCase("tsv"))
-            // TODO ajouter log.error
+        if (!extension.equalsIgnoreCase("tsv")) {
+            log.error("Message envoyé : {}", "le fichier n'est pas au format tsv");
             throw new IllegalFileFormatException("le fichier n'est pas au format tsv");
+        }
     }
 
     /**
@@ -36,7 +40,7 @@ public class CheckFiles {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!line.contains("\t")) {
-                    // TODO ajouter log.error
+                    log.error("Message envoyé : {}", "Le fichier ne contient pas de tabulation");
                     throw new IllegalFileFormatException("Le fichier ne contient pas de tabulation");
                 }
             }
@@ -53,9 +57,10 @@ public class CheckFiles {
     public static void detectHeaderPresence(String header, File file) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = reader.readLine();
-            if (!line.contains(header))
-                // TODO ajouter log.error
+            if (!line.contains(header)) {
+                log.error("Message envoyé : {}", "Le champ " + header + " est absent de l'en tête du fichier");
                 throw new IllegalFileFormatException("Le champ " + header + " est absent de l'en tête du fichier");
+            }
         }
     }
 

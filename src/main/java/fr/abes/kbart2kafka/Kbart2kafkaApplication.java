@@ -80,9 +80,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 						String[] tsvElementsOnOneLine = ligneKbart.split("\t");
 						LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
 
-						//	Envoi de la ligne dans le producer
-						// TODO créer une DTO Header contenant le nom_du_fichier_yyyy-MM-dd.tsv , le nombre total de ligne , la ligne en cours
-
+						//	Envoi de la ligne kbart dans le producer
 						header.setCurrentLine(lineCounter);
 						topicProducer.sendKbart(ligneKbartDto, header);
 					}

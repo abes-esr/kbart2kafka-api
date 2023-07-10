@@ -6,19 +6,13 @@ import fr.abes.kbart2kafka.dto.Header;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Producer Kafka qui envoi les lignes d'un kbart et les messages de fin de traitement dans un topic kafka
@@ -52,6 +46,7 @@ public class TopicProducer {
 
         kafkaTemplate.send(message);
 
+//        Version avec une key
 //        // Création du header
 //        List<RecordHeader> headers = new ArrayList<>();
 //        headers.add(new RecordHeader(header.getFileName(), String.valueOf(header.getCurrentLine() + "/" + header.getTotalNumberOfLine()).getBytes()));
@@ -78,7 +73,7 @@ public class TopicProducer {
 
         kafkaTemplate.send(message);
 
-
+//        Version avec une key
 //        // Création du header
 //        List<RecordHeader> headers = new ArrayList<>();
 //        headers.add(new RecordHeader(header.getFileName(), String.valueOf(header.getCurrentLine() + "/" + header.getTotalNumberOfLine()).getBytes()));
