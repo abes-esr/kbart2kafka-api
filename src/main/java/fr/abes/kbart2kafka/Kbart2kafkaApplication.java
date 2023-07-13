@@ -12,6 +12,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 	 * @throws IOException Exception levée lorsque aucun fichier tsv n'a été trouvé.
 	 */
 	@Override
+	@Transactional
 	public void run(String... args) throws IOException {
 
 		//	Contrôle de la présence d'un paramètre au lancement de Kbart2kafkaApplication
