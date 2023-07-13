@@ -9,7 +9,6 @@ import java.io.*;
 public class CheckFiles {
     /**
      * Controle si le fichier à bien une extension tsv
-     *
      * @param file fichier en entrée
      * @throws IllegalFileFormatException format de fichier non conforme
      */
@@ -31,7 +30,6 @@ public class CheckFiles {
 
     /**
      * Détecte si le fichier présente des tabulations
-     *
      * @param file fichier en entrée
      * @throws IOException erreur avec le fichier en entrée
      */
@@ -49,7 +47,6 @@ public class CheckFiles {
 
     /**
      * Détecte la présence d'une entête dans le fichier
-     *
      * @param header terme à recherche dans l'entête
      * @param file   fichier en entrée
      * @throws IOException impossible de lire le fichier
