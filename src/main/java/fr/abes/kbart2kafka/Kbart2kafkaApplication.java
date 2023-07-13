@@ -41,7 +41,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 	 * @throws IOException Exception levée lorsque aucun fichier tsv n'a été trouvé.
 	 */
 	@Override
-	@Transactional
+	@Transactional(rollbackFor = Exception.class) // on spécifie la class qui fait rollback, par defaut c'est tout les class qui sont pas gerer càd : tout sauf IOException
 	public void run(String... args) throws IOException {
 
 		//	Contrôle de la présence d'un paramètre au lancement de Kbart2kafkaApplication
