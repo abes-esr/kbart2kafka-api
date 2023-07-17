@@ -53,14 +53,14 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
 			try {
 				//	Appelle du service de vérification de fichier
-				CheckFiles.verifyFile(tsvFile, kbartHeaderStructure);
+				CheckFiles.verifyFile(tsvFile, "publication_title");
 
 				// Calcul du nombre total de ligne
 				Scanner kbartTotalLines = new Scanner(tsvFile);
 				int totalNumberOfLine = 0;
 				while(kbartTotalLines.hasNextLine()){
 					String ligneKbart = kbartTotalLines.nextLine();
-					if(!ligneKbart.contains(kbartHeaderStructure)) {
+					if(!ligneKbart.contains("publication_title")) {
 						totalNumberOfLine ++;
 					}
 				}
