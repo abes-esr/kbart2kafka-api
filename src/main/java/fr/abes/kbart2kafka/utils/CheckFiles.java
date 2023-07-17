@@ -4,6 +4,7 @@ import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
+import java.util.List;
 
 @Slf4j
 public class CheckFiles {
@@ -47,16 +48,16 @@ public class CheckFiles {
 
     /**
      * Détecte la présence d'une entête dans le fichier
-     * @param header terme à recherche dans l'entête
+     * @param header liste de header
      * @param file   fichier en entrée
      * @throws IOException impossible de lire le fichier
      */
     public static void detectHeaderPresence(String header, File file) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = reader.readLine();
-            if (!line.contains(header)) {
-                log.error("Message envoyé : {}", "Le champ " + header + " est absent de l'en tête du fichier");
-                throw new IllegalFileFormatException("Le champ " + header + " est absent de l'en tête du fichier");
+            if(!line.contains(header)) {
+                log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte.");
+                throw new IllegalFileFormatException("L'en tete du fichier est incorrecte.");
             }
         }
     }

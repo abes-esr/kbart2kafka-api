@@ -7,6 +7,8 @@ import org.junit.jupiter.api.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 class CheckFilesTest {
 
@@ -56,6 +58,6 @@ class CheckFilesTest {
         this.file2 = new File("test2.tsv");
         FileUtils.writeStringToFile(file2, "toto\ttata\ttiti", StandardCharsets.UTF_8, true);
         IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("test", file2));
-        Assertions.assertEquals("Le champ test est absent de l'en tête du fichier", erreur.getMessage());
+        Assertions.assertEquals("L'en tete du fichier est incorrecte.", erreur.getMessage());
     }
 }

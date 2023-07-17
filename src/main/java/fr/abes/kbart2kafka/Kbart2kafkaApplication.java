@@ -24,8 +24,8 @@ import java.util.Scanner;
 @SpringBootApplication
 public class Kbart2kafkaApplication implements CommandLineRunner {
 
-	@Value("${file.header}")
-	private String kbartHeaderStructure;
+	@Value("${kbart.header}")
+	private String kbartHeader;
 
 	@Autowired
 	private TopicProducer topicProducer;
@@ -51,14 +51,14 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
 			try {
 				//	Appelle du service de vérification de fichier
-				CheckFiles.verifyFile(tsvFile, kbartHeaderStructure);
+				CheckFiles.verifyFile(tsvFile, kbartHeader);
 
 				// Calcul du nombre total de ligne
 				Scanner kbartTotalLines = new Scanner(tsvFile);
 				int totalNumberOfLine = 0;
 				while(kbartTotalLines.hasNextLine()){
 					String ligneKbart = kbartTotalLines.nextLine();
-					if(!ligneKbart.contains(kbartHeaderStructure)) {
+					if(!ligneKbart.contains(kbartHeader)) {
 						totalNumberOfLine ++;
 					}
 				}
@@ -69,11 +69,11 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
 				// Création de la date
 				String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-				Header header = new Header(tsvFile.getName() + "_" + date, totalNumberOfLine);
+				Header kafkaHeader = new Header(tsvFile.getName() + "_" + date, totalNumberOfLine);
 
 				while (kbart.hasNextLine()) {
 					String ligneKbart = kbart.nextLine();
-					if (!ligneKbart.contains(kbartHeaderStructure)) {
+					if (!ligneKbart.contains(kbartHeader)) {
 						lineCounter ++;
 
 						// Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
@@ -81,12 +81,12 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 						LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
 
 						//	Envoi de la ligne kbart dans le producer
-						header.setCurrentLine(lineCounter);
-						topicProducer.sendKbart(ligneKbartDto, header);
+						kafkaHeader.setCurrentLine(lineCounter);
+							topicProducer.sendKbart(ligneKbartDto, kafkaHeader);
 					}
 				}
 				// Envoi du message de fin de traitement dans le producer
-				topicProducer.sendKbart(header);
+				topicProducer.sendKbart(kafkaHeader);
 			} catch (Exception e) {
 				throw new IOException(e);
 			} catch (IllegalFileFormatException e) {
