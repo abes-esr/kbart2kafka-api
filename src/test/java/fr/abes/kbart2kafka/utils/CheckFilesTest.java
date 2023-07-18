@@ -17,9 +17,9 @@ class CheckFilesTest {
 
     @AfterEach
     public void cleanUp() {
-        if(file != null){file.delete();}
-        if(file2 != null){file2.delete();}
-        if(file3 != null){file3.delete();}
+        if(file != null && file.delete()){file.deleteOnExit();}
+        if(file2 != null && file2.delete()){file2.deleteOnExit();}
+        if(file3 != null  && file3.delete()){file3.deleteOnExit();}
     }
 
     @Test
