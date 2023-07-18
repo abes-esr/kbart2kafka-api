@@ -61,6 +61,13 @@ public class CheckFiles {
         }
     }
 
+    public static void detectFileName(File file) throws IllegalFileFormatException {
+        String filename = file.getName();
+        if(!filename.matches("(\\w+_\\w+_)+(\\d{4}-\\d{2}-\\d{2})+(.tsv)$")){
+            throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correcte");
+        }
+    }
+
     /**
      * Contrôle que le fichier à une extension tsv, qu'il contient des tabulations et
      * qu'il contient un entête avec la présence d'un terme en paramètre

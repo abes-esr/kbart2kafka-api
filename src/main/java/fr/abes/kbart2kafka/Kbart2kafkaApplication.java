@@ -16,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Scanner;
 
 @Slf4j
@@ -69,9 +67,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 				Scanner kbart = new Scanner(tsvFile);
 				int lineCounter = 0;
 
-				// Création de la date
-				String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-				Header header = new Header(tsvFile.getName() + "_" + date, totalNumberOfLine);
+				Header header = new Header(tsvFile.getName() , totalNumberOfLine);
 
 				while (kbart.hasNextLine()) {
 					String ligneKbart = kbart.nextLine();

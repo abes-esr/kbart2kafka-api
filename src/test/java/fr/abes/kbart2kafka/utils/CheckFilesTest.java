@@ -2,6 +2,7 @@ package fr.abes.kbart2kafka.utils;
 
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.*;
 
 import java.io.File;
@@ -33,6 +34,19 @@ class CheckFilesTest {
         this.file3 = new File("test2.csv");
         IllegalFileFormatException erreur3 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.isFileWithTSVExtension(file3));
         Assertions.assertEquals("le fichier n'est pas au format tsv", erreur3.getMessage());
+    }
+
+    @Test
+    void detectFileName() throws IllegalFileFormatException {
+        File file = new File("test_test_test_test1_1234-12-12.tsv");
+
+        CheckFiles.detectFileName(file);
+
+        for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv")) {
+            File file2 = new File(name);
+            IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file2));
+            Assertions.assertEquals("Le nom du fichier " + name + " n'est pas correcte", erreur2.getMessage());
+        }
     }
 
     @Test

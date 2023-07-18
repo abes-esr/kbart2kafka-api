@@ -68,7 +68,8 @@ public class TopicProducer {
         Message<String> message = MessageBuilder
                 .withPayload("OK")
                 .setHeader(KafkaHeaders.TOPIC, topicKbart)
-                .setHeader(header.getFileName(), header.getCurrentLine() + "/" + header.getTotalNumberOfLine())
+                .setHeader("Filename", header.getFileName())
+                .setHeader("Nb Line / Total", header.getCurrentLine() + "/" + header.getTotalNumberOfLine())
                 .build();
 
         kafkaTemplate.send(message);
