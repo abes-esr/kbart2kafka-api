@@ -2,6 +2,8 @@ package fr.abes.kbart2kafka.utils;
 
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.ThreadContext;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.List;
@@ -16,7 +18,7 @@ public class CheckFiles {
     public static void isFileWithTSVExtension(File file) throws IllegalFileFormatException {
         //Filename extension control
         String fileName = file.getName(); // get file name
-        if (fileName.isEmpty()) {
+        if (fileName == null || fileName.isEmpty()) {
             log.error("Message envoyé : {}", "Le nom du fichier est vide");
             throw new IllegalFileFormatException("Le nom du fichier est vide"); // check if file name is valid
             }
@@ -62,6 +64,25 @@ public class CheckFiles {
         }
     }
 
+    public static void detectFileName(File file) throws IllegalFileFormatException {
+        String filename = file.getPath();
+        filename = filename.replace("\\", "/");
+        assert filename != null;
+        if(!filename.matches("(\\w+_\\w+_)+(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(_force)?+(.tsv)$")){
+            log.error("Message envoyé : {}", "Le nom du fichier n'est pas correct");
+            throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correct");
+        }
+    }
+
+    public static String getProviderFromFilename(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        assert filename != null;
+        String[] filenameFields = filename.split("_");
+        if (filenameFields.length > 0)
+            return filenameFields[0].toLowerCase();
+        return "";
+    }
+
     /**
      * Contrôle que le fichier à une extension tsv, qu'il contient des tabulations et
      * qu'il contient un entête avec la présence d'un terme en paramètre
@@ -71,8 +92,19 @@ public class CheckFiles {
      * @throws IOException Impossible de lire le fichier
      */
     public static void verifyFile(File file, String header) throws IllegalFileFormatException, IOException {
-        CheckFiles.isFileWithTSVExtension(file);
-        CheckFiles.detectTabulations(file);
-        CheckFiles.detectHeaderPresence(header, file);
+        isFileWithTSVExtension(file);
+        detectTabulations(file);
+        detectHeaderPresence(header, file);
+        detectFileName(file);
+    }
+
+    public static String getDateFromFile(String dateToComplement) {
+        if( dateToComplement.length()==4) {
+            String fileName = ThreadContext.get("package");
+            List<String> dateInFileName = List.of(fileName.substring(fileName.lastIndexOf('_') + 1, fileName.lastIndexOf(".tsv")).split("-"));
+
+            return dateInFileName.get(2) + "/" + dateInFileName.get(1) + "/" + dateToComplement;
+        }
+        return dateToComplement;
     }
 }

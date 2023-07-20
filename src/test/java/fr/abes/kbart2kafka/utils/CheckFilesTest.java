@@ -2,13 +2,15 @@ package fr.abes.kbart2kafka.utils;
 
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.ThreadContext;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.*;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 class CheckFilesTest {
 
@@ -18,9 +20,9 @@ class CheckFilesTest {
 
     @AfterEach
     public void cleanUp() {
-        if(file != null){file.delete();}
-        if(file2 != null){file2.delete();}
-        if(file3 != null){file3.delete();}
+        if(file != null){file.delete();}    // ne pas supprimer. Indispensable pour que les TU fonctionnent.
+        if(file2 != null){file2.delete();}  // ne pas supprimer. Indispensable pour que les TU fonctionnent.
+        if(file3 != null){file3.delete();}  // ne pas supprimer. Indispensable pour que les TU fonctionnent.
     }
 
     @Test
@@ -35,6 +37,18 @@ class CheckFilesTest {
         this.file3 = new File("test2.csv");
         IllegalFileFormatException erreur3 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.isFileWithTSVExtension(file3));
         Assertions.assertEquals("le fichier n'est pas au format tsv", erreur3.getMessage());
+    }
+
+    @Test
+    void detectFileName() throws IllegalFileFormatException {
+        this.file = new File("test_test_test_test1_1234-12-12.tsv");
+        CheckFiles.detectFileName(file);
+
+        for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv","test_test_test_test_1234/12/12.tsv")) {
+            this.file2 = new File(name);
+            IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file2));
+            Assertions.assertEquals("Le nom du fichier " + name + " n'est pas correct", erreur2.getMessage());
+        }
     }
 
     @Test
@@ -59,5 +73,20 @@ class CheckFilesTest {
         FileUtils.writeStringToFile(file2, "toto\ttata\ttiti", StandardCharsets.UTF_8, true);
         IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("test", file2));
         Assertions.assertEquals("L'en tete du fichier est incorrecte.", erreur.getMessage());
+    }
+
+    @Test
+    void getProviderFromFilename() {
+        MultipartFile file = new MockMultipartFile("cairn_Global_Ouvrages-General_2023-02-15.txt", "cairn_Global_Ouvrages-General_2023-02-15.txt", null, (byte[]) null);
+        Assertions.assertEquals("cairn", CheckFiles.getProviderFromFilename(file));
+
+        file = new MockMultipartFile("Cairn_Global_Ouvrages-General_2023-02-15.txt", "Cairn_Global_Ouvrages-General_2023-02-15.txt", null, (byte[]) null);
+        Assertions.assertEquals("cairn", CheckFiles.getProviderFromFilename(file));
+    }
+
+    @Test
+    void getDateFromFile() {
+        ThreadContext.put("package", "OPENEDITION_GLOBAL_JOURNALS-OPENACCESS-FREEMIUM_2020-04-02.tsv");
+        Assertions.assertEquals("02/04/2023", CheckFiles.getDateFromFile("2023"));
     }
 }

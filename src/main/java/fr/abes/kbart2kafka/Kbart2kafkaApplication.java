@@ -69,7 +69,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
 				// Création de la date
 				String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-				Header kafkaHeader = new Header(tsvFile.getName() + "_" + date, totalNumberOfLine);
+				Header kafkaHeader = new Header(tsvFile.getName(), totalNumberOfLine);
 
 				while (kbart.hasNextLine()) {
 					String ligneKbart = kbart.nextLine();

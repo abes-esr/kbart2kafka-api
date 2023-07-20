@@ -41,7 +41,9 @@ public class TopicProducer {
         Message<String> message = MessageBuilder
                 .withPayload(mapper.writeValueAsString(kbart))
                 .setHeader(KafkaHeaders.TOPIC, topicKbart)
-                .setHeader(header.getFileName(), header.getCurrentLine() + "/" + header.getTotalNumberOfLine())
+                .setHeader("FileName", header.getFileName())
+                .setHeader("CurrentLine", header.getCurrentLine())
+                .setHeader("TotalLine", header.getCurrentLine())
                 .build();
 
         kafkaTemplate.send(message);
@@ -68,7 +70,9 @@ public class TopicProducer {
         Message<String> message = MessageBuilder
                 .withPayload("OK")
                 .setHeader(KafkaHeaders.TOPIC, topicKbart)
-                .setHeader(header.getFileName(), header.getCurrentLine() + "/" + header.getTotalNumberOfLine())
+                .setHeader("FileName", header.getFileName())
+                .setHeader("CurrentLine", header.getCurrentLine())
+                .setHeader("TotalLine", header.getCurrentLine())
                 .build();
 
         kafkaTemplate.send(message);
