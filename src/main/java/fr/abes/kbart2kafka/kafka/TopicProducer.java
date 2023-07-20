@@ -48,15 +48,6 @@ public class TopicProducer {
 
         kafkaTemplate.send(message);
 
-//        Version avec une key
-//        // Création du header
-//        List<RecordHeader> headers = new ArrayList<>();
-//        headers.add(new RecordHeader(header.getFileName(), String.valueOf(header.getCurrentLine() + "/" + header.getTotalNumberOfLine()).getBytes()));
-//
-//        // Création du message et envoi
-//        ProducerRecord<String, String> message1 = new ProducerRecord<>(topicKbart, 0, "", kbart, headers);
-//        kafkaTemplate.send(message1);
-
         // Log
         log.debug("Message envoyé : {}", mapper.writeValueAsString(kbart));
     }
@@ -65,7 +56,7 @@ public class TopicProducer {
      * Envoi le message de fin de traitement d'un kbart dans un topic kafka
      * @param header le nom du fichier avec son extension, la date, le nombre de ligne du kbart
      */
-    public void sendKbart(Header header) {
+    public void sendOk(Header header) {
 
         Message<String> message = MessageBuilder
                 .withPayload("OK")
@@ -76,16 +67,6 @@ public class TopicProducer {
                 .build();
 
         kafkaTemplate.send(message);
-
-//        Version avec une key
-//        // Création du header
-//        List<RecordHeader> headers = new ArrayList<>();
-//        headers.add(new RecordHeader(header.getFileName(), String.valueOf(header.getCurrentLine() + "/" + header.getTotalNumberOfLine()).getBytes()));
-//
-//        // Création du message et envoi
-//        ProducerRecord<String, String> message1 = new ProducerRecord<>(topicKbart, 0, "", "Ok", headers);
-//
-//        kafkaTemplate.send(message1);
 
         // Log
         log.debug("Message envoyé : {}", "Le kbart " + header + " a été traité dans son intégralité.");
