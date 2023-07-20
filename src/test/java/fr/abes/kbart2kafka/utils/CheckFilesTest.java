@@ -44,9 +44,12 @@ class CheckFilesTest {
         this.file = new File("test_test_test_test1_1234-12-12.tsv");
         CheckFiles.detectFileName(file);
 
+        this.file2 = new File("test_test_test_test1_1234-12-12_FORCE.tsv");
+        CheckFiles.detectFileName(file2);
+
         for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv","test_test_test_test_1234/12/12.tsv")) {
-            this.file2 = new File(name);
-            IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file2));
+            this.file3 = new File(name);
+            IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file3));
             Assertions.assertEquals("Le nom du fichier " + name + " n'est pas correct", erreur2.getMessage());
         }
     }
@@ -82,11 +85,5 @@ class CheckFilesTest {
 
         file = new MockMultipartFile("Cairn_Global_Ouvrages-General_2023-02-15.txt", "Cairn_Global_Ouvrages-General_2023-02-15.txt", null, (byte[]) null);
         Assertions.assertEquals("cairn", CheckFiles.getProviderFromFilename(file));
-    }
-
-    @Test
-    void getDateFromFile() {
-        ThreadContext.put("package", "OPENEDITION_GLOBAL_JOURNALS-OPENACCESS-FREEMIUM_2020-04-02.tsv");
-        Assertions.assertEquals("02/04/2023", CheckFiles.getDateFromFile("2023"));
     }
 }

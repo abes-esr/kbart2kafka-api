@@ -97,14 +97,4 @@ public class CheckFiles {
         detectHeaderPresence(header, file);
         detectFileName(file);
     }
-
-    public static String getDateFromFile(String dateToComplement) {
-        if( dateToComplement.length()==4) {
-            String fileName = ThreadContext.get("package");
-            List<String> dateInFileName = List.of(fileName.substring(fileName.lastIndexOf('_') + 1, fileName.lastIndexOf(".tsv")).split("-"));
-
-            return dateInFileName.get(2) + "/" + dateInFileName.get(1) + "/" + dateToComplement;
-        }
-        return dateToComplement;
-    }
 }
