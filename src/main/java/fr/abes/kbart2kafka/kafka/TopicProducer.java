@@ -43,7 +43,7 @@ public class TopicProducer {
                 .setHeader(KafkaHeaders.TOPIC, topicKbart)
                 .setHeader("FileName", header.getFileName())
                 .setHeader("CurrentLine", header.getCurrentLine())
-                .setHeader("TotalLine", header.getCurrentLine())
+                .setHeader("TotalLine", header.getTotalNumberOfLine())
                 .build();
 
         kafkaTemplate.send(message);
@@ -72,7 +72,7 @@ public class TopicProducer {
                 .setHeader(KafkaHeaders.TOPIC, topicKbart)
                 .setHeader("FileName", header.getFileName())
                 .setHeader("CurrentLine", header.getCurrentLine())
-                .setHeader("TotalLine", header.getCurrentLine())
+                .setHeader("TotalLine", header.getTotalNumberOfLine())
                 .build();
 
         kafkaTemplate.send(message);
