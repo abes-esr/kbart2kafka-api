@@ -42,7 +42,7 @@ public class TopicProducer {
         Message<String> message = MessageBuilder
                 .withPayload(mapper.writeValueAsString(kbart))
                 .setHeader(KafkaHeaders.TOPIC, topicKbart)
-                .setHeader("Filename", header.getFileName())
+                .setHeader("FileName", header.getFileName())
                 .setHeader("CurrentLine", header.getCurrentLine())
                 .setHeader("TotalLine", header.getTotalNumberOfLine())
                 .build();
@@ -60,7 +60,7 @@ public class TopicProducer {
         Message<String> message = MessageBuilder
                 .withPayload("OK")
                 .setHeader(KafkaHeaders.TOPIC, topicKbart)
-                .setHeader("Filename", header.getFileName())
+                .setHeader("FileName", header.getFileName())
                 .setHeader("CurrentLine", header.getCurrentLine())
                 .setHeader("TotalLine", header.getTotalNumberOfLine())
                 .build();

@@ -17,9 +17,9 @@ class CheckFilesTest {
 
     @AfterEach
     public void cleanUp() {
-        if(file != null && file.delete()){file.deleteOnExit();}
-        if(file2 != null && file2.delete()){file2.deleteOnExit();}
-        if(file3 != null  && file3.delete()){file3.deleteOnExit();}
+        if(file != null && file.delete()){file.deleteOnExit();}    // ne pas supprimer. Indispensable pour que les TU fonctionnent.
+        if(file2 != null && file2.delete()){file2.deleteOnExit();}  // ne pas supprimer. Indispensable pour que les TU fonctionnent.
+        if(file3 != null  && file3.delete()){file3.deleteOnExit();}  // ne pas supprimer. Indispensable pour que les TU fonctionnent.
     }
 
     @Test
@@ -38,14 +38,13 @@ class CheckFilesTest {
 
     @Test
     void detectFileName() throws IllegalFileFormatException {
-        File file = new File("test_test_test_test1_1234-12-12.tsv");
-
+        this.file = new File("test_test_test_test1_1234-12-12.tsv");
         CheckFiles.detectFileName(file);
 
-        for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv")) {
-            File file2 = new File(name);
+        for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv","test_test_test_test_1234/12/12.tsv")) {
+            this.file2 = new File(name);
             IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file2));
-            Assertions.assertEquals("Le nom du fichier " + name + " n'est pas correcte", erreur2.getMessage());
+            Assertions.assertEquals("Le nom du fichier " + name + " n'est pas correct", erreur2.getMessage());
         }
     }
 
@@ -70,6 +69,6 @@ class CheckFilesTest {
         this.file2 = new File("test2.tsv");
         FileUtils.writeStringToFile(file2, "toto\ttata\ttiti", StandardCharsets.UTF_8, true);
         IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("test", file2));
-        Assertions.assertEquals("Le champ test est absent de l'en tête du fichier", erreur.getMessage());
+        Assertions.assertEquals("L'en tete du fichier est incorrecte.", erreur.getMessage());
     }
 }
