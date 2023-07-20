@@ -80,11 +80,11 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
 						//	Envoi de la ligne kbart dans le producer
 						header.setCurrentLine(lineCounter);
-						topicProducer.sendKbart(ligneKbartDto, header);
+						topicProducer.sendLigneKbart(ligneKbartDto, header);
 					}
 				}
-				// Envoi du message de fin de traitement dans le producer
-				topicProducer.sendKbart(header);
+				// Envoi du message de fin de traitement dans le producer "OK"
+				topicProducer.sendOk(header);
 			} catch (Exception e) {
 				throw new IOException(e);
 			} catch (IllegalFileFormatException e) {
