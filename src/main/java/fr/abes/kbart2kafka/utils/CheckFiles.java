@@ -65,7 +65,7 @@ public class CheckFiles {
     }
 
     public static void detectFileName(File file) throws IllegalFileFormatException {
-        String filename = file.getPath();
+        String filename = file.getName();
         filename = filename.replace("\\", "/");
         assert filename != null;
         if(!filename.matches("(\\w+_\\w+_)+(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(_force)?+(.tsv)$")){
@@ -83,9 +83,9 @@ public class CheckFiles {
      * @throws IOException Impossible de lire le fichier
      */
     public static void verifyFile(File file, String header) throws IllegalFileFormatException, IOException {
+        detectFileName(file);
         isFileWithTSVExtension(file);
         detectTabulations(file);
         detectHeaderPresence(header, file);
-        detectFileName(file);
     }
 }
