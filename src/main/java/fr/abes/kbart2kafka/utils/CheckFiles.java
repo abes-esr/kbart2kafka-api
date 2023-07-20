@@ -74,15 +74,6 @@ public class CheckFiles {
         }
     }
 
-    public static String getProviderFromFilename(MultipartFile file) {
-        String filename = file.getOriginalFilename();
-        assert filename != null;
-        String[] filenameFields = filename.split("_");
-        if (filenameFields.length > 0)
-            return filenameFields[0].toLowerCase();
-        return "";
-    }
-
     /**
      * Contrôle que le fichier à une extension tsv, qu'il contient des tabulations et
      * qu'il contient un entête avec la présence d'un terme en paramètre

@@ -77,13 +77,4 @@ class CheckFilesTest {
         IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("test", file2));
         Assertions.assertEquals("L'en tete du fichier est incorrecte.", erreur.getMessage());
     }
-
-    @Test
-    void getProviderFromFilename() {
-        MultipartFile file = new MockMultipartFile("cairn_Global_Ouvrages-General_2023-02-15.txt", "cairn_Global_Ouvrages-General_2023-02-15.txt", null, (byte[]) null);
-        Assertions.assertEquals("cairn", CheckFiles.getProviderFromFilename(file));
-
-        file = new MockMultipartFile("Cairn_Global_Ouvrages-General_2023-02-15.txt", "Cairn_Global_Ouvrages-General_2023-02-15.txt", null, (byte[]) null);
-        Assertions.assertEquals("cairn", CheckFiles.getProviderFromFilename(file));
-    }
 }
