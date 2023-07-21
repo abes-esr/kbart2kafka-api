@@ -37,8 +37,6 @@ public class TopicProducer {
      * @throws JsonProcessingException Exception pour tous les problèmes de traitement de contenu JSON
      */
     public void sendLigneKbart(LigneKbartDto kbart, Header header) throws JsonProcessingException {
-
-
         Message<String> message = MessageBuilder
                 .withPayload(mapper.writeValueAsString(kbart))
                 .setHeader(KafkaHeaders.TOPIC, topicKbart)

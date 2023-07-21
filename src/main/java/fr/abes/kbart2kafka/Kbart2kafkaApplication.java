@@ -67,6 +67,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 				Scanner kbart = new Scanner(tsvFile);
 				int lineCounter = 0;
 
+				// Création du header et ajout du nombre total de lignes
 				Header kafkaHeader = new Header(tsvFile.getName(), totalNumberOfLine);
 
 				while (kbart.hasNextLine()) {
