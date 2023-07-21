@@ -3,7 +3,10 @@ package fr.abes.kbart2kafka.utils;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 @Slf4j
 public class CheckFiles {
@@ -47,26 +50,29 @@ public class CheckFiles {
 
     /**
      * Détecte la présence d'une entête dans le fichier
-     * @param header terme à recherche dans l'entête
+     * @param header liste de header
      * @param file   fichier en entrée
      * @throws IOException impossible de lire le fichier
      */
     public static void detectHeaderPresence(String header, File file) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = reader.readLine();
-            if (!line.contains(header)) {
-                log.error("Message envoyé : {}", "Le champ " + header + " est absent de l'en tête du fichier");
-                throw new IllegalFileFormatException("Le champ " + header + " est absent de l'en tête du fichier");
+            if(!line.contains(header)) {
+                log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte.");
+                throw new IllegalFileFormatException("L'en tete du fichier est incorrecte.");
             }
         }
     }
 
     public static void detectFileName(File file) throws IllegalFileFormatException {
         String filename = file.getName();
-        if(!filename.matches("(\\w+_\\w+_)+(\\d{4}-\\d{2}-\\d{2})+(.tsv)$")){
-            throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correcte");
+        filename = filename.replace("\\", "/");
+        if(!filename.matches("(\\w+_\\w+_)+(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(_force)?+(.tsv)$")){
+            log.error("Message envoyé : {}", "Le nom du fichier n'est pas correct");
+            throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correct");
         }
     }
+
 
     /**
      * Contrôle que le fichier à une extension tsv, qu'il contient des tabulations et
@@ -77,8 +83,9 @@ public class CheckFiles {
      * @throws IOException Impossible de lire le fichier
      */
     public static void verifyFile(File file, String header) throws IllegalFileFormatException, IOException {
-        CheckFiles.isFileWithTSVExtension(file);
-        CheckFiles.detectTabulations(file);
-        CheckFiles.detectHeaderPresence(header, file);
+        detectFileName(file);
+        isFileWithTSVExtension(file);
+        detectTabulations(file);
+        detectHeaderPresence(header, file);
     }
 }
