@@ -64,6 +64,6 @@ public class TopicProducer {
                 .build();
 
         kafkaTemplate.send(message);
-        log.debug("Message envoyé : {}", "Le kbart " + header + " a été traité dans son intégralité.");
+        log.debug("Message envoyé : {}", "Le kbart " + header.getFileName() + " a été traité dans son intégralité.");
     }
 }
