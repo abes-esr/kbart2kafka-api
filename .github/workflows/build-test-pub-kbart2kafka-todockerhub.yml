@@ -41,8 +41,8 @@ jobs:
           DOCKER_TAGS="${{ steps.docker_tag_meta.outputs.tags }}"
           for DOCKER_TAG in $DOCKER_TAGS
           do
-            # publication de l'image pour l'API
-            docker build . --target kbart2kafka-api-image -t ${DOCKER_TAG}-kbart2kafka-api
-            docker push ${DOCKER_TAG}-kbart2kafka-api
+            # publication de l'image
+            docker build . --target kbart2kafka-image -t ${DOCKER_TAG}-kbart2kafka
+            docker push ${DOCKER_TAG}-kbart2kafka
           done
   

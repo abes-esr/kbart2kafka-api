@@ -2,11 +2,11 @@ package fr.abes.kbart2kafka.utils;
 
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.ThreadContext;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 @Slf4j
 public class CheckFiles {
@@ -18,7 +18,7 @@ public class CheckFiles {
     public static void isFileWithTSVExtension(File file) throws IllegalFileFormatException {
         //Filename extension control
         String fileName = file.getName(); // get file name
-        if (fileName == null || fileName.isEmpty()) {
+        if (fileName.isEmpty()) {
             log.error("Message envoyé : {}", "Le nom du fichier est vide");
             throw new IllegalFileFormatException("Le nom du fichier est vide"); // check if file name is valid
             }
@@ -67,12 +67,12 @@ public class CheckFiles {
     public static void detectFileName(File file) throws IllegalFileFormatException {
         String filename = file.getName();
         filename = filename.replace("\\", "/");
-        assert filename != null;
-        if(!filename.matches("(\\w+_\\w+_)+(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(_force)?+(.tsv)$")){
+        if(!filename.matches("([a-zA-Z0-9\\-_]+_[a-zA-Z0-9\\-]+_)+(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(_force)?+(.tsv)$")){
             log.error("Message envoyé : {}", "Le nom du fichier n'est pas correct");
             throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correct");
         }
     }
+
 
     /**
      * Contrôle que le fichier à une extension tsv, qu'il contient des tabulations et

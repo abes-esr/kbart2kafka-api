@@ -12,11 +12,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Scanner;
 
 @Slf4j
@@ -40,6 +39,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 	 * @throws IOException Exception levée lorsque aucun fichier tsv n'a été trouvé.
 	 */
 	@Override
+	@Transactional(rollbackFor = Exception.class) // on spécifie la class qui fait rollback, par defaut c'est toutes les classes qui ne sont pas gérées càd : tout sauf IOException
 	public void run(String... args) throws IOException {
 
 		//	Contrôle de la présence d'un paramètre au lancement de Kbart2kafkaApplication
@@ -81,10 +81,10 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
 						//	Envoi de la ligne kbart dans le producer
 						kafkaHeader.setCurrentLine(lineCounter);
-							topicProducer.sendKbart(ligneKbartDto, kafkaHeader);
+							topicProducer.sendLigneKbart(ligneKbartDto, kafkaHeader);
 					}
 				}
-				// Envoi du message de fin de traitement dans le producer
+				// Envoi du message de fin de traitement dans le producer "OK"
 				topicProducer.sendOk(kafkaHeader);
 			} catch (Exception e) {
 				throw new IOException(e);

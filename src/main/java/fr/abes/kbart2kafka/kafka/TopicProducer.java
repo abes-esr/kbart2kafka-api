@@ -36,8 +36,7 @@ public class TopicProducer {
      * @param header le nom du fichier avec son extension, la date, le nombre de ligne du kbart
      * @throws JsonProcessingException Exception pour tous les problèmes de traitement de contenu JSON
      */
-    public void sendKbart(LigneKbartDto kbart, Header header) throws JsonProcessingException {
-
+    public void sendLigneKbart(LigneKbartDto kbart, Header header) throws JsonProcessingException {
         Message<String> message = MessageBuilder
                 .withPayload(mapper.writeValueAsString(kbart))
                 .setHeader(KafkaHeaders.TOPIC, topicKbart)
@@ -45,10 +44,8 @@ public class TopicProducer {
                 .setHeader("CurrentLine", header.getCurrentLine())
                 .setHeader("TotalLine", header.getTotalNumberOfLine())
                 .build();
-
+        log.info("envoi : " + message);
         kafkaTemplate.send(message);
-
-        // Log
         log.debug("Message envoyé : {}", mapper.writeValueAsString(kbart));
     }
 
@@ -67,8 +64,6 @@ public class TopicProducer {
                 .build();
 
         kafkaTemplate.send(message);
-
-        // Log
-        log.debug("Message envoyé : {}", "Le kbart " + header + " a été traité dans son intégralité.");
+        log.debug("Message envoyé : {}", "Le kbart " + header.getFileName() + " a été traité dans son intégralité.");
     }
 }

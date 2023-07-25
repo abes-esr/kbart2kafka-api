@@ -2,11 +2,10 @@ package fr.abes.kbart2kafka.utils;
 
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.ThreadContext;
 import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.*;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,9 +19,9 @@ class CheckFilesTest {
 
     @AfterEach
     public void cleanUp() {
-        if(file != null){file.delete();}    // ne pas supprimer. Indispensable pour que les TU fonctionnent.
-        if(file2 != null){file2.delete();}  // ne pas supprimer. Indispensable pour que les TU fonctionnent.
-        if(file3 != null){file3.delete();}  // ne pas supprimer. Indispensable pour que les TU fonctionnent.
+        if(file != null && file.delete()){file.deleteOnExit();}    // ne pas supprimer. Indispensable pour que les TU fonctionnent.
+        if(file2 != null && file2.delete()){file2.deleteOnExit();}  // ne pas supprimer. Indispensable pour que les TU fonctionnent.
+        if(file3 != null  && file3.delete()){file3.deleteOnExit();}  // ne pas supprimer. Indispensable pour que les TU fonctionnent.
     }
 
     @Test
