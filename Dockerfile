@@ -23,7 +23,7 @@ RUN mvn --batch-mode \
         -Dmaven.test.skip=false \
         -Duser.timezone=Europe/Paris \
         -Duser.language=fr \
-        package spring-boot:repackage
+        package
 
 
 ###
@@ -33,7 +33,7 @@ RUN mvn --batch-mode \
 #CMD [ "catalina.sh", "run" ]
 FROM eclipse-temurin:17-jre as kbart2kafka-image
 WORKDIR /app/
-COPY --from=build-image /build/target/*.jar /app/kbart2kafka.jar
+COPY --from=build-image /build/target/kbart2kafka-jar-with-dependencies.jar /app/kbart2kafka-api.jar
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-ENTRYPOINT ["java","-jar","/app/kbart2kafka.jar"]
+ENTRYPOINT ["java","-jar","/app/kbart2kafka-api.jar"]
