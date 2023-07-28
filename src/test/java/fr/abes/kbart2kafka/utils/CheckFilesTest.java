@@ -1,6 +1,7 @@
 package fr.abes.kbart2kafka.utils;
 
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
+import fr.abes.kbart2kafka.exception.IllegalProviderException;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.AfterEach;
@@ -46,10 +47,25 @@ class CheckFilesTest {
         this.file2 = new File("test_test_test_test1_1234-12-12_FORCE.tsv");
         CheckFiles.detectFileName(file2);
 
-        for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv")) {
+        for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv", "test_test_test_test1_1234-12-12_force.tsv")) {
             this.file3 = new File(name);
             IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file3));
             Assertions.assertEquals("Le nom du fichier " + name + " n'est pas correct", erreur2.getMessage());
+        }
+    }
+
+    @Test
+    void detectProvider() throws IllegalFileFormatException {
+        this.file = new File("test_test_test_1234-12-12.tsv");
+        CheckFiles.detectFileName(file);
+
+        this.file2 = new File("test_test_test_1234-12-12_FORCE.tsv");
+        CheckFiles.detectFileName(file2);
+
+        for(String name : Lists.newArrayList("123.tsv", "_test.tsv")) {
+            this.file3 = new File(name);
+            IllegalProviderException erreur2 = Assertions.assertThrows(IllegalProviderException.class, () -> CheckFiles.detectProvider(file3));
+            Assertions.assertEquals("Le nom du fichier " + name + " ne contient pas de provider", erreur2.getMessage());
         }
     }
 
