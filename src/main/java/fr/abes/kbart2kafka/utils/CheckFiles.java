@@ -14,7 +14,6 @@ public class CheckFiles {
 
     public static void detectFileName(File file) throws IllegalFileFormatException {
         String filename = file.getName();
-        filename = filename.replace("\\", "/");
         if(!filename.matches("([a-zA-Z0-9\\-_]+_[a-zA-Z0-9\\-]+_)+(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(.tsv)$")){
             log.error("Message envoyé : {}", "Le nom du fichier n'est pas correct");
             throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correct");
