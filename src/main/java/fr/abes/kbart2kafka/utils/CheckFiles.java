@@ -1,6 +1,7 @@
 package fr.abes.kbart2kafka.utils;
 
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
+import fr.abes.kbart2kafka.exception.IllegalProviderException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -10,6 +11,24 @@ import java.io.IOException;
 
 @Slf4j
 public class CheckFiles {
+
+    public static void detectFileName(File file) throws IllegalFileFormatException {
+        String filename = file.getName();
+        if(!filename.matches("([a-zA-Z0-9\\-_]+_[a-zA-Z0-9\\-]+_)+(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(.tsv)$")){
+            log.error("Message envoyé : {}", "Le nom du fichier n'est pas correct");
+            throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correct");
+        }
+    }
+
+    public static void detectProvider(File file) throws IllegalProviderException {
+        String filename = file.getName();
+        filename = filename.replace("\\", "/");
+        if(!filename.contains("_") || filename.substring(0, filename.indexOf('_')).length() <= 0) {
+            log.error("Message envoyé : {}", "Le nom du fichier ne contient pas de provider");
+            throw new IllegalProviderException("Le nom du fichier "+ filename +" ne contient pas de provider");
+        }
+    }
+
     /**
      * Controle si le fichier à bien une extension tsv
      * @param file fichier en entrée
@@ -64,16 +83,6 @@ public class CheckFiles {
         }
     }
 
-    public static void detectFileName(File file) throws IllegalFileFormatException {
-        String filename = file.getName();
-        filename = filename.replace("\\", "/");
-        if(!filename.matches("([a-zA-Z0-9\\-_]+_[a-zA-Z0-9\\-]+_)+(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(_force)?+(.tsv)$")){
-            log.error("Message envoyé : {}", "Le nom du fichier n'est pas correct");
-            throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correct");
-        }
-    }
-
-
     /**
      * Contrôle que le fichier à une extension tsv, qu'il contient des tabulations et
      * qu'il contient un entête avec la présence d'un terme en paramètre
@@ -82,8 +91,9 @@ public class CheckFiles {
      * @throws IllegalFileFormatException Format de fichier non conforme
      * @throws IOException Impossible de lire le fichier
      */
-    public static void verifyFile(File file, String header) throws IllegalFileFormatException, IOException {
+    public static void verifyFile(File file, String header) throws IllegalFileFormatException, IOException, IllegalProviderException {
         detectFileName(file);
+        detectProvider(file);
         isFileWithTSVExtension(file);
         detectTabulations(file);
         detectHeaderPresence(header, file);

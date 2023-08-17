@@ -3,6 +3,7 @@ package fr.abes.kbart2kafka;
 import fr.abes.kbart2kafka.dto.Header;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
+import fr.abes.kbart2kafka.exception.IllegalProviderException;
 import fr.abes.kbart2kafka.kafka.TopicProducer;
 import fr.abes.kbart2kafka.utils.CheckFiles;
 import lombok.extern.slf4j.Slf4j;
@@ -88,7 +89,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 				topicProducer.sendOk(kafkaHeader);
 			} catch (Exception e) {
 				throw new IOException(e);
-			} catch (IllegalFileFormatException e) {
+			} catch (IllegalFileFormatException | IllegalProviderException e) {
 				throw new RuntimeException(e);
 			}
 		}
