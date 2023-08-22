@@ -35,7 +35,7 @@ FROM eclipse-temurin:17-jre as kbart2kafka-image
 WORKDIR /app/
 COPY --from=build-image /build/target/kbart2kafka-jar-with-dependencies.jar /app/kbart2kafka.jar
 RUN mkdir /app/tmp
-RUN cp /app/kbart2kafka.jar /app/tmp/kbart2kafka.jar
+RUN mv /app/kbart2kafka.jar /app/tmp/kbart2kafka.jar
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
