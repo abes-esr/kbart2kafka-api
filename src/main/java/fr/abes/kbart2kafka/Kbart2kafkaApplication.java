@@ -87,7 +87,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 				}
 				// Envoi du message de fin de traitement dans le producer "OK"
 				topicProducer.sendOk(kafkaHeader);
-			} catch (Exception e) {
+			} catch (IOException e) {
 				throw new IOException(e);
 			} catch (IllegalFileFormatException | IllegalProviderException e) {
 				throw new RuntimeException(e);
