@@ -1,1 +1,1 @@
-mv /app/*.jar /app/run
+cp /app/*.jar /app/run
