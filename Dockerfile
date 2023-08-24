@@ -39,4 +39,4 @@ RUN chmod 777 /app/script.sh
 RUN mkdir /app/run
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-ENTRYPOINT ["sudo","/app/script.sh"]
+ENTRYPOINT ["/app/script.sh"]
