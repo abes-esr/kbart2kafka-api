@@ -1,6 +1,5 @@
 package fr.abes.kbart2kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.abes.kbart2kafka.dto.Header;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
@@ -41,6 +40,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 	 * @throws IOException Exception levée lorsque aucun fichier tsv n'a été trouvé.
 	 */
 	@Override
+	@Transactional // on spécifie la class qui fait rollback, par defaut c'est toutes les classes qui ne sont pas gérées càd : tout sauf IOException
 	public void run(String... args) throws IOException {
 
 		//	Contrôle de la présence d'un paramètre au lancement de Kbart2kafkaApplication
@@ -70,33 +70,29 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
 				// Création du header et ajout du nombre total de lignes
 				Header kafkaHeader = new Header(tsvFile.getName(), totalNumberOfLine);
-				sendAllKbartToKafka(kbart, lineCounter, kafkaHeader);
+
+				while (kbart.hasNextLine()) {
+					String ligneKbart = kbart.nextLine();
+					if (!ligneKbart.contains(kbartHeader)) {
+						lineCounter ++;
+
+						// Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
+						String[] tsvElementsOnOneLine = ligneKbart.split("\t");
+						LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
+
+						//	Envoi de la ligne kbart dans le producer
+						kafkaHeader.setCurrentLine(lineCounter);
+							topicProducer.sendLigneKbart(ligneKbartDto, kafkaHeader);
+					}
+				}
+				// Envoi du message de fin de traitement dans le producer "OK"
+				topicProducer.sendOk(kafkaHeader);
 			} catch (IOException e) {
 				throw new IOException(e);
 			} catch (IllegalFileFormatException | IllegalProviderException e) {
 				throw new RuntimeException(e);
 			}
 		}
-	}
-
-	@Transactional(rollbackFor = Exception.class) // on spécifie la class qui fait rollback, par defaut c'est toutes les classes qui ne sont pas gérées càd : tout sauf IOException
-	public void sendAllKbartToKafka(Scanner kbart, int lineCounter, Header kafkaHeader) throws JsonProcessingException {
-		while (kbart.hasNextLine()) {
-			String ligneKbart = kbart.nextLine();
-			if (!ligneKbart.contains(kbartHeader)) {
-				lineCounter++;
-
-				// Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
-				String[] tsvElementsOnOneLine = ligneKbart.split("\t");
-				LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
-
-				//	Envoi de la ligne kbart dans le producer
-				kafkaHeader.setCurrentLine(lineCounter);
-					topicProducer.sendLigneKbart(ligneKbartDto, kafkaHeader);
-			}
-		}
-		// Envoi du message de fin de traitement dans le producer "OK"
-		topicProducer.sendOk(kafkaHeader);
 	}
 
 	/**
