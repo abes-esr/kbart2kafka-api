@@ -41,9 +41,6 @@ public class TopicProducer {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
-    @Autowired
-    private PlatformTransactionManager kafkaTransactionManager;
-
     private final ObjectMapper mapper;
 
     /**
@@ -54,10 +51,8 @@ public class TopicProducer {
      * @return
      * @throws JsonProcessingException Exception pour tous les problèmes de traitement de contenu JSON
      */
-    public CompletableFuture<SendResult<String, String>> sendLigneKbart(LigneKbartDto kbart, Header header) throws JsonProcessingException {
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        TransactionStatus status = kafkaTransactionManager.getTransaction(def);
+    public void sendLigneKbart(LigneKbartDto kbart, Header header) throws JsonProcessingException {
+
         List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
         headers.add(new RecordHeader("FileName", header.getFileName().getBytes(StandardCharsets.UTF_8)));
         headers.add(new RecordHeader("CurrentLine", String.valueOf(header.getCurrentLine()).getBytes(StandardCharsets.UTF_8)));
@@ -71,7 +66,7 @@ public class TopicProducer {
 //                .setHeader("CurrentLine", header.getCurrentLine())
 //                .setHeader("TotalLine", header.getTotalNumberOfLine())
 //                .build();
-        return kafkaTemplate.send(record);
+        kafkaTemplate.send(record);
     }
 
     /**

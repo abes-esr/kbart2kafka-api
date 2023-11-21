@@ -15,7 +15,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.kafka.transaction.KafkaTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,11 +41,14 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
     private final ObjectMapper mapper;
 
+    private final KafkaTransactionManager kafkaTransactionManager;
+
     ExecutorService executor = Executors.newFixedThreadPool(5);
 
-    public Kbart2kafkaApplication(TopicProducer topicProducer, ObjectMapper mapper) {
+    public Kbart2kafkaApplication(TopicProducer topicProducer, ObjectMapper mapper, KafkaTransactionManager kafkaTransactionManager) {
         this.topicProducer = topicProducer;
         this.mapper = mapper;
+        this.kafkaTransactionManager = kafkaTransactionManager;
     }
 
     public static void main(String[] args) {
@@ -66,7 +73,10 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
             log.info("Debut envois kafka de : " + args[0]);
             //	Récupération du chemin d'accès au fichier
             File tsvFile = new File(args[0]);
-
+            DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+            def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            TransactionStatus status = kafkaTransactionManager.getTransaction(def);
+            log.info(String.valueOf(status.isNewTransaction()));
             try {
                 //	Appelle du service de vérification de fichier
                 CheckFiles.verifyFile(tsvFile, kbartHeader);
@@ -102,19 +112,23 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
 
                         executor.submit(() -> {
                             try {
-                                CompletableFuture<SendResult<String, String>> result = topicProducer.sendLigneKbart(ligneKbartDto, kafkaHeader);
-                                log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
-                            } catch (JsonProcessingException | InterruptedException | ExecutionException e) {
+                                topicProducer.sendLigneKbart(ligneKbartDto, kafkaHeader);
+                                //log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
+                            } catch (JsonProcessingException e) {
+                                kafkaTransactionManager.rollback(status);
                                 throw new RuntimeException(e);
                             }
                         });
                     }
                 }
                 // Envoi du message de fin de traitement dans le producer "OK"
-                executor.submit(() -> topicProducer.sendOk(kafkaHeader));
+                kafkaTransactionManager.commit(status);
+                log.info(String.valueOf(status.isCompleted()));
             } catch (IOException e) {
+                kafkaTransactionManager.rollback(status);
                 throw new IOException(e);
             } catch (IllegalFileFormatException | IllegalProviderException e) {
+                kafkaTransactionManager.rollback(status);
                 throw new RuntimeException(e);
             }
             finally {
