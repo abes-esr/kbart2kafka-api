@@ -105,6 +105,11 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
+
         <!-- === Mapping === -->
         <dependency>
             <groupId>org.modelmapper</groupId>
