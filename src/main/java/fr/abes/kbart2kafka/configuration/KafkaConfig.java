@@ -10,14 +10,12 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.transaction.KafkaTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 @EnableKafka
-@EnableTransactionManagement
 public class KafkaConfig {
 
     @Value("${spring.kafka.producer.bootstrap-servers}")
@@ -37,9 +35,6 @@ public class KafkaConfig {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionIdPrefix);
         props.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, transactionTimeout);
-        props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
-        props.put(ProducerConfig.LINGER_MS_CONFIG, "20");
-        props.put(ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(512*1024));
         return props;
     }
 

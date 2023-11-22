@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.io.BufferedReader;
@@ -55,14 +56,11 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
             } catch (IllegalFileFormatException | IllegalProviderException e) {
                 throw new RuntimeException(e);
             }
-            // Calcul du nombre total de ligne
-            BufferedReader kbartTotalLines = new BufferedReader(new FileReader(tsvFile));
-            service.loadFile(tsvFile, kbartHeader, kbartTotalLines.lines().count() - 1);
+            service.loadFile(tsvFile, kbartHeader);
         }
         long endTime = System.currentTimeMillis();
         double executionTime = (double) (endTime - startTime) / 1000;
         log.info("Temps d'exécution : " + executionTime + " secondes");
-
     }
 
 

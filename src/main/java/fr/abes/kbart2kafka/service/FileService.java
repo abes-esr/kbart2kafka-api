@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kbart2kafka.dto.Header;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
@@ -24,10 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 @Service
 @Slf4j
@@ -36,65 +34,103 @@ public class FileService {
     @Value("${topic.name.target.kbart}")
     private String topicKbart;
 
+    @Value("${topic.name.target.nblines}")
+    private String topicNbLines;
+
+    @Value("${topic.name.target.errors}")
+    private String topicErrors;
+
+    @Value("${spring.kafka.producer.nbthread}")
+    private int nbThread;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private final ObjectMapper mapper;
-    ExecutorService executor = Executors.newFixedThreadPool(5);
+    ExecutorService executor;
 
     public FileService(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper mapper) {
         this.kafkaTemplate = kafkaTemplate;
         this.mapper = mapper;
     }
 
+    @PostConstruct
+    void initExecutor() {
+        executor = Executors.newFixedThreadPool(nbThread);
+    }
+
     @Transactional
-    public void loadFile(File fichier, String kbartHeader, long totalNumberOfLine) {
+    public void loadFile(File fichier, String kbartHeader) {
         try {
-            executeMultiThread(fichier, kbartHeader, totalNumberOfLine);
+            executeMultiThread(fichier, kbartHeader);
         } catch (IOException ex) {
             log.error("Erreur dans la lecture du fichier");
         }
 
     }
 
-    private void executeMultiThread(File fichier, String kbartHeader, long totalNumberOfLine) throws IOException {
+    private void executeMultiThread(File fichier, String kbartHeader) throws IOException {
         // Compteur du nombre de lignes dans le kbart
         int lineCounter = 0;
         // Création du header et ajout du nombre total de lignes
-        Header kafkaHeader = new Header(fichier.getName(), totalNumberOfLine);
-        BufferedReader buff = new BufferedReader(new FileReader(fichier));
-        for (String ligneKbart : buff.lines().toList()) {
-            if (!ligneKbart.contains(kbartHeader)) {
-                lineCounter++;
-                // Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
-                String[] tsvElementsOnOneLine = ligneKbart.split("\t");
-                LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
+        Header kafkaHeader = new Header(fichier.getName());
+        try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
+            for (String ligneKbart : buff.lines().toList()) {
+                if (!ligneKbart.contains(kbartHeader)) {
+                    lineCounter++;
+                    // Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
+                    String[] tsvElementsOnOneLine = ligneKbart.split("\t");
+                    LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
 
-                //	Envoi de la ligne kbart dans le producer
-                kafkaHeader.setCurrentLine(lineCounter);
-                executor.execute(() -> {
-                    try {
-                        List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
-                        headers.add(new RecordHeader("FileName", kafkaHeader.getFileName().getBytes(StandardCharsets.UTF_8)));
-                        headers.add(new RecordHeader("CurrentLine", String.valueOf(kafkaHeader.getCurrentLine()).getBytes(StandardCharsets.UTF_8)));
-                        headers.add(new RecordHeader("TotalLine", String.valueOf(kafkaHeader.getTotalNumberOfLine()).getBytes(StandardCharsets.UTF_8)));
-                        ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(5), "", mapper.writeValueAsString(ligneKbartDto), headers);
-                        CompletableFuture<SendResult<String, String>> result = kafkaTemplate.executeInTransaction(kt -> kt.send(record));
-                        log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
-                    } catch (JsonProcessingException | ExecutionException | InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                    final int finalLineCounter = lineCounter;
+                    executor.execute(() -> {
+                        try {
+                            List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
+                            headers.add(new RecordHeader("FileName", kafkaHeader.getFileName().getBytes(StandardCharsets.UTF_8)));
+                            ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(nbThread), "", mapper.writeValueAsString(ligneKbartDto), headers);
+                            CompletableFuture<SendResult<String, String>> result = kafkaTemplate.executeInTransaction(kt -> kt.send(record));
+                            result.whenComplete((sr, ex) -> {
+                                try {
+                                    log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
+                                } catch (JsonProcessingException | InterruptedException | ExecutionException e) {
+                                    sendErrorToKafka("Erreur dans le chargement à la ligne " + finalLineCounter, e, kafkaHeader);
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                        } catch (JsonProcessingException e) {
+                            sendErrorToKafka("erreur de mapping des données au chargement de la ligne " + finalLineCounter, e, kafkaHeader);
+                            throw new RuntimeException(e);
+                        }
+                    });
+
+                }
             }
-        }
-        executor.shutdown();
-        Message<String> message = MessageBuilder
-                .withPayload("OK")
-                .setHeader(KafkaHeaders.TOPIC, topicKbart)
-                .setHeader("FileName", kafkaHeader.getFileName())
-                .setHeader("CurrentLine", kafkaHeader.getCurrentLine())
-                .setHeader("TotalLine", kafkaHeader.getTotalNumberOfLine())
-                .build();
 
+        } catch (IOException ex) {
+            sendErrorToKafka("erreur de lecture du fichier", ex, kafkaHeader);
+        } finally {
+            executor.shutdown();
+        }
+        try {
+            executor.awaitTermination(1, TimeUnit.HOURS);
+            log.info("envoi nb lignes");
+            Message<String> message = MessageBuilder
+                    .withPayload(String.valueOf(lineCounter))
+                    .setHeader(KafkaHeaders.TOPIC, topicNbLines)
+                    .setHeader("FileName", kafkaHeader.getFileName())
+                    .build();
+            kafkaTemplate.send(message);
+        } catch (InterruptedException e) {
+            sendErrorToKafka("Erreur dans l'écriture du nombre de lignes dans le topic", e, kafkaHeader);
+            throw new RuntimeException(e);
+        }
+        log.info("fin de boucle");
+    }
+
+    private void sendErrorToKafka(String errorMessage, Exception exception, Header kafkaHeader) {
+        Message<String> message = MessageBuilder
+                .withPayload(errorMessage + exception.getMessage())
+                .setHeader(KafkaHeaders.TOPIC, topicErrors)
+                .setHeader("FileName", kafkaHeader.getFileName())
+                .build();
         kafkaTemplate.send(message);
     }
 
