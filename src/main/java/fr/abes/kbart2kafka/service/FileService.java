@@ -91,8 +91,7 @@ public class FileService {
                                 try {
                                     log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
                                 } catch (JsonProcessingException | InterruptedException | ExecutionException e) {
-                                    sendErrorToKafka("Erreur dans le chargement à la ligne " + finalLineCounter, e, kafkaHeader);
-                                    throw new RuntimeException(e);
+                                    e.printStackTrace();
                                 }
                             });
                         } catch (JsonProcessingException e) {
@@ -100,7 +99,6 @@ public class FileService {
                             throw new RuntimeException(e);
                         }
                     });
-
                 }
             }
 
