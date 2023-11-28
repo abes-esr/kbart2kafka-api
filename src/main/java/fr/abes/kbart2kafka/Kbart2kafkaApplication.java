@@ -40,7 +40,6 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
      * @throws IOException Exception levée lorsque aucun fichier tsv n'a été trouvé.
      */
     @Override
-    // on spécifie la class qui fait rollback, par defaut c'est toutes les classes qui ne sont pas gérées càd : tout sauf IOException
     public void run(String... args) throws IOException {
         long startTime = System.currentTimeMillis();
         //	Contrôle de la présence d'un paramètre au lancement de Kbart2kafkaApplication

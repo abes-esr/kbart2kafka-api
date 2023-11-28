@@ -91,7 +91,7 @@ public class FileService {
                                 try {
                                     log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
                                 } catch (JsonProcessingException | InterruptedException | ExecutionException e) {
-                                    e.printStackTrace();
+                                    log.warn("Erreur dans le mapping du résultat de l'envoi dans le topic pour la ligne " + ligneKbartDto);
                                 }
                             });
                         } catch (JsonProcessingException e) {
@@ -109,7 +109,7 @@ public class FileService {
         }
         try {
             executor.awaitTermination(1, TimeUnit.HOURS);
-            log.info("envoi nb lignes");
+            log.debug("envoi nb lignes");
             Message<String> message = MessageBuilder
                     .withPayload(String.valueOf(lineCounter))
                     .setHeader(KafkaHeaders.TOPIC, topicNbLines)
@@ -120,7 +120,6 @@ public class FileService {
             sendErrorToKafka("Erreur dans l'écriture du nombre de lignes dans le topic", e, kafkaHeader);
             throw new RuntimeException(e);
         }
-        log.info("fin de boucle");
     }
 
     private void sendErrorToKafka(String errorMessage, Exception exception, Header kafkaHeader) {
