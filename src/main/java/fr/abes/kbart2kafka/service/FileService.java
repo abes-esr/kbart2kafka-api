@@ -109,7 +109,7 @@ public class FileService {
         }
         try {
             executor.awaitTermination(1, TimeUnit.HOURS);
-            log.debug("envoi nb lignes");
+            log.info("envoi nb lignes : " + lineCounter);
             Message<String> message = MessageBuilder
                     .withPayload(String.valueOf(lineCounter))
                     .setHeader(KafkaHeaders.TOPIC, topicNbLines)
