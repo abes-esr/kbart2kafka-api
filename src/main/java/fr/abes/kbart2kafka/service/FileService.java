@@ -17,15 +17,14 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -73,7 +72,9 @@ public class FileService {
         // Création du header et ajout du nombre total de lignes
         Header kafkaHeader = new Header(fichier.getName());
         try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
-            for (String ligneKbart : buff.lines().toList()) {
+            List<String> fileContent = buff.lines().toList();
+            Integer nbLignesFichier = fileContent.size() - 1;
+            for (String ligneKbart : fileContent) {
                 if (!ligneKbart.contains(kbartHeader)) {
                     lineCounter++;
                     // Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
@@ -85,6 +86,9 @@ public class FileService {
                         try {
                             List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
                             headers.add(new RecordHeader("FileName", kafkaHeader.getFileName().getBytes(StandardCharsets.UTF_8)));
+                            if (finalLineCounter == nbLignesFichier) {
+                                headers.add(new RecordHeader("nbLinesTotal", String.valueOf(nbLignesFichier).getBytes()));
+                            }
                             ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(nbThread), "", mapper.writeValueAsString(ligneKbartDto), headers);
                             CompletableFuture<SendResult<String, String>> result = kafkaTemplate.executeInTransaction(kt -> kt.send(record));
                             result.whenComplete((sr, ex) -> {
@@ -106,19 +110,6 @@ public class FileService {
             sendErrorToKafka("erreur de lecture du fichier", ex, kafkaHeader);
         } finally {
             executor.shutdown();
-        }
-        try {
-            executor.awaitTermination(1, TimeUnit.HOURS);
-            log.info("envoi nb lignes : " + lineCounter);
-            Message<String> message = MessageBuilder
-                    .withPayload(String.valueOf(lineCounter))
-                    .setHeader(KafkaHeaders.TOPIC, topicNbLines)
-                    .setHeader("FileName", kafkaHeader.getFileName())
-                    .build();
-            kafkaTemplate.send(message);
-        } catch (InterruptedException e) {
-            sendErrorToKafka("Erreur dans l'écriture du nombre de lignes dans le topic", e, kafkaHeader);
-            throw new RuntimeException(e);
         }
     }
 
@@ -169,5 +160,15 @@ public class FileService {
             kbartLineInDtoObject.setBestPpn(line[25]);
         }
         return kbartLineInDtoObject;
+    }
+
+    public long getNbLines(File tsvFile) {
+        try (BufferedReader buff = new BufferedReader(new FileReader(tsvFile))) {
+            return buff.lines().count() - 1;
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
