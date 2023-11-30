@@ -9,13 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.kafka.annotation.EnableKafka;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 
 @Slf4j
@@ -61,6 +56,4 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
         double executionTime = (double) (endTime - startTime) / 1000;
         log.info("Temps d'exécution : " + executionTime + " secondes");
     }
-
-
 }
