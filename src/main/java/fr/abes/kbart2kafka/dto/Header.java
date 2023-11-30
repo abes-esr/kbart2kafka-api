@@ -9,12 +9,7 @@ public class Header {
 
     private String fileName;
 
-    private int totalNumberOfLine;
-
-    private int currentLine;
-
-    public Header(String fileName, int totalNumberOfLine) {
+    public Header(String fileName) {
         this.fileName = fileName;
-        this.totalNumberOfLine = totalNumberOfLine;
     }
 }
