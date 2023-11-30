@@ -22,9 +22,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @Slf4j
@@ -32,9 +33,6 @@ public class FileService {
 
     @Value("${topic.name.target.kbart}")
     private String topicKbart;
-
-    @Value("${topic.name.target.nblines}")
-    private String topicNbLines;
 
     @Value("${topic.name.target.errors}")
     private String topicErrors;
@@ -81,6 +79,7 @@ public class FileService {
                     String[] tsvElementsOnOneLine = ligneKbart.split("\t");
                     LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
 
+
                     final int finalLineCounter = lineCounter;
                     executor.execute(() -> {
                         try {
@@ -112,6 +111,7 @@ public class FileService {
     }
 
     private void sendErrorToKafka(String errorMessage, Exception exception, Header kafkaHeader) {
+        log.info("Envoi erreur");
         Message<String> message = MessageBuilder
                 .withPayload(errorMessage + exception.getMessage())
                 .setHeader(KafkaHeaders.TOPIC, topicErrors)
@@ -158,15 +158,5 @@ public class FileService {
             kbartLineInDtoObject.setBestPpn(line[25]);
         }
         return kbartLineInDtoObject;
-    }
-
-    public long getNbLines(File tsvFile) {
-        try (BufferedReader buff = new BufferedReader(new FileReader(tsvFile))) {
-            return buff.lines().count() - 1;
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
