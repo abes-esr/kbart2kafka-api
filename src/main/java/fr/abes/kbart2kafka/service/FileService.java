@@ -86,9 +86,7 @@ public class FileService {
                         try {
                             List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
                             headers.add(new RecordHeader("FileName", kafkaHeader.getFileName().getBytes(StandardCharsets.UTF_8)));
-                            if (finalLineCounter == nbLignesFichier) {
-                                headers.add(new RecordHeader("nbLinesTotal", String.valueOf(nbLignesFichier).getBytes()));
-                            }
+                            headers.add(new RecordHeader("nbLinesTotal", String.valueOf(nbLignesFichier).getBytes()));
                             ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(nbThread), "", mapper.writeValueAsString(ligneKbartDto), headers);
                             CompletableFuture<SendResult<String, String>> result = kafkaTemplate.executeInTransaction(kt -> kt.send(record));
                             result.whenComplete((sr, ex) -> {
