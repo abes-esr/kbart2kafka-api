@@ -17,7 +17,10 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +75,7 @@ public class FileService {
         try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
             List<String> fileContent = buff.lines().toList();
             Integer nbLignesFichier = fileContent.size() - 1;
+            log.debug("Début d'envoi de "+ nbLignesFichier + " lignes du fichier");
             for (String ligneKbart : fileContent) {
                 if (!ligneKbart.contains(kbartHeader)) {
                     lineCounter++;
@@ -88,9 +92,11 @@ public class FileService {
                             headers.add(new RecordHeader("nbLinesTotal", String.valueOf(nbLignesFichier).getBytes()));
                             ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(nbThread), "", mapper.writeValueAsString(ligneKbartDto), headers);
                             CompletableFuture<SendResult<String, String>> result = kafkaTemplate.executeInTransaction(kt -> kt.send(record));
+                            assert result != null;
                             result.whenComplete((sr, ex) -> {
                                 try {
-                                    log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
+//                                    log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
+                                    mapper.writeValueAsString(result.get().getProducerRecord().value());
                                 } catch (JsonProcessingException | InterruptedException | ExecutionException e) {
                                     log.warn("Erreur dans le mapping du résultat de l'envoi dans le topic pour la ligne " + ligneKbartDto);
                                 }
