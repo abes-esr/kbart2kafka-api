@@ -16,13 +16,16 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-public class SenderConfig {
+public class KafkaConfig {
 
     @Value("${spring.kafka.producer.bootstrap-servers}")
     private String bootstrapServers;
 
     @Value("${spring.kafka.producer.transaction-id-prefix}")
     private String transactionIdPrefix;
+
+    @Value("${spring.kafka.producer.transaction-timeout}")
+    private int transactionTimeout;
 
     @Bean
     public Map<String, Object> producerConfigs() {
@@ -31,6 +34,7 @@ public class SenderConfig {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionIdPrefix);
+        props.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, transactionTimeout);
         return props;
     }
 
