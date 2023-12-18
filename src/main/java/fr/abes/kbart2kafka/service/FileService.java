@@ -92,6 +92,7 @@ public class FileService {
                             headers.add(new RecordHeader("nbLinesTotal", String.valueOf(nbLignesFichier).getBytes()));
                             ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(nbThread), "", mapper.writeValueAsString(ligneKbartDto), headers);
                             CompletableFuture<SendResult<String, String>> result = kafkaTemplate.executeInTransaction(kt -> kt.send(record));
+                            assert result != null;
                             result.whenComplete((sr, ex) -> {
                                 try {
                                     log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
