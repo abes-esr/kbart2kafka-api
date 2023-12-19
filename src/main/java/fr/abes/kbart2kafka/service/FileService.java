@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -70,8 +71,8 @@ public class FileService {
             List<String> fileContent = buff.lines().toList();
             Integer nbLignesFichier = fileContent.size() - 1;
             for (String ligneKbart : fileContent) {
+                lineCounter++;
                 if (!ligneKbart.contains(kbartHeader)) {
-                    lineCounter++;
                     // Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
                     String[] tsvElementsOnOneLine = ligneKbart.split("\t");
                     LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
@@ -79,6 +80,7 @@ public class FileService {
                     final int finalLineCounter = lineCounter;
                     executor.execute(() -> {
                         try {
+                            ThreadContext.put("package", fichier.getName());
                             List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
                             headers.add(new RecordHeader("FileName", fichier.getName().getBytes(StandardCharsets.UTF_8)));
                             headers.add(new RecordHeader("nbCurrentLines", String.valueOf(finalLineCounter).getBytes()));
