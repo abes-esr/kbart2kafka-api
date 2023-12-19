@@ -70,6 +70,7 @@ public class FileService {
         try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
             List<String> fileContent = buff.lines().toList();
             Integer nbLignesFichier = fileContent.size() - 1;
+            log.debug("Début d'envoi de "+ nbLignesFichier + " lignes du fichier");
             for (String ligneKbart : fileContent) {
                 lineCounter++;
                 if (!ligneKbart.contains(kbartHeader)) {
@@ -90,7 +91,8 @@ public class FileService {
                             assert result != null;
                             result.whenComplete((sr, ex) -> {
                                 try {
-                                    log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
+//                                    log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
+                                    mapper.writeValueAsString(result.get().getProducerRecord().value());
                                 } catch (JsonProcessingException | InterruptedException | ExecutionException e) {
                                     log.warn("Erreur dans le mapping du résultat de l'envoi dans le topic pour la ligne " + ligneKbartDto);
                                 }
