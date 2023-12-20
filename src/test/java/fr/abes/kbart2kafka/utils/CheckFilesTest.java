@@ -41,10 +41,10 @@ class CheckFilesTest {
 
     @Test
     void detectFileName() throws IllegalFileFormatException {
-        this.file = new File("test_test_test_test1_1234-12-12.tsv");
+        this.file = new File("test_test_test_1234-12-12.tsv");
         CheckFiles.detectFileName(file);
 
-        this.file2 = new File("test_test_test_test1_1234-12-12_FORCE.tsv");
+        this.file2 = new File("test_test_test_1234-12-12_FORCE.tsv");
         CheckFiles.detectFileName(file2);
 
         for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv", "test_test_test_test1_1234-12-12_force.tsv")) {
