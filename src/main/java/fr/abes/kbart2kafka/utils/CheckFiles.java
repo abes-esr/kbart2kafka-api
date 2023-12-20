@@ -3,7 +3,6 @@ package fr.abes.kbart2kafka.utils;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import fr.abes.kbart2kafka.exception.IllegalProviderException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.ThreadContext;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -60,9 +59,7 @@ public class CheckFiles {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String nbLine = "";
                 if (!line.contains("\t")) {
-                    ThreadContext.put("package", file.getName() + ";" + nbLine);
                     log.error("Message envoyé : {}", "Le fichier ne contient pas de tabulation");
                     throw new IllegalFileFormatException("Le fichier ne contient pas de tabulation");
                 }
