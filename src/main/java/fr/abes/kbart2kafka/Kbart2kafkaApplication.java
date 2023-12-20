@@ -5,6 +5,7 @@ import fr.abes.kbart2kafka.exception.IllegalProviderException;
 import fr.abes.kbart2kafka.service.FileService;
 import fr.abes.kbart2kafka.utils.CheckFiles;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -42,12 +43,14 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
             log.error("Message envoyé : {}", "Le chemin d'accès au fichier tsv n'a pas été trouvé dans les paramètres de l'application");
         } else {
             log.info("Debut envois kafka de : " + args[0]);
+            ThreadContext.put("package", args[0]);
             //	Récupération du chemin d'accès au fichier
             File tsvFile = new File(args[0]);
             //	Appelle du service de vérification de fichier
             try {
                 CheckFiles.verifyFile(tsvFile, kbartHeader);
             } catch (IllegalFileFormatException | IllegalProviderException e) {
+                log.error(e.getMessage());
                 throw new RuntimeException(e);
             }
             service.loadFile(tsvFile, kbartHeader);

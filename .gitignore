@@ -1,3 +1,4 @@
+*.tsv
 *.properties
 hibernate.cfg.xml
 HELP.md
