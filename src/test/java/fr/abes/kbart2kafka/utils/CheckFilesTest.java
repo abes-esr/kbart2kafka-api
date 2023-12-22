@@ -85,11 +85,24 @@ class CheckFilesTest {
     void detectOfHeaderPresence() throws IOException, IllegalFileFormatException {
         this.file = new File("test.tsv");
         FileUtils.writeStringToFile(file, "test\ttest\ttest", StandardCharsets.UTF_8, true);
-        CheckFiles.detectHeaderPresence("test", file);
+        CheckFiles.detectHeaderPresence("test", file, false);
 
         this.file2 = new File("test2.tsv");
         FileUtils.writeStringToFile(file2, "toto\ttata\ttiti", StandardCharsets.UTF_8, true);
-        IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("test", file2));
+        IllegalFileFormatException erreur = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("test", file2, false));
         Assertions.assertEquals("L'en tete du fichier est incorrecte.", erreur.getMessage());
+    }
+
+    @Test
+    void detectOptionError() throws IOException {
+        this.file = new File("test3_BYPASS.tsv");
+        FileUtils.writeStringToFile(file, "test\ttest\ttest\tbest_ppn", StandardCharsets.UTF_8, true);
+        IllegalFileFormatException erreur1 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("test\ttest\ttest\tbest_ppn", file, true));
+        Assertions.assertEquals("L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn.", erreur1.getMessage());
+
+        this.file2 = new File("test3_BYPASS_FORCE.tsv");
+        FileUtils.writeStringToFile(file2, "test\ttest\ttest", StandardCharsets.UTF_8, true);
+        IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file2));
+        Assertions.assertEquals("Le nom du fichier test3_BYPASS_FORCE.tsv n'est pas correct", erreur2.getMessage());
     }
 }

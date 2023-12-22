@@ -12,12 +12,12 @@ import java.io.IOException;
 @Slf4j
 public class CheckFiles {
 
-    public static void detectFileName(File file) throws IllegalFileFormatException {
+    public static Boolean detectFileName(File file) throws IllegalFileFormatException {
         String filename = file.getName();
         if (!filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(.tsv)$") && !filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_BYPASS)?+(.tsv)$")) {
             log.error("Message envoyé : {}", "Le nom du fichier n'est pas correct");
             throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correct");
-        }
+        } else return filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_BYPASS)?+(.tsv)$");
     }
 
     public static void detectProvider(File file) throws IllegalProviderException {
@@ -73,10 +73,13 @@ public class CheckFiles {
      * @param file   fichier en entrée
      * @throws IOException impossible de lire le fichier
      */
-    public static void detectHeaderPresence(String header, File file) throws IOException, IllegalFileFormatException {
+    public static void detectHeaderPresence(String header, File file, Boolean isBypassOptionPresent) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = reader.readLine();
-            if(!line.contains(header)) {
+            if(isBypassOptionPresent && line.contains("best_ppn")) {
+                log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte.");
+                throw new IllegalFileFormatException("L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn.");
+            } else if(!line.contains(header)) {
                 log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte.");
                 throw new IllegalFileFormatException("L'en tete du fichier est incorrecte.");
             }
@@ -92,10 +95,10 @@ public class CheckFiles {
      * @throws IOException Impossible de lire le fichier
      */
     public static void verifyFile(File file, String header) throws IllegalFileFormatException, IOException, IllegalProviderException {
-        detectFileName(file);
+        Boolean isBypassOptionPresent = detectFileName(file);
         detectProvider(file);
         isFileWithTSVExtension(file);
         detectTabulations(file);
-        detectHeaderPresence(header, file);
+        detectHeaderPresence(header, file, isBypassOptionPresent);
     }
 }
