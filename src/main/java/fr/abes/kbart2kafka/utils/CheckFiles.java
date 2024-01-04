@@ -14,10 +14,10 @@ public class CheckFiles {
 
     public static Boolean detectFileName(File file) throws IllegalFileFormatException {
         String filename = file.getName();
-        if (!filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_FORCE)?+(.tsv)$") && !filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_BYPASS)?+(.tsv)$")) {
+        if (!filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_FORCE|_BYPASS)?+(.tsv)$")) {
             log.error("Message envoyé : {}", "Le nom du fichier n'est pas correct");
             throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correct");
-        } else return filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_BYPASS)?+(.tsv)$");
+        } else return filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_BYPASS)+(.tsv)$");
     }
 
     public static void detectProvider(File file) throws IllegalProviderException {
