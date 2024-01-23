@@ -72,8 +72,8 @@ public class FileService {
             Integer nbLignesFichier = fileContent.size() - 1;
             log.debug("Début d'envoi de "+ nbLignesFichier + " lignes du fichier");
             for (String ligneKbart : fileContent) {
-                lineCounter++;
                 if (!ligneKbart.contains(kbartHeader)) {
+                    lineCounter++;
                     // Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
                     String[] tsvElementsOnOneLine = ligneKbart.split("\t");
                     LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
@@ -83,7 +83,6 @@ public class FileService {
                         try {
                             ThreadContext.put("package", fichier.getName());
                             List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
-                            headers.add(new RecordHeader("FileName", fichier.getName().getBytes(StandardCharsets.UTF_8)));
                             headers.add(new RecordHeader("nbCurrentLines", String.valueOf(finalLineCounter).getBytes()));
                             headers.add(new RecordHeader("nbLinesTotal", String.valueOf(nbLignesFichier).getBytes()));
                             ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(nbThread), fichier.getName(), mapper.writeValueAsString(ligneKbartDto), headers);
