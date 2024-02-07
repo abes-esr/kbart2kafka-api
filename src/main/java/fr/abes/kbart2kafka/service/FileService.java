@@ -18,7 +18,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -90,8 +89,7 @@ public class FileService {
                             assert result != null;
                             result.whenComplete((sr, ex) -> {
                                 try {
-//                                    log.debug("Message envoyé : {}", mapper.writeValueAsString(result.get().getProducerRecord().value()));
-                                    mapper.writeValueAsString(result.get().getProducerRecord().value());
+                                    log.debug(mapper.writeValueAsString(result.get().getProducerRecord().value())); // vérification du résultat de la transaction et log
                                 } catch (JsonProcessingException | InterruptedException | ExecutionException e) {
                                     log.warn("Erreur dans le mapping du résultat de l'envoi dans le topic pour la ligne " + ligneKbartDto);
                                 }
@@ -112,7 +110,7 @@ public class FileService {
     }
 
     private void sendErrorToKafka(String errorMessage, Exception exception, String filename) {
-        log.debug("Envoi erreur");
+        log.error(errorMessage + exception + " - " + filename);
         kafkaTemplate.send(new ProducerRecord<>(topicErrors, new Random().nextInt(nbThread), filename, errorMessage + exception.getMessage()));
     }
 
