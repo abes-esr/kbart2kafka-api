@@ -1,9 +1,14 @@
 package fr.abes.kbart2kafka;
 
+import fr.abes.kbart2kafka.exception.IllegalDateException;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
+import fr.abes.kbart2kafka.exception.IllegalPackageException;
 import fr.abes.kbart2kafka.exception.IllegalProviderException;
+import fr.abes.kbart2kafka.repository.ProviderRepository;
 import fr.abes.kbart2kafka.service.FileService;
+import fr.abes.kbart2kafka.service.ProviderPackageService;
 import fr.abes.kbart2kafka.utils.CheckFiles;
+import fr.abes.kbart2kafka.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,8 +26,14 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
     private String kbartHeader;
     private final FileService service;
 
-    public Kbart2kafkaApplication(FileService service) {
+    private final ProviderPackageService providerPackageService;
+
+    private final ProviderRepository providerRepository;
+
+    public Kbart2kafkaApplication(FileService service, ProviderPackageService providerPackageService, ProviderRepository providerRepository) {
         this.service = service;
+        this.providerPackageService = providerPackageService;
+        this.providerRepository = providerRepository;
     }
 
     public static void main(String[] args) {
@@ -46,10 +57,10 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
             ThreadContext.put("package", args[0]);
             //	Récupération du chemin d'accès au fichier
             File tsvFile = new File(args[0]);
-            //	Appelle du service de vérification de fichier
             try {
                 CheckFiles.verifyFile(tsvFile, kbartHeader);
-            } catch (IllegalFileFormatException | IllegalProviderException e) {
+                checkExistingPackage(tsvFile.getName());
+            } catch (IllegalFileFormatException | IllegalProviderException | IllegalPackageException | IllegalDateException e) {
                 log.error(e.getMessage());
                 throw new RuntimeException(e);
             }
@@ -58,5 +69,10 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
         long endTime = System.currentTimeMillis();
         double executionTime = (double) (endTime - startTime) / 1000;
         log.info("Temps d'exécution : " + executionTime + " secondes");
+    }
+
+    private void checkExistingPackage(String filename) throws IllegalProviderException, IllegalPackageException, IllegalDateException {
+        if (providerPackageService.hasMoreRecentPackageInBdd(Utils.extractProvider(filename), Utils.extractPackageName(filename), Utils.extractDate(filename)))
+            throw new IllegalPackageException("Un package plus récent est déjà présent dans la base");
     }
 }

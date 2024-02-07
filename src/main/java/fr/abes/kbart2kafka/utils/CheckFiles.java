@@ -23,7 +23,7 @@ public class CheckFiles {
     public static void detectProvider(File file) throws IllegalProviderException {
         String filename = file.getName();
         filename = filename.replace("\\", "/");
-        if(!filename.contains("_") || filename.substring(0, filename.indexOf('_')).length() <= 0) {
+        if(!filename.contains("_") || filename.substring(0, filename.indexOf('_')).isEmpty()) {
             log.error("Message envoyé : {}", "Le nom du fichier ne contient pas de provider");
             throw new IllegalProviderException("Le nom du fichier "+ filename +" ne contient pas de provider");
         }
