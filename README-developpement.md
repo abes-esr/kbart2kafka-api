@@ -9,8 +9,8 @@ Le langage utilisé est Java, avec le framework Spring.
 L'utilisateur lance le chargement d'un fichier kbart à partir de l'application cercle-bacon.
 
 Les développeurs et développeuses peuvent lancer le chargement d'un fichier kbart :
-- via une ligne de commande directement à partir du serveur d'installation de l'API
-- via un IDE.
+- via une ligne de commande directement à partir du serveur d'installation de l'API `sudo docker exec kbart2kafka java -jar /app/run/kbart2kafka.jar /app/kbart/SPRINGER_GLOBAL_ALLEBOOKS_2023-05-01.tsv` (vérifier que le container docker soit démarré ainsi que la présence des chemins d'accès et du fichier kbart)
+- via un IDE ![configuration de l'IDE intelliJ](documentation/IDE_config.png "configuration de l'IDE IntelliJ")
 
 Ces deux derniers types de lancement sont détaillés sur le gitlab de l'Abes (accès sécurisé) : [git.abes.fr](https://git.abes.fr/colodus/convergence-configuration)
 
