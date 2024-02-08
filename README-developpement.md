@@ -6,7 +6,14 @@ Le langage utilisé est Java, avec le framework Spring.
 ## Lecture du fichier
 (class `Kbart2kafkaApplication.java`)
 
-Le fichier kbart est chargé à partir de l'application cercle-bacon. Il est également possible de charger un fichier kbart via une ligne de commande directement à partir du serveur d'installation de l'API.
+L'utilisateur lance le chargement d'un fichier kbart à partir de l'application cercle-bacon.
+
+Les développeurs et développeuses peuvent lancer le chargement d'un fichier kbart :
+- via une ligne de commande directement à partir du serveur d'installation de l'API
+- via un IDE.
+
+Ces deux derniers types de lancement sont détaillés sur le gitlab de l'Abes (accès sécurisé) : [git.abes.fr](https://git.abes.fr/colodus/convergence-configuration)
+
 Le fichier est passé en paramètre de l'application `public void run(String... args)`
 
 ## Contrôle du fichier
