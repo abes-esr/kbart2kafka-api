@@ -27,7 +27,8 @@ public class ProviderPackageService {
         if (providerBdd.isPresent()) {
             List<ProviderPackage> packageList = repository.findByPackageNameAndProviderIdtProvider(packageName, providerBdd.get().getIdtProvider());
             Collections.sort(packageList);
-            return packageList.get(0).getDateP().after(datePackage);
+            if (!packageList.isEmpty())
+                return packageList.get(0).getDateP().after(datePackage);
         }
         return false;
     }
