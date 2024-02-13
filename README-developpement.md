@@ -3,21 +3,24 @@
 API permettant de lire, contrôler et traiter un fichier kbart de type TSV (Tab-separated values).
 Le langage utilisé est Java, avec le framework Spring.
 
+## Schéma de l'architecture du projet Convergence
+![schéma de l'architecture du projet Convergence](documentation/ArchitectureConvergence.svg "schéma de l'architecture du projet Convergence")
+
 ## Lecture du fichier
-(class `Kbart2kafkaApplication.java`)
+*(class `Kbart2kafkaApplication.java`)*
 
 L'utilisateur lance le chargement d'un fichier kbart à partir de l'application cercle-bacon.
 
 Les développeurs et développeuses peuvent lancer le chargement d'un fichier kbart :
 - via une ligne de commande directement à partir du serveur d'installation de l'API `sudo docker exec kbart2kafka java -jar /app/run/kbart2kafka.jar /app/kbart/SPRINGER_GLOBAL_ALLEBOOKS_2023-05-01.tsv` (vérifier que le container docker soit démarré ainsi que la présence des chemins d'accès et du fichier kbart)
-- via un IDE ![configuration de l'IDE intelliJ](documentation/IDE_config.png "configuration de l'IDE IntelliJ")
+- via un IDE (exemple avec IntelliJ) ![configuration de l'IDE intelliJ](documentation/IDE_config.png "configuration de l'IDE IntelliJ")
 
 Ces deux derniers types de lancement sont détaillés sur le gitlab de l'Abes (accès sécurisé) : [git.abes.fr](https://git.abes.fr/colodus/convergence-configuration)
 
 Le fichier est passé en paramètre de l'application `public void run(String... args)`
 
 ## Contrôle du fichier
-(class `Kbart2kafkaApplication.java` et `CheckFiles.java`)
+*(class `Kbart2kafkaApplication.java` et `CheckFiles.java`)*
 
 Lors du lancement de l'API, celle-ci vérifie qu'un fichier a bien été joint. Le cas échéant, le fichier est chargé.
 Le nom du fichier est passé dans le threadContext `ThreadContext.put("package", args[0]);`
@@ -48,9 +51,9 @@ spring.sql.bacon.init.mode=never
 ```
 
 ## Traitement du fichier
-(class `FileService.java`)
+*(class `FileService.java`)*
 
-Le traitement du fichier est en multithread. Le nombre de thread est inscrit dans les fichiers application-dev.properties, application-test.properties, application-prod.properties, application-localhost.properties (`spring.kafka.producer.nbthread`)
+>[!NOTE] Le traitement du fichier est en multithread. Le nombre de thread est inscrit dans les fichiers application-dev.properties, application-test.properties, application-prod.properties, application-localhost.properties (`spring.kafka.producer.nbthread`)
 
 Un `ExecutorService` est instancié puis initialisé dans :
 ```java
@@ -72,4 +75,4 @@ Les valeurs attribuées aux paramètres `topicKbart` et `topicErrors` sont inscr
 topic.name.target.kbart=bacon.kbart.toload
 topic.name.target.errors=bacon.kbart.toload.errors
 ```
-Le topic Kafka `bacon.kbart.toload` doit être créé avec un nombre de partitions équivalent au nombre de thread de l'API.
+>[!IMPORTANT] Le topic Kafka `bacon.kbart.toload` doit être créé avec un nombre de partitions équivalent au nombre de thread de l'API.
