@@ -5,7 +5,7 @@ Le langage utilisé est Java, avec le framework Spring.
 API permettant de lire, contrôler et traiter un fichier kbart de type TSV (Tab-separated values).
 
 ## Schéma de l'architecture du projet Convergence
-![schéma de l'architecture du projet Convergence](https://cloud.abes.fr/index.php/s/tMx7AMGi63JdLZf/download/ArchitectureConvergence.svg "schéma de l'architecture du projet Convergence")
+![schéma de l'architecture du projet Convergence](documentation/ArchitectureConvergence.svg "schéma de l'architecture du projet Convergence")
 
 ## Lecture du fichier
 *(class `Kbart2kafkaApplication.java`)*

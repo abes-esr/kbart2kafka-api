@@ -17,9 +17,7 @@ Après chargement du fichier, plusieurs données sont vérifiées :
   - `2023-05-05` est la date du kbart
   - `_FORCE` est le paramètre qui permet de forcer le chargement malgré des erreurs dites "bloquantes"
   - `_BYPASS` est le parmètre qui permet de ne pas effectuer le calcul du bestppn dans l'API best-ppn-api ([lien github](https://github.com/abes-esr/best-ppn-api))
-    > [!WARNING] 
-    > 
-    > Les paramètres `_FORCE` et `_BYPASS` ne peuvent pas être utilisés ensemble.
+    > :warning: Les paramètres `_FORCE` et `_BYPASS` ne peuvent pas être utilisés ensemble.
 - la présence ou non d'un paramètre _BYPASS et, le cas échéant, l'absence d'une colonne bestPpn dans le fichier
 - la présence d'un provider dans le nom du fichier
 - l'extension du fichier (.tsv)
