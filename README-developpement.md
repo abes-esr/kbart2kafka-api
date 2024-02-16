@@ -9,7 +9,7 @@ API permettant de lire, contrôler et traiter un fichier kbart de type TSV (Tab-
 
 ![test](https://cloud.abes.fr/index.php/s/pxYckxbsx4fJSCK/download/Convergence%281%29.svg)
 
-<img src="https://cloud.abes.fr/index.php/s/pxYckxbsx4fJSCK/download/Convergence%281%29.svg">
+<img src="https://cloud.abes.fr/index.php/s/pxYckxbsx4fJSCK/download/Convergence%281%29.svg" alt="test2">
 
 ## Lecture du fichier
 *(class `Kbart2kafkaApplication.java`)*
