@@ -7,10 +7,6 @@ API permettant de lire, contrôler et traiter un fichier kbart de type TSV (Tab-
 ## Schéma de l'architecture du projet Convergence
 ![schéma de l'architecture du projet Convergence](documentation/ArchitectureConvergence.svg "schéma de l'architecture du projet Convergence")
 
-![test](https://cloud.abes.fr/index.php/s/pxYckxbsx4fJSCK/download/Convergence%281%29.svg)
-
-<img src="https://cloud.abes.fr/index.php/s/pxYckxbsx4fJSCK/download/Convergence%281%29.svg" alt="test2">
-
 ## Lecture du fichier
 *(class `Kbart2kafkaApplication.java`)*
 
