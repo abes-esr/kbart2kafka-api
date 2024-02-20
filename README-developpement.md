@@ -1,7 +1,8 @@
 # kbart2kafka-api
 
-API permettant de lire, contrôler et traiter un fichier kbart de type TSV (Tab-separated values).
 Le langage utilisé est Java, avec le framework Spring.
+
+API permettant de lire, contrôler et traiter un fichier kbart de type TSV (Tab-separated values).
 
 ## Schéma de l'architecture du projet Convergence
 ![schéma de l'architecture du projet Convergence](documentation/ArchitectureConvergence.svg "schéma de l'architecture du projet Convergence")
@@ -53,7 +54,9 @@ spring.sql.bacon.init.mode=never
 ## Traitement du fichier
 *(class `FileService.java`)*
 
->[!NOTE] Le traitement du fichier est en multithread. Le nombre de thread est inscrit dans les fichiers application-dev.properties, application-test.properties, application-prod.properties, application-localhost.properties (`spring.kafka.producer.nbthread`)
+>[!NOTE] 
+> 
+> Le traitement du fichier est en multithread. Le nombre de thread est inscrit dans les fichiers application-dev.properties, application-test.properties, application-prod.properties, application-localhost.properties (`spring.kafka.producer.nbthread`)
 
 Un `ExecutorService` est instancié puis initialisé dans :
 ```java
@@ -75,4 +78,6 @@ Les valeurs attribuées aux paramètres `topicKbart` et `topicErrors` sont inscr
 topic.name.target.kbart=bacon.kbart.toload
 topic.name.target.errors=bacon.kbart.toload.errors
 ```
->[!IMPORTANT] Le topic Kafka `bacon.kbart.toload` doit être créé avec un nombre de partitions équivalent au nombre de thread de l'API.
+>[!IMPORTANT] 
+> 
+> Le topic Kafka `bacon.kbart.toload` doit être créé avec un nombre de partitions équivalent au nombre de thread de l'API.
