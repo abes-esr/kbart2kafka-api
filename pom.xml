@@ -223,6 +223,9 @@
                             <mainClass>fr.abes.kbart2kafka.Kbart2kafkaApplication</mainClass>
                         </manifest>
                     </archive>
+                    <descriptors>
+                        <descriptor>src/assembly/dep.xml</descriptor>
+                    </descriptors>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
@@ -248,9 +251,6 @@
                     <include>**/*.sql</include>
                     <include>**/*.xml</include>
                 </includes>
-                <excludes>
-                    <exclude>**/Log4j2Plugins.dat</exclude>
-                </excludes>
             </resource>
         </resources>
         <pluginManagement>
