@@ -223,9 +223,6 @@
                             <mainClass>fr.abes.kbart2kafka.Kbart2kafkaApplication</mainClass>
                         </manifest>
                     </archive>
-                    <descriptors>
-                        <descriptor>src/assembly/dep.xml</descriptor>
-                    </descriptors>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
