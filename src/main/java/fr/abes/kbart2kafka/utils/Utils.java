@@ -6,6 +6,7 @@ import fr.abes.kbart2kafka.exception.IllegalProviderException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -57,6 +58,12 @@ public class Utils {
         } catch (Exception e) {
             throw new IllegalDateException(e);
         }
+    }
+
+    public static String extractFilename(String path) {
+        if (path.contains(FileSystems.getDefault().getSeparator()))
+            return path.substring(path.lastIndexOf(FileSystems.getDefault().getSeparator()) + 1);
+        return path;
     }
 
 

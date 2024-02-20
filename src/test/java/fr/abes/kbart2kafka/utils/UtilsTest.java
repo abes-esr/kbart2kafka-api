@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -59,5 +60,16 @@ class UtilsTest {
 
         String filename2 = "test";
         Assertions.assertThrows(IllegalProviderException.class, () -> Utils.extractProvider(filename2));
+    }
+
+    @Test
+    @DisplayName("test extraction nom de fichier")
+    void extractFilename() {
+        String sep = FileSystems.getDefault().getSeparator();
+        String path = "SPRINGER_GLOBAL_ALLEBOOKS_2023-05-01_FORCE.tsv";
+        Assertions.assertEquals("SPRINGER_GLOBAL_ALLEBOOKS_2023-05-01_FORCE.tsv", Utils.extractFilename(path));
+
+        path = sep + "app" + sep + "local" + sep + "SPRINGER_GLOBAL_ALLEBOOKS_2023-05-01_FORCE.tsv";
+        Assertions.assertEquals("SPRINGER_GLOBAL_ALLEBOOKS_2023-05-01_FORCE.tsv", Utils.extractFilename(path));
     }
 }
