@@ -44,4 +44,4 @@ RUN cp /app/*.jar /app/run
 RUN chmod 777 /app/run/*
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+
