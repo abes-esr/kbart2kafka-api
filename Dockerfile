@@ -32,11 +32,16 @@ RUN mvn --batch-mode \
 #COPY --from=build-image /build/web/target/*.war /usr/local/tomcat/webapps/ROOT.war
 #CMD [ "catalina.sh", "run" ]
 FROM eclipse-temurin:17-jdk as kbart2kafka-image
+RUN apt-get update
+RUN apt-get install -y locales locales-all
+ENV LC_ALL fr_FR.UTF-8
+ENV LANG fr_FR.UTF-8
+ENV LANGUAGE fr_FR.UTF-8
 WORKDIR /app/
-COPY --from=build-image /build/target/kbart2kafka-jar-with-dependencies.jar /app/kbart2kafka.jar
-COPY script.sh /app/script.sh
-RUN chmod 777 /app/script.sh
+COPY --from=build-image /build/target/kbart2kafka.jar /app/kbart2kafka.jar
 RUN mkdir /app/run
+RUN cp /app/*.jar /app/run
+RUN chmod 777 /app/run/*
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-ENTRYPOINT ["/bin/bash","/app/script.sh"]
+ENTRYPOINT ["tail", "-f", "/dev/null"]
