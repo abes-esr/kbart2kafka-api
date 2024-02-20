@@ -248,6 +248,9 @@
                     <include>**/*.sql</include>
                     <include>**/*.xml</include>
                 </includes>
+                <excludes>
+                    <exclude>**/Log4j2Plugins.dat</exclude>
+                </excludes>
             </resource>
         </resources>
         <pluginManagement>
