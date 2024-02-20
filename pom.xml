@@ -214,6 +214,18 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-transform-maven-plugin</artifactId>
+                <version>0.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-classes</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.1</version>
@@ -223,9 +235,6 @@
                             <mainClass>fr.abes.kbart2kafka.Kbart2kafkaApplication</mainClass>
                         </manifest>
                     </archive>
-                    <descriptors>
-                        <descriptor>src/assembly/dep.xml</descriptor>
-                    </descriptors>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
