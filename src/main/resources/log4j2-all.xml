@@ -29,6 +29,12 @@
                     pattern="%style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{dark,yellow}: %msg%n%throwable" />
         </Console>
 
+        <!-- FILE -->
+        <File name="File" fileName="app.log">
+            <PatternLayout
+                    pattern="%style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{dark,yellow}: %msg%n%throwable" />
+        </File>
+
         <!-- LOG FILE -->
         <RollingFile name="LogFile"
                      fileName="${logBaseDir}/${logFileName}.log"
@@ -132,6 +138,7 @@
         <Logger name="fr.abes.kbart2kafka" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="kafkaLogAppender"/>
+            <AppenderRef ref="File"/>
         </Logger>
         <Root level="info">
             <AppenderRef ref="Console"/>
