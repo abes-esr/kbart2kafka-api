@@ -42,6 +42,8 @@ COPY --from=build-image /build/target/kbart2kafka.jar /app/kbart2kafka.jar
 RUN mkdir /app/run
 RUN cp /app/*.jar /app/run
 RUN chmod 777 /app/run/*
+RUN touch app.log
+RUN chmod 777 app.log
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
+ENTRYPOINT ["tail","-f","app.log"]
