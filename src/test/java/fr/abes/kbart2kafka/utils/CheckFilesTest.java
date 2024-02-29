@@ -106,6 +106,20 @@ class CheckFilesTest {
         FileUtils.writeStringToFile(file3, "testA\ttestB\ttestC\ttestD\ttestE\ttestF\ttestG\ttestH\ttestI\ttestJ\ttestK\ttestL\ttestM\ttestN\ttestO\ttestP\ttestQ\ttestR\ttestS\ttestT\ttestU\ttestV\ttestX\ttestY\ttestZ\ttestZZZ", StandardCharsets.UTF_8, true);
         IllegalFileFormatException erreur3 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("testAAA\ttestB\ttestC\ttestD\ttestE\ttestF\ttestG\ttestH\ttestI\ttestJ\ttestK\ttestL\ttestM\ttestN\ttestO\ttestP\ttestQ\ttestR\ttestS\ttestT\ttestU\ttestV\ttestX\ttestY\ttestZ\best_ppn", file3, false));
         Assertions.assertEquals("L'en tete du fichier est incorrecte.", erreur3.getMessage());
+
+        // Test avec header à 24 colonnes
+        File file4 = new File("test2.tsv");
+        FileUtils.writeStringToFile(file4, "testB\ttestC\ttestD\ttestE\ttestF\ttestG\ttestH\ttestI\ttestJ\ttestK\ttestL\ttestM\ttestN\ttestO\ttestP\ttestQ\ttestR\ttestS\ttestT\ttestU\ttestV\ttestX\ttestY\ttestZ", StandardCharsets.UTF_8, true);
+        IllegalFileFormatException erreur4 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("testA\ttestB\ttestC\ttestD\ttestE\ttestF\ttestG\ttestH\ttestI\ttestJ\ttestK\ttestL\ttestM\ttestN\ttestO\ttestP\ttestQ\ttestR\ttestS\ttestT\ttestU\ttestV\ttestX\ttestY\ttestZ", file4, false));
+        Assertions.assertEquals("L'en tete du fichier est incorrecte.", erreur4.getMessage());
+        file4.deleteOnExit();
+
+        // Test avec header à 27 colonnes
+        File file5 = new File("test2.tsv");
+        FileUtils.writeStringToFile(file5, "testB\ttestC\ttestD\ttestE\ttestF\ttestG\ttestH\ttestI\ttestJ\ttestK\ttestL\ttestM\ttestN\ttestO\ttestP\ttestQ\ttestR\ttestS\ttestT\ttestU\ttestV\ttestX\ttestY\ttestZ", StandardCharsets.UTF_8, true);
+        IllegalFileFormatException erreur5 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("testA\ttestB\ttestC\ttestD\ttestE\ttestF\ttestG\ttestH\ttestI\ttestJ\ttestK\ttestL\ttestM\ttestN\ttestO\ttestP\ttestQ\ttestR\ttestS\ttestT\ttestU\ttestV\ttestX\ttestY\ttestZ", file5, false));
+        Assertions.assertEquals("L'en tete du fichier est incorrecte.", erreur5.getMessage());
+        file5.deleteOnExit();
     }
 
     @Test
