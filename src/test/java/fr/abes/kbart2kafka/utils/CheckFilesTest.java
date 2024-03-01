@@ -93,7 +93,7 @@ class CheckFilesTest {
 
         File file1 = new File("testByPass.tsv");
         FileUtils.writeStringToFile(file1, "testA\ttestB\ttestC\ttestD\ttestE\ttestF\ttestG\ttestH\ttestI\ttestJ\ttestK\ttestL\ttestM\ttestN\ttestO\ttestP\ttestQ\ttestR\ttestS\ttestT\ttestU\ttestV\ttestW\ttestX\ttestY\ttestZ\tbest_ppn", StandardCharsets.UTF_8, true);
-        CheckFiles.detectHeaderPresence(header, file, true);
+        CheckFiles.detectHeaderPresence(header, file1, false);
 
         // Test d'une erreur sur le header avec bestPpn est option byPass
         this.file2 = new File("test1.tsv");
