@@ -87,7 +87,7 @@ public class CheckFiles {
             } else if(headerKbart.length <= 25 && !line.contains(header)) {
                 log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte.");
                 throw new IllegalFileFormatException("L'en tete du fichier est incorrecte.");
-            } else if((headerKbart.length == 26 && !line.contains("best_ppn"))) {
+            } else if((headerKbart.length == 26 && !line.contains(header) && !line.contains("best_ppn"))) {
                 log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte.");
                 throw new IllegalFileFormatException("L'en tete du fichier est incorrecte.");
             }
