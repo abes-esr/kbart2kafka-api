@@ -68,7 +68,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
         }
         long endTime = System.currentTimeMillis();
         double executionTime = (double) (endTime - startTime) / 1000;
-        log.info("Temps d'exécution : " + executionTime + " secondes");
+        log.debug("Temps d'exécution : " + executionTime + " secondes");
     }
 
     private void checkExistingPackage(String filename) throws IllegalProviderException, IllegalPackageException, IllegalDateException {

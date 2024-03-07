@@ -76,10 +76,12 @@ public class CheckFiles {
     public static void detectHeaderPresence(String header, File file, Boolean isBypassOptionPresent) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = reader.readLine();
+            String[] headerKbart = line.split("\t");
+
             if(isBypassOptionPresent && line.contains("best_ppn")) {
                 log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte.");
                 throw new IllegalFileFormatException("L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn.");
-            } else if(!line.contains(header)) {
+            }else if ((!(headerKbart.length == 25 && line.contains(header)) && !(headerKbart.length == 26 && line.contains(header) && line.contains("best_ppn")))) {
                 log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte.");
                 throw new IllegalFileFormatException("L'en tete du fichier est incorrecte.");
             }
