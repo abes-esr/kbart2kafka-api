@@ -80,11 +80,13 @@ public class CheckFiles {
             String[] headerKbart = line.split("\t");
 
             if(isBypassOptionPresent && line.contains("best_ppn")) {
-                log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn.");
-                throw new IllegalFileFormatException("L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn.");
+                String messageErreur = "L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn.";
+                log.error("Message envoyé : {}", messageErreur);
+                throw new IllegalFileFormatException(messageErreur);
             }else if ((!(headerKbart.length == 25 && line.contains(header)) && !(headerKbart.length == 26 && line.contains(header) && line.contains("best_ppn")))) {
-                log.error("Message envoyé : {}", "L'en tete du fichier est incorrecte. L’entête devrait être comme ceci : " + header + " et best_ppn");
-                throw new IllegalFileFormatException("L'en tete du fichier est incorrecte. L’entête devrait être comme ceci : " + header + " et best_ppn");
+                String messageErreur = "L'en tete du fichier est incorrecte. L’en tête devrait être comme ceci : " + header + " et best_ppn";
+                log.error("Message envoyé : {}", messageErreur);
+                throw new IllegalFileFormatException( messageErreur );
             }
         }
     }
