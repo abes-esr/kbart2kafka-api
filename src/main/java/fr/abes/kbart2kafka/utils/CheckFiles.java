@@ -76,6 +76,7 @@ public class CheckFiles {
     public static void detectHeaderPresence(String header, File file, Boolean isBypassOptionPresent) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = reader.readLine();
+            line = line.replace("bestppn","best_ppn");
             String[] headerKbart = line.split("\t");
 
             if(isBypassOptionPresent && line.contains("best_ppn")) {
