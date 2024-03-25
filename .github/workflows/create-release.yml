@@ -65,6 +65,7 @@ jobs:
               | xmllint --shell $POM_FILE
           done
           # création du tag
+          # création du tag
           git add .
           git commit -m "Version $NEW_TAG"
           git tag $NEW_TAG
@@ -78,9 +79,11 @@ jobs:
           git push
           
           # switch version to snapshot version
+          echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:version\nset $NEW_TAG_SNAPSHOT\nsave" \
+            | xmllint --shell ./pom.xml
           for POM_FILE in $(ls */pom.xml)
           do
-            echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:version\nset $NEW_TAG_SNAPSHOT\nsave" \
+            echo -e "setns x=http://maven.apache.org/POM/4.0.0\ncd /x:project/x:parent/x:version\nset $NEW_TAG_SNAPSHOT\nsave" \
               | xmllint --shell $POM_FILE
           done
           git add .
