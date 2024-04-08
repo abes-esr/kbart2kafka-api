@@ -52,6 +52,8 @@ spring.jpa.bacon.hibernate.ddl-auto=none
 spring.jpa.bacon.show-sql=false
 spring.sql.bacon.init.mode=never
 ```
+Pour lancer le projet en local les instructions peuvent être trouvées à cet emplacement :
+![https://git.abes.fr/colodus/kafka-convergence-bacon-conf/-/blob/main/configurations-spring-locales/kbart2kafka/application-localhost.properties?ref_type=heads](https://git.abes.fr/colodus/kafka-convergence-bacon-conf/-/blob/main/configurations-spring-locales/kbart2kafka/application-localhost.properties?ref_type=heads)
 
 ## Traitement du fichier
 *(class `FileService.java`)*
