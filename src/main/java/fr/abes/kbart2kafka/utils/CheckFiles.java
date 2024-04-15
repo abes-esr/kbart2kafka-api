@@ -12,10 +12,9 @@ import java.io.IOException;
 @Slf4j
 public class CheckFiles {
 
-    public static Boolean detectFileName(File file) throws IllegalFileFormatException {
+    public static Boolean detectFileNameAndReturnIsBypass(File file) throws IllegalFileFormatException {
         String filename = file.getName();
         if (!filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_FORCE|_BYPASS)?+(.tsv)$")) {
-            log.error("Message envoyé : {}", "Le nom du fichier n'est pas correct");
             throw new IllegalFileFormatException("Le nom du fichier "+ filename +" n'est pas correct");
         } else return filename.matches("([a-zA-Z0-9\\-]+_){3}(\\d{4}-\\d{2}-\\d{2})+(_BYPASS)+(.tsv)$");
     }
@@ -24,7 +23,6 @@ public class CheckFiles {
         String filename = file.getName();
         filename = filename.replace("\\", "/");
         if(!filename.contains("_") || filename.substring(0, filename.indexOf('_')).isEmpty()) {
-            log.error("Message envoyé : {}", "Le nom du fichier ne contient pas de provider");
             throw new IllegalProviderException("Le nom du fichier "+ filename +" ne contient pas de provider");
         }
     }
@@ -37,17 +35,13 @@ public class CheckFiles {
     public static void isFileWithTSVExtension(File file) throws IllegalFileFormatException {
         //Filename extension control
         String fileName = file.getName(); // get file name
-        if (fileName.isEmpty()) {
-            log.error("Message envoyé : {}", "Le nom du fichier est vide");
+        if (fileName.isEmpty())
             throw new IllegalFileFormatException("Le nom du fichier est vide"); // check if file name is valid
-            }
         String[] parts = fileName.split("\\."); // split by dot
         String extension = parts[parts.length - 1]; // get last part as extension
         // compare with tsv ignoring case
-        if (!extension.equalsIgnoreCase("tsv")) {
-            log.error("Message envoyé : {}", "le fichier n'est pas au format tsv");
+        if (!extension.equalsIgnoreCase("tsv"))
             throw new IllegalFileFormatException("le fichier n'est pas au format tsv");
-        }
     }
 
     /**
@@ -59,10 +53,8 @@ public class CheckFiles {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (!line.contains("\t")) {
-                    log.error("Message envoyé : {}", "Le fichier ne contient pas de tabulation");
+                if (!line.contains("\t"))
                     throw new IllegalFileFormatException("Le fichier ne contient pas de tabulation");
-                }
             }
         }
     }
@@ -96,7 +88,7 @@ public class CheckFiles {
      * @throws IOException Impossible de lire le fichier
      */
     public static void verifyFile(File file, String header) throws IllegalFileFormatException, IOException, IllegalProviderException {
-        Boolean isBypassOptionPresent = detectFileName(file);
+        Boolean isBypassOptionPresent = detectFileNameAndReturnIsBypass(file);
         detectProvider(file);
         isFileWithTSVExtension(file);
         detectTabulations(file);

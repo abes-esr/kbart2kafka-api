@@ -46,14 +46,14 @@ class CheckFilesTest {
     @Test
     void detectFileName() throws IllegalFileFormatException {
         this.file = new File("test_test_test_1234-12-12.tsv");
-        CheckFiles.detectFileName(file);
+        CheckFiles.detectFileNameAndReturnIsBypass(file);
 
         this.file2 = new File("test_test_test_1234-12-12_FORCE.tsv");
-        CheckFiles.detectFileName(file2);
+        CheckFiles.detectFileNameAndReturnIsBypass(file2);
 
         for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv", "test_test_test_test1_1234-12-12_force.tsv")) {
             this.file3 = new File(name);
-            IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file3));
+            IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileNameAndReturnIsBypass(file3));
             Assertions.assertEquals("Le nom du fichier " + name + " n'est pas correct", erreur2.getMessage());
         }
     }
@@ -61,10 +61,10 @@ class CheckFilesTest {
     @Test
     void detectProvider() throws IllegalFileFormatException {
         this.file = new File("test_test_test_1234-12-12.tsv");
-        CheckFiles.detectFileName(file);
+        CheckFiles.detectFileNameAndReturnIsBypass(file);
 
         this.file2 = new File("test_test_test_1234-12-12_FORCE.tsv");
-        CheckFiles.detectFileName(file2);
+        CheckFiles.detectFileNameAndReturnIsBypass(file2);
 
         for(String name : Lists.newArrayList("123.tsv", "_test.tsv")) {
             this.file3 = new File(name);
@@ -167,7 +167,7 @@ class CheckFilesTest {
 
         this.file2 = new File("test3_BYPASS_FORCE.tsv");
         FileUtils.writeStringToFile(file2, "test\ttest\ttest", StandardCharsets.UTF_8, true);
-        IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file2));
+        IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileNameAndReturnIsBypass(file2));
         Assertions.assertEquals("Le nom du fichier test3_BYPASS_FORCE.tsv n'est pas correct", erreur2.getMessage());
     }
 }
