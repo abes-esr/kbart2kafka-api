@@ -60,12 +60,12 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
             try {
                 CheckFiles.verifyFile(tsvFile, kbartHeader);
                 checkExistingPackage(tsvFile.getName());
-            } catch (IllegalFileFormatException | IllegalProviderException | IllegalPackageException | IllegalDateException e) {
+                service.loadFile(tsvFile, kbartHeader);
+            } catch (IllegalFileFormatException | IllegalProviderException | IllegalPackageException | IllegalDateException | IOException e) {
                 log.error(e.getMessage());
                 log.info("Traitement refusé du fichier " + tsvFile.getName());
                 throw new RuntimeException(e);
             }
-            service.loadFile(tsvFile, kbartHeader);
         }
         long endTime = System.currentTimeMillis();
         double executionTime = (double) (endTime - startTime) / 1000;
