@@ -14,6 +14,8 @@ L'utilisateur lance le chargement d'un fichier kbart à partir de l'application 
 
 Les développeurs et développeuses peuvent lancer le chargement d'un fichier kbart :
 - via une ligne de commande directement à partir du serveur d'installation de l'API `sudo docker exec kbart2kafka java -jar /app/run/kbart2kafka.jar /app/kbart/SPRINGER_GLOBAL_ALLEBOOKS_2023-05-01.tsv` (vérifier que le container docker soit démarré ainsi que la présence des chemins d'accès et du fichier kbart)
+- par défaut à été ouvert le chemin d'accès suivant `/applis/bacon/toLoad` : un mettant un fichier kbart tsv dans ce dossier il sera possible de la lancer via la commande indiquée ci dessus.
+- pour monter un repertoire de l'hôte dans le conteneur faire `docker run -v /chemin/vers/fichier/hote:/app/kbart [...] kbart2kafka`
 - via un IDE (exemple avec IntelliJ) ![configuration de l'IDE intelliJ](documentation/IDE_config.png "configuration de l'IDE IntelliJ")
 
 Ces deux derniers types de lancement sont détaillés sur le gitlab de l'Abes (accès sécurisé) : [git.abes.fr](https://git.abes.fr/colodus/convergence-configuration)
@@ -50,6 +52,8 @@ spring.jpa.bacon.hibernate.ddl-auto=none
 spring.jpa.bacon.show-sql=false
 spring.sql.bacon.init.mode=never
 ```
+Pour lancer le projet en local les instructions peuvent être trouvées à cet emplacement :
+![https://git.abes.fr/colodus/kafka-convergence-bacon-conf/-/blob/main/configurations-spring-locales/kbart2kafka/application-localhost.properties?ref_type=heads](https://git.abes.fr/colodus/kafka-convergence-bacon-conf/-/blob/main/configurations-spring-locales/kbart2kafka/application-localhost.properties?ref_type=heads)
 
 ## Traitement du fichier
 *(class `FileService.java`)*

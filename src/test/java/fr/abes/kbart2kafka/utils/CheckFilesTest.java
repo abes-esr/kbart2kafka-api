@@ -46,14 +46,14 @@ class CheckFilesTest {
     @Test
     void detectFileName() throws IllegalFileFormatException {
         this.file = new File("test_test_test_1234-12-12.tsv");
-        CheckFiles.detectFileName(file);
+        CheckFiles.detectFileNameAndReturnIsBypass(file);
 
         this.file2 = new File("test_test_test_1234-12-12_FORCE.tsv");
-        CheckFiles.detectFileName(file2);
+        CheckFiles.detectFileNameAndReturnIsBypass(file2);
 
         for(String name : Lists.newArrayList("123", "test_1234-12-12.tsv", "test_test_134-12-12.tsv", "test_test_1344-12-12.tsvf", "test_test_1344-12-123.tsv", "test_test_test_test1_1234-12-12_force.tsv")) {
             this.file3 = new File(name);
-            IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file3));
+            IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileNameAndReturnIsBypass(file3));
             Assertions.assertEquals("Le nom du fichier " + name + " n'est pas correct", erreur2.getMessage());
         }
     }
@@ -61,10 +61,10 @@ class CheckFilesTest {
     @Test
     void detectProvider() throws IllegalFileFormatException {
         this.file = new File("test_test_test_1234-12-12.tsv");
-        CheckFiles.detectFileName(file);
+        CheckFiles.detectFileNameAndReturnIsBypass(file);
 
         this.file2 = new File("test_test_test_1234-12-12_FORCE.tsv");
-        CheckFiles.detectFileName(file2);
+        CheckFiles.detectFileNameAndReturnIsBypass(file2);
 
         for(String name : Lists.newArrayList("123.tsv", "_test.tsv")) {
             this.file3 = new File(name);
@@ -110,7 +110,7 @@ class CheckFilesTest {
         this.file2 = new File("test2.tsv");
         FileUtils.writeStringToFile(file2, "testA\ttestB\ttestC\ttestD\ttestE\ttestF\ttestG\ttestH\ttestI\ttestJ\ttestK\ttestL\ttestM\ttestN\ttestO\ttestP\ttestQ\ttestR\ttestS\ttestT\ttestU\ttestV\ttestW\ttestX\ttestY\tbest_ppn", StandardCharsets.UTF_8, true);
         IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence(header, file2, true));
-        Assertions.assertEquals("L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn.", erreur2.getMessage());
+        Assertions.assertEquals("L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn", erreur2.getMessage());
 
         // header à 25 colonnes avec erreur de nom de colonne
         this.file3 = new File("test3.tsv");
@@ -163,11 +163,11 @@ class CheckFilesTest {
         this.file = new File("test3_BYPASS.tsv");
         FileUtils.writeStringToFile(file, "test\ttest\ttest\tbest_ppn", StandardCharsets.UTF_8, true);
         IllegalFileFormatException erreur1 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectHeaderPresence("test\ttest\ttest\tbest_ppn", file, true));
-        Assertions.assertEquals("L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn.", erreur1.getMessage());
+        Assertions.assertEquals("L'en tete du fichier est incorrecte. L'option _BYPASS n'est pas compatible avec la présence d'une colonne best_pnn", erreur1.getMessage());
 
         this.file2 = new File("test3_BYPASS_FORCE.tsv");
         FileUtils.writeStringToFile(file2, "test\ttest\ttest", StandardCharsets.UTF_8, true);
-        IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileName(file2));
+        IllegalFileFormatException erreur2 = Assertions.assertThrows(IllegalFileFormatException.class, () -> CheckFiles.detectFileNameAndReturnIsBypass(file2));
         Assertions.assertEquals("Le nom du fichier test3_BYPASS_FORCE.tsv n'est pas correct", erreur2.getMessage());
     }
 }
