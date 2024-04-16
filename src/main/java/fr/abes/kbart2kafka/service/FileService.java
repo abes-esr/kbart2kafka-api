@@ -3,6 +3,7 @@ package fr.abes.kbart2kafka.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
+import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -54,16 +55,11 @@ public class FileService {
     }
 
     @Transactional
-    public void loadFile(File fichier, String kbartHeader) {
-        try {
-            executeMultiThread(fichier, kbartHeader);
-        } catch (IOException ex) {
-            log.error("Erreur dans la lecture du fichier");
-        }
-
+    public void loadFile(File fichier, String kbartHeader) throws IllegalFileFormatException, IOException {
+        executeMultiThread(fichier, kbartHeader);
     }
 
-    private void executeMultiThread(File fichier, String kbartHeader) throws IOException {
+    private void executeMultiThread(File fichier, String kbartHeader) throws IOException, IllegalFileFormatException {
         // Compteur du nombre de lignes dans le kbart
         int lineCounter = 0;
         try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
@@ -75,7 +71,7 @@ public class FileService {
                     lineCounter++;
                     // Crée un nouvel objet dto, set les différentes parties et envoi au service topicProducer
                     String[] tsvElementsOnOneLine = ligneKbart.split("\t");
-                    LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine);
+                    LigneKbartDto ligneKbartDto = constructDto(tsvElementsOnOneLine, lineCounter);
 
                     final int finalLineCounter = lineCounter;
                     executor.execute(() -> {
@@ -120,7 +116,10 @@ public class FileService {
      * @param line ligne en entrée
      * @return Un objet DTO initialisé avec les informations de la ligne
      */
-    private LigneKbartDto constructDto(String[] line) {
+    private LigneKbartDto constructDto(String[] line, Integer ligneDuFichier) throws IllegalFileFormatException {
+        if((line.length > 26) || (line.length < 25)){
+            throw new IllegalFileFormatException("La ligne n°" + ligneDuFichier + " ne comporte pas le bon nombre de colonnes");
+        }
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
         kbartLineInDtoObject.setPublication_title(line[0]);
         kbartLineInDtoObject.setPrint_identifier(line[1]);
