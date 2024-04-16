@@ -53,8 +53,8 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
         if (args.length == 0 || args[0] == null || args[0].trim().isEmpty()) {
             log.error("Message envoyé : {}", "Le chemin d'accès au fichier tsv n'a pas été trouvé dans les paramètres de l'application");
         } else {
-            log.info("Debut envois kafka de : " + Utils.extractFilename(args[0]));
             ThreadContext.put("package", Utils.extractFilename(args[0]));
+            log.info("Debut envois kafka de : " + Utils.extractFilename(args[0]));
             //	Récupération du chemin d'accès au fichier
             File tsvFile = new File(args[0]);
             try {
