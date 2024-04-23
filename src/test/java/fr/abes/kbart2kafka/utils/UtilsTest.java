@@ -3,7 +3,6 @@ package fr.abes.kbart2kafka.utils;
 import fr.abes.kbart2kafka.exception.IllegalDateException;
 import fr.abes.kbart2kafka.exception.IllegalPackageException;
 import fr.abes.kbart2kafka.exception.IllegalProviderException;
-import jdk.jshell.execution.Util;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +37,7 @@ class UtilsTest {
         String string = "2023-08-21";
         Date date = new SimpleDateFormat("yyyy-MM-dd").parse(string);
 
-        Assertions.assertEquals(date, Utils.extractDate("SPRINGER_GLOBAL_ALLEBOOKS_2023-08-21.tsv"));
+        Assertions.assertEquals(date, Utils.extractDateFilename("SPRINGER_GLOBAL_ALLEBOOKS_2023-08-21.tsv"));
     }
 
     @Test
@@ -71,5 +70,19 @@ class UtilsTest {
 
         path = sep + "app" + sep + "local" + sep + "SPRINGER_GLOBAL_ALLEBOOKS_2023-05-01_FORCE.tsv";
         Assertions.assertEquals("SPRINGER_GLOBAL_ALLEBOOKS_2023-05-01_FORCE.tsv", Utils.extractFilename(path));
+    }
+
+    @Test
+    @DisplayName("Test reformatage date")
+    void reformatDate() throws IllegalDateException {
+        String date = "2024-03-03";
+        Assertions.assertEquals("2024-03-03", Utils.reformatDateKbart(date));
+        date = "2024-03";
+        Assertions.assertEquals("2024-03-01", Utils.reformatDateKbart(date));
+        date = "2024";
+        Assertions.assertEquals("2024-01-01", Utils.reformatDateKbart(date));
+        date = "jklsdfhlksjf";
+        String finalDate = date;
+        Assertions.assertThrows(IllegalDateException.class, () -> Utils.reformatDateKbart(finalDate));
     }
 }
