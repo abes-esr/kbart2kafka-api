@@ -67,7 +67,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
                 throw new RuntimeException(e);
             }
             finally {
-                new File(tsvFile.getName().replace(".tsv",".log")).createNewFile();
+                new File(tsvFile.getPath().replace(".tsv",".log")).createNewFile();
             }
         }
         long endTime = System.currentTimeMillis();
