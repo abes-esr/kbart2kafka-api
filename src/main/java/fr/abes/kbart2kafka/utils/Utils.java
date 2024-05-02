@@ -47,7 +47,7 @@ public class Utils {
         }
     }
 
-    public static Date extractDate(String filename) throws IllegalDateException {
+    public static Date extractDateFilename(String filename) throws IllegalDateException {
         Date date = new Date();
         try {
             Matcher matcher = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})", Pattern.CASE_INSENSITIVE).matcher(filename);
@@ -55,6 +55,26 @@ public class Utils {
                 date = new SimpleDateFormat("yyyy-MM-dd").parse(matcher.group(1));
             }
             return date;
+        } catch (Exception e) {
+            throw new IllegalDateException(e);
+        }
+    }
+
+    public static String reformatDateKbart(String dateToFormat) throws IllegalDateException {
+        try {
+            Matcher matcher = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})", Pattern.CASE_INSENSITIVE).matcher(dateToFormat);
+            if(matcher.find()){
+                return dateToFormat;
+            }
+            matcher = Pattern.compile("(\\d{4}-\\d{2})", Pattern.CASE_INSENSITIVE).matcher(dateToFormat);
+            if(matcher.find()) {
+                return dateToFormat + "-01";
+            }
+            matcher = Pattern.compile("(\\d{4})", Pattern.CASE_INSENSITIVE).matcher(dateToFormat);
+            if (matcher.find()) {
+                return dateToFormat + "-01-01";
+            }
+            throw new IllegalDateException("Format de date non reconnu, la date doit être au format YYYY ou YYYY-MM ou YYYY-MM-DD");
         } catch (Exception e) {
             throw new IllegalDateException(e);
         }

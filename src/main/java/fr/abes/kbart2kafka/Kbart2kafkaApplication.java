@@ -73,7 +73,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
     }
 
     private void checkExistingPackage(String filename) throws IllegalProviderException, IllegalPackageException, IllegalDateException {
-        if (providerPackageService.hasMoreRecentPackageInBdd(Utils.extractProvider(filename), Utils.extractPackageName(filename), Utils.extractDate(filename)))
+        if (providerPackageService.hasMoreRecentPackageInBdd(Utils.extractProvider(filename), Utils.extractPackageName(filename), Utils.extractDateFilename(filename)))
             throw new IllegalPackageException("Un package plus récent est déjà présent dans la base");
     }
 }
