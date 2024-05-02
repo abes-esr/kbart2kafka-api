@@ -66,6 +66,9 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
                 log.info("Traitement refusé du fichier " + tsvFile.getName());
                 throw new RuntimeException(e);
             }
+            finally {
+                new File(tsvFile.getName().replace(".tsv",".log")).createNewFile();
+            }
         }
         long endTime = System.currentTimeMillis();
         double executionTime = (double) (endTime - startTime) / 1000;
