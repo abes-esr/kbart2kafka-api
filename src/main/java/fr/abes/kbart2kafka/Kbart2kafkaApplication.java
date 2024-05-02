@@ -66,6 +66,9 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
                 log.info("Traitement refusé du fichier " + tsvFile.getName());
                 throw new RuntimeException(e);
             }
+            finally {
+                new File(tsvFile.getName().replace(".tsv",".log")).createNewFile();
+            }
         }
         long endTime = System.currentTimeMillis();
         double executionTime = (double) (endTime - startTime) / 1000;
@@ -73,7 +76,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
     }
 
     private void checkExistingPackage(String filename) throws IllegalProviderException, IllegalPackageException, IllegalDateException {
-        if (providerPackageService.hasMoreRecentPackageInBdd(Utils.extractProvider(filename), Utils.extractPackageName(filename), Utils.extractDate(filename)))
+        if (providerPackageService.hasMoreRecentPackageInBdd(Utils.extractProvider(filename), Utils.extractPackageName(filename), Utils.extractDateFilename(filename)))
             throw new IllegalPackageException("Un package plus récent est déjà présent dans la base");
     }
 }

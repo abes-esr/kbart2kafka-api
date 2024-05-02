@@ -3,6 +3,8 @@ package fr.abes.kbart2kafka.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
+import fr.abes.kbart2kafka.exception.IllegalDateException;
+import fr.abes.kbart2kafka.utils.Utils;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +67,7 @@ public class FileService {
         try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
             List<String> fileContent = buff.lines().toList();
             Integer nbLignesFichier = fileContent.size() - 1;
-            log.debug("Début d'envoi de "+ nbLignesFichier + " lignes du fichier");
+            log.debug("Début d'envoi de " + nbLignesFichier + " lignes du fichier");
             for (String ligneKbart : fileContent) {
                 if (!ligneKbart.contains(kbartHeader)) {
                     lineCounter++;
@@ -100,10 +102,13 @@ public class FileService {
 
         } catch (IOException ex) {
             sendErrorToKafka("erreur de lecture du fichier", ex, fichier.getName());
+        } catch (IllegalDateException ex) {
+            sendErrorToKafka("Erreur sur le format de date à la ligne " + lineCounter, ex, fichier.getName());
         } finally {
-            executor.shutdown();
-        }
+        executor.shutdown();
     }
+
+}
 
     private void sendErrorToKafka(String errorMessage, Exception exception, String filename) {
         log.error(errorMessage + exception + " - " + filename);
@@ -116,7 +121,7 @@ public class FileService {
      * @param line ligne en entrée
      * @return Un objet DTO initialisé avec les informations de la ligne
      */
-    private LigneKbartDto constructDto(String[] line, Integer ligneDuFichier) throws IllegalFileFormatException {
+    private LigneKbartDto constructDto(String[] line, Integer ligneDuFichier) throws IllegalFileFormatException, IllegalDateException {
         if((line.length > 26) || (line.length < 25)){
             throw new IllegalFileFormatException("La ligne n°" + ligneDuFichier + " ne comporte pas le bon nombre de colonnes");
         }
@@ -124,10 +129,10 @@ public class FileService {
         kbartLineInDtoObject.setPublication_title(line[0]);
         kbartLineInDtoObject.setPrint_identifier(line[1]);
         kbartLineInDtoObject.setOnline_identifier(line[2]);
-        kbartLineInDtoObject.setDate_first_issue_online(line[3]);
+        kbartLineInDtoObject.setDate_first_issue_online(Utils.reformatDateKbart(line[3]));
         kbartLineInDtoObject.setNum_first_vol_online(Integer.getInteger(line[4]));
         kbartLineInDtoObject.setNum_first_issue_online(Integer.getInteger(line[5]));
-        kbartLineInDtoObject.setDate_last_issue_online(line[6]);
+        kbartLineInDtoObject.setDate_last_issue_online(Utils.reformatDateKbart(line[6]));
         kbartLineInDtoObject.setNum_last_vol_online(Integer.getInteger(line[7]));
         kbartLineInDtoObject.setNum_last_issue_online(Integer.getInteger(line[8]));
         kbartLineInDtoObject.setTitle_url(line[9]);
@@ -138,8 +143,8 @@ public class FileService {
         kbartLineInDtoObject.setNotes(line[14]);
         kbartLineInDtoObject.setPublisher_name(line[15]);
         kbartLineInDtoObject.setPublication_type(line[16]);
-        kbartLineInDtoObject.setDate_monograph_published_print(line[17]);
-        kbartLineInDtoObject.setDate_monograph_published_online(line[18]);
+        kbartLineInDtoObject.setDate_monograph_published_print(Utils.reformatDateKbart(line[17]));
+        kbartLineInDtoObject.setDate_monograph_published_online(Utils.reformatDateKbart(line[18]));
         kbartLineInDtoObject.setMonograph_volume(Integer.getInteger(line[19]));
         kbartLineInDtoObject.setMonograph_edition(line[20]);
         kbartLineInDtoObject.setFirst_editor(line[21]);
