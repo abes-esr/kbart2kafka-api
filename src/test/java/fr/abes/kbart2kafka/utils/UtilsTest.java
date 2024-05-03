@@ -75,7 +75,9 @@ class UtilsTest {
     @Test
     @DisplayName("Test reformatage date")
     void reformatDate() throws IllegalDateException {
-        String date = "2024-03-03";
+        String date  = "";
+        Assertions.assertEquals("", Utils.reformatDateKbart(date));
+        date = "2024-03-03";
         Assertions.assertEquals("2024-03-03", Utils.reformatDateKbart(date));
         date = "2024-03";
         Assertions.assertEquals("2024-03-01", Utils.reformatDateKbart(date));
