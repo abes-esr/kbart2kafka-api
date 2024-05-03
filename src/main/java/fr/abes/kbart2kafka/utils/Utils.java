@@ -62,6 +62,8 @@ public class Utils {
 
     public static String reformatDateKbart(String dateToFormat) throws IllegalDateException {
         try {
+            if (dateToFormat == null || dateToFormat.isEmpty())
+                return "";
             Matcher matcher = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})", Pattern.CASE_INSENSITIVE).matcher(dateToFormat);
             if(matcher.find()){
                 return dateToFormat;
