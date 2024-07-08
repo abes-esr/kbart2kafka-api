@@ -56,7 +56,7 @@ public class FileService {
         executor = Executors.newFixedThreadPool(nbThread);
     }
 
-    @Transactional
+
     public void loadFile(File fichier, String kbartHeader) throws IllegalFileFormatException, IOException {
         executeMultiThread(fichier, kbartHeader);
     }
@@ -83,7 +83,7 @@ public class FileService {
                             headers.add(new RecordHeader("nbCurrentLines", String.valueOf(finalLineCounter).getBytes()));
                             headers.add(new RecordHeader("nbLinesTotal", String.valueOf(nbLignesFichier).getBytes()));
                             ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(nbThread), fichier.getName(), mapper.writeValueAsString(ligneKbartDto), headers);
-                            CompletableFuture<SendResult<String, String>> result = kafkaTemplate.executeInTransaction(kt -> kt.send(record));
+                            CompletableFuture<SendResult<String, String>> result = kafkaTemplate.send(record);
                             assert result != null;
                             result.whenComplete((sr, ex) -> {
                                 try {
