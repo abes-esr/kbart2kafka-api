@@ -56,6 +56,7 @@ public class FileService {
         executor = Executors.newFixedThreadPool(nbThread);
     }
 
+
     public void loadFile(File fichier, String kbartHeader) throws IllegalFileFormatException, IOException {
         executeMultiThread(fichier, kbartHeader);
     }
