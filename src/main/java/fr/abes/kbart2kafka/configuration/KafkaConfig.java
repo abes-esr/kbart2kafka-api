@@ -26,11 +26,8 @@ public class KafkaConfig {
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        //props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, String.valueOf(UUID.randomUUID()));
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        //props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionIdPrefix);
-        //props.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, transactionTimeout);
         return props;
     }
 
