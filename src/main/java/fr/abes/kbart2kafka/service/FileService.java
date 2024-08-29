@@ -40,6 +40,7 @@ public class FileService {
 
     @Value("${spring.kafka.producer.nbthread}")
     private int nbThread;
+    private AtomicInteger lastThreadUsed;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private final ObjectMapper mapper;
@@ -48,6 +49,7 @@ public class FileService {
     public FileService(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper mapper) {
         this.kafkaTemplate = kafkaTemplate;
         this.mapper = mapper;
+        this.lastThreadUsed = new AtomicInteger(0);
     }
 
     @PostConstruct
@@ -56,11 +58,11 @@ public class FileService {
     }
 
 
-    public void loadFile(File fichier, String kbartHeader) throws IllegalFileFormatException, IOException {
-        executeMultiThread(fichier, kbartHeader);
+    public void loadFile(File fichier) throws IllegalFileFormatException, IOException {
+        executeMultiThread(fichier);
     }
 
-    private void executeMultiThread(File fichier, String kbartHeader) throws IOException, IllegalFileFormatException {
+    private void executeMultiThread(File fichier) {
         try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
             List<String> fileContent = buff.lines().toList();
             List<String> kbartsToSend = new ArrayList<>();
@@ -85,7 +87,7 @@ public class FileService {
                         List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
                         headers.add(new RecordHeader("nbCurrentLines", String.valueOf(cpt.get()).getBytes()));
                         headers.add(new RecordHeader("nbLinesTotal", String.valueOf(nbLignesFichier).getBytes()));
-                        ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(nbThread), fichier.getName(), kbart, headers);
+                        ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, calculatePartition(nbThread), fichier.getName(), kbart, headers);
                         CompletableFuture<SendResult<String, String>> result = kafkaTemplate.send(record);
                         result.whenComplete((sr, ex) -> {
                             if (ex != null) {
@@ -105,6 +107,19 @@ public class FileService {
             executor.shutdown();
         }
 
+    }
+
+    public Integer calculatePartition(int nbPartitions) throws ArithmeticException {
+
+        if (nbPartitions == 0) {
+            throw new ArithmeticException("Nombre de threads = 0");
+        }
+
+        if (lastThreadUsed.get() >= nbPartitions) {
+            lastThreadUsed.set(0);
+        }
+
+        return lastThreadUsed.getAndIncrement();
     }
 
     private void sendErrorToKafka(String errorMessage, String filename) {
