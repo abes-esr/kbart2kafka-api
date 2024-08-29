@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class LigneKbartDto {
+
+    private int nbCurrentLines;
+    private int nbLinesTotal;
+
     @CsvBindByName(column = "publication_title")
     @CsvBindByPosition(position = 0)
     private String publication_title;
@@ -86,7 +90,6 @@ public class LigneKbartDto {
     @CsvBindByName(column = "bestPpn")
     @CsvBindByPosition(position = 25)
     private String bestPpn;
-
 
     @Override
     public int hashCode() {
