@@ -1,5 +1,6 @@
 *.tsv
 *.properties
+*.log
 hibernate.cfg.xml
 HELP.md
 target/
