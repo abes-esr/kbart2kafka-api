@@ -81,19 +81,21 @@ public class FileService {
                 kbartsToSend.forEach(kbart -> {
                     executor.execute(() -> {
                         cpt.incrementAndGet();
+                        String key = fichier.getName()+"_"+cpt.get();
                         ThreadContext.put("package", fichier.getName());
-                        ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, calculatePartition(nbThread), fichier.getName(), kbart);
+                        ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, calculatePartition(nbThread), key, kbart);
                         CompletableFuture<SendResult<String, String>> result = kafkaTemplate.send(record);
                         result.whenComplete((sr, ex) -> {
                             if (ex != null) {
                                 log.error(ex.getMessage()); // vérification du résultat et log
-                                sendErrorToKafka("erreur d'insertion dans le topic pour la ligne " + cpt.get(), fichier.getName());
+                                sendErrorToKafka("erreur d'insertion dans le topic pour la ligne " + cpt.get(), key);
                             }
                         });
                     });
                 });
             } else {
-                errorsList.forEach(error -> sendErrorToKafka(error, fichier.getName()));
+                AtomicInteger cptError = new AtomicInteger(0);
+                errorsList.forEach(error -> sendErrorToKafka(error, fichier.getName() + "_" + cptError.incrementAndGet()));
             }
         } catch (IOException ex) {
             log.error("Erreur d'envoi dans kafka " + ex.getMessage());
@@ -117,9 +119,9 @@ public class FileService {
         return lastThreadUsed.getAndIncrement();
     }
 
-    private void sendErrorToKafka(String errorMessage, String filename) {
-        log.error(errorMessage + " - " + filename);
-        kafkaTemplate.send(new ProducerRecord<>(topicErrors, filename, errorMessage));
+    private void sendErrorToKafka(String errorMessage, String key) {
+        log.error(errorMessage + " - " + key);
+        kafkaTemplate.send(new ProducerRecord<>(topicErrors, key, errorMessage));
     }
 
     /**
