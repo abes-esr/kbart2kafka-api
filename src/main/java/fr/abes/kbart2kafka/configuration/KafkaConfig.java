@@ -9,17 +9,15 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.transaction.KafkaTransactionManager;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Configuration
 @EnableKafka
 public class KafkaConfig {
 
-    @Value("${spring.kafka.producer.bootstrap-servers}")
+    @Value("${abes.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
     @Bean
