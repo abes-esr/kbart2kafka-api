@@ -36,7 +36,7 @@ public class FileService {
     @Value("${topic.name.target.errors}")
     private String topicErrors;
 
-    @Value("${spring.kafka.producer.nbthread}")
+    @Value("${abes.kafka.concurrency.nbThread}")
     private int nbThread;
     private final AtomicInteger lastThreadUsed;
     private final KafkaTemplate<String, String> kafkaTemplate;
