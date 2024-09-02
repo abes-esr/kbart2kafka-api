@@ -9,7 +9,6 @@ import fr.abes.kbart2kafka.utils.Utils;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,7 +21,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,6 +38,7 @@ public class FileService {
 
     @Value("${spring.kafka.producer.nbthread}")
     private int nbThread;
+    private final AtomicInteger lastThreadUsed;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private final ObjectMapper mapper;
@@ -48,6 +47,7 @@ public class FileService {
     public FileService(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper mapper) {
         this.kafkaTemplate = kafkaTemplate;
         this.mapper = mapper;
+        this.lastThreadUsed = new AtomicInteger(0);
     }
 
     @PostConstruct
@@ -56,11 +56,11 @@ public class FileService {
     }
 
 
-    public void loadFile(File fichier, String kbartHeader) throws IllegalFileFormatException, IOException {
-        executeMultiThread(fichier, kbartHeader);
+    public void loadFile(File fichier) throws IllegalFileFormatException, IOException {
+        executeMultiThread(fichier);
     }
 
-    private void executeMultiThread(File fichier, String kbartHeader) throws IOException, IllegalFileFormatException {
+    private void executeMultiThread(File fichier) {
         try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
             List<String> fileContent = buff.lines().toList();
             List<String> kbartsToSend = new ArrayList<>();
@@ -71,7 +71,7 @@ public class FileService {
             fileContent.stream().skip(1).forEach(ligneKbart -> {
                 String[] tsvElementsOnOneLine = ligneKbart.split("\t");
                 try {
-                    kbartsToSend.add(mapper.writeValueAsString(constructDto(tsvElementsOnOneLine, cpt.incrementAndGet())));
+                    kbartsToSend.add(mapper.writeValueAsString(constructDto(tsvElementsOnOneLine, cpt.incrementAndGet(), nbLignesFichier)));
                 } catch (IllegalDateException | IllegalFileFormatException | JsonProcessingException e) {
                     errorsList.add("Erreur dans le fichier en entrée à la ligne " + cpt.get());
                 }
@@ -81,22 +81,21 @@ public class FileService {
                 kbartsToSend.forEach(kbart -> {
                     executor.execute(() -> {
                         cpt.incrementAndGet();
+                        String key = fichier.getName()+"_"+cpt.get();
                         ThreadContext.put("package", fichier.getName());
-                        List<org.apache.kafka.common.header.Header> headers = new ArrayList<>();
-                        headers.add(new RecordHeader("nbCurrentLines", String.valueOf(cpt.get()).getBytes()));
-                        headers.add(new RecordHeader("nbLinesTotal", String.valueOf(nbLignesFichier).getBytes()));
-                        ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, new Random().nextInt(nbThread), fichier.getName(), kbart, headers);
+                        ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, calculatePartition(nbThread), key, kbart);
                         CompletableFuture<SendResult<String, String>> result = kafkaTemplate.send(record);
                         result.whenComplete((sr, ex) -> {
                             if (ex != null) {
                                 log.error(ex.getMessage()); // vérification du résultat et log
-                                sendErrorToKafka("erreur d'insertion dans le topic pour la ligne " + cpt.get(), fichier.getName());
+                                sendErrorToKafka("erreur d'insertion dans le topic pour la ligne " + cpt.get(), key);
                             }
                         });
                     });
                 });
             } else {
-                errorsList.forEach(error -> sendErrorToKafka(error, fichier.getName()));
+                AtomicInteger cptError = new AtomicInteger(0);
+                errorsList.forEach(error -> sendErrorToKafka(error, fichier.getName() + "_" + cptError.incrementAndGet()));
             }
         } catch (IOException ex) {
             log.error("Erreur d'envoi dans kafka " + ex.getMessage());
@@ -107,9 +106,22 @@ public class FileService {
 
     }
 
-    private void sendErrorToKafka(String errorMessage, String filename) {
-        log.error(errorMessage + " - " + filename);
-        kafkaTemplate.send(new ProducerRecord<>(topicErrors, filename, errorMessage));
+    public Integer calculatePartition(int nbPartitions) throws ArithmeticException {
+
+        if (nbPartitions == 0) {
+            throw new ArithmeticException("Nombre de threads = 0");
+        }
+
+        if (lastThreadUsed.get() >= nbPartitions) {
+            lastThreadUsed.set(0);
+        }
+
+        return lastThreadUsed.getAndIncrement();
+    }
+
+    private void sendErrorToKafka(String errorMessage, String key) {
+        log.error(errorMessage + " - " + key);
+        kafkaTemplate.send(new ProducerRecord<>(topicErrors, key, errorMessage));
     }
 
     /**
@@ -118,11 +130,13 @@ public class FileService {
      * @param line ligne en entrée
      * @return Un objet DTO initialisé avec les informations de la ligne
      */
-    private LigneKbartDto constructDto(String[] line, Integer ligneDuFichier) throws IllegalFileFormatException, IllegalDateException {
+    private LigneKbartDto constructDto(String[] line, Integer ligneCourante, Integer nbLignesFichier) throws IllegalFileFormatException, IllegalDateException {
         if ((line.length > 26) || (line.length < 25)) {
-            throw new IllegalFileFormatException("La ligne n°" + ligneDuFichier + " ne comporte pas le bon nombre de colonnes");
+            throw new IllegalFileFormatException("La ligne n°" + ligneCourante + " ne comporte pas le bon nombre de colonnes");
         }
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
+        kbartLineInDtoObject.setNbCurrentLines(ligneCourante);
+        kbartLineInDtoObject.setNbLinesTotal(nbLignesFichier);
         kbartLineInDtoObject.setPublication_title(line[0]);
         kbartLineInDtoObject.setPrint_identifier(line[1]);
         kbartLineInDtoObject.setOnline_identifier(line[2]);
