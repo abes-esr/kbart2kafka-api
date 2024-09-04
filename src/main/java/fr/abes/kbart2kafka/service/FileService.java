@@ -110,12 +110,7 @@ public class FileService {
         if (nbPartitions == 0) {
             throw new ArithmeticException("Nombre de threads = 0");
         }
-        synchronized (nbPartitions) {
-            if (lastThreadUsed.incrementAndGet() >= nbPartitions) {
-                lastThreadUsed.set(0);
-            }
-        }
-        return lastThreadUsed.get();
+        return lastThreadUsed.getAndIncrement() % nbPartitions;
     }
 
     private void sendErrorToKafka(String errorMessage, String key) {
