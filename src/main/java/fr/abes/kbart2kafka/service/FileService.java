@@ -106,17 +106,11 @@ public class FileService {
 
     }
 
-    public Integer calculatePartition(int nbPartitions) throws ArithmeticException {
-
+    public Integer calculatePartition(Integer nbPartitions) throws ArithmeticException {
         if (nbPartitions == 0) {
             throw new ArithmeticException("Nombre de threads = 0");
         }
-
-        if (lastThreadUsed.get() >= nbPartitions) {
-            lastThreadUsed.set(0);
-        }
-
-        return lastThreadUsed.getAndIncrement();
+        return lastThreadUsed.getAndIncrement() % nbPartitions;
     }
 
     private void sendErrorToKafka(String errorMessage, String key) {
