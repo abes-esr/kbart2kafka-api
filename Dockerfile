@@ -13,7 +13,7 @@ RUN mvn --batch-mode \
         -Dmaven.test.skip=false \
         -Duser.timezone=Europe/Paris \
         -Duser.language=fr \
-        package
+        package spring-boot:repackage
 
 FROM maven:3-eclipse-temurin-17 as kbart2kafka-builder
 WORKDIR application
