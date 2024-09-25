@@ -29,8 +29,9 @@ ENV LANG fr_FR.UTF-8
 ENV LANGUAGE fr_FR.UTF-8
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+WORKDIR /app/
 RUN mkdir /app/run
-WORKDIR /app/run
+WORKDIR /app/run/
 
 COPY --from=kbart2kafka-builder application/dependencies/ ./
 COPY --from=kbart2kafka-builder application/spring-boot-loader/ ./
