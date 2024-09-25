@@ -1,16 +1,6 @@
-###
 # Image pour la compilation
 FROM maven:3-eclipse-temurin-17 as build-image
 WORKDIR /build/
-# Installation et configuration de la locale FR
-RUN apt update && DEBIAN_FRONTEND=noninteractive apt -y install locales
-RUN sed -i '/fr_FR.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen
-ENV LANG fr_FR.UTF-8
-ENV LANGUAGE fr_FR:fr
-ENV LC_ALL fr_FR.UTF-8
-
-
 # On lance la compilation Java
 # On débute par une mise en cache docker des dépendances Java
 # cf https://www.baeldung.com/ops/docker-cache-maven-dependencies
@@ -23,27 +13,32 @@ RUN mvn --batch-mode \
         -Dmaven.test.skip=false \
         -Duser.timezone=Europe/Paris \
         -Duser.language=fr \
-        package spring-boot:repackage
+        package
 
+FROM maven:3-eclipse-temurin-17 as kbart2kafka-builder
+WORKDIR application
+ARG JAR_FILE=build/target/kbart2kafka.jar
+COPY --from=build-image ${JAR_FILE} kbart2kafka.jar
+RUN java -Djarmode=layertools -jar kbart2kafka.jar extract
 
-###
-# Image pour le module API
-#FROM tomcat:9-jdk17 as api-image
-#COPY --from=build-image /build/web/target/*.war /usr/local/tomcat/webapps/ROOT.war
-#CMD [ "catalina.sh", "run" ]
 FROM eclipse-temurin:17-jdk as kbart2kafka-image
 RUN apt-get update
 RUN apt-get install -y locales locales-all
 ENV LC_ALL fr_FR.UTF-8
 ENV LANG fr_FR.UTF-8
 ENV LANGUAGE fr_FR.UTF-8
-WORKDIR /app/
-COPY --from=build-image /build/target/kbart2kafka.jar /app/kbart2kafka.jar
-RUN mkdir /app/run
-RUN cp /app/*.jar /app/run
-RUN chmod 777 /app/run/*
-RUN touch app.log
-RUN chmod 777 app.log
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN mkdir /app/run
+WORKDIR /app/run
+
+COPY --from=kbart2kafka-builder application/dependencies/ ./
+COPY --from=kbart2kafka-builder application/spring-boot-loader/ ./
+COPY --from=kbart2kafka-builder application/snapshot-dependencies/ ./
+COPY --from=kbart2kafka-builder application/application/ ./
+COPY --from=kbart2kafka-builder application/*.jar ./kbart2kafka.jar
+RUN chmod +x /app/run/kbart2kafka.jar
+RUN touch app.log
+RUN chmod 777 app.log
 ENTRYPOINT ["tail","-f","app.log"]
+
