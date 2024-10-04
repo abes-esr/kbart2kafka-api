@@ -73,7 +73,8 @@ public class FileService {
                 try {
                     kbartsToSend.add(mapper.writeValueAsString(constructDto(tsvElementsOnOneLine, cpt.incrementAndGet(), nbLignesFichier)));
                 } catch (IllegalDateException | IllegalFileFormatException | JsonProcessingException e) {
-                    errorsList.add("Erreur dans le fichier en entrée à la ligne " + cpt.get());
+                    int nbLine = cpt.get() + 1;
+                    errorsList.add("Erreur dans le fichier en entrée à la ligne " + nbLine + " : " + e.getMessage());
                 }
             });
             if (errorsList.isEmpty()) {
@@ -81,7 +82,7 @@ public class FileService {
                 kbartsToSend.forEach(kbart -> {
                     executor.execute(() -> {
                         cpt.incrementAndGet();
-                        String key = fichier.getName()+"_"+cpt.get();
+                        String key = fichier.getName() + "_" + cpt.get();
                         ThreadContext.put("package", fichier.getName());
                         ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, calculatePartition(nbThread), key, kbart);
                         CompletableFuture<SendResult<String, String>> result = kafkaTemplate.send(record);
@@ -161,5 +162,6 @@ public class FileService {
             kbartLineInDtoObject.setBestPpn(line[25]);
         }
         return kbartLineInDtoObject;
+
     }
 }
