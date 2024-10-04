@@ -66,14 +66,14 @@ public class FileService {
             List<String> kbartsToSend = new ArrayList<>();
             Integer nbLignesFichier = fileContent.size() - 1;
             log.debug("Début d'envoi de " + nbLignesFichier + " lignes du fichier");
-            AtomicInteger cpt = new AtomicInteger(0);
+            AtomicInteger cpt = new AtomicInteger(1);
             List<String> errorsList = new ArrayList<>();
             fileContent.stream().skip(1).forEach(ligneKbart -> {
                 String[] tsvElementsOnOneLine = ligneKbart.split("\t");
                 try {
                     kbartsToSend.add(mapper.writeValueAsString(constructDto(tsvElementsOnOneLine, cpt.incrementAndGet(), nbLignesFichier)));
                 } catch (IllegalDateException | IllegalFileFormatException | JsonProcessingException e) {
-                    errorsList.add("Erreur dans le fichier en entrée à la ligne " + cpt.get());
+                    errorsList.add("Erreur dans le fichier en entrée à la ligne " + cpt.get() + " : " + e.getMessage());
                 }
             });
             if (errorsList.isEmpty()) {
@@ -81,7 +81,7 @@ public class FileService {
                 kbartsToSend.forEach(kbart -> {
                     executor.execute(() -> {
                         cpt.incrementAndGet();
-                        String key = fichier.getName()+"_"+cpt.get();
+                        String key = fichier.getName() + "_" + cpt.get();
                         ThreadContext.put("package", fichier.getName());
                         ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, calculatePartition(nbThread), key, kbart);
                         CompletableFuture<SendResult<String, String>> result = kafkaTemplate.send(record);
@@ -126,7 +126,7 @@ public class FileService {
      */
     private LigneKbartDto constructDto(String[] line, Integer ligneCourante, Integer nbLignesFichier) throws IllegalFileFormatException, IllegalDateException {
         if ((line.length > 26) || (line.length < 25)) {
-            throw new IllegalFileFormatException("La ligne n°" + ligneCourante + " ne comporte pas le bon nombre de colonnes");
+            throw new IllegalFileFormatException("nombre de colonnes incorrect");
         }
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
         kbartLineInDtoObject.setNbCurrentLines(ligneCourante);
@@ -161,5 +161,6 @@ public class FileService {
             kbartLineInDtoObject.setBestPpn(line[25]);
         }
         return kbartLineInDtoObject;
+
     }
 }
