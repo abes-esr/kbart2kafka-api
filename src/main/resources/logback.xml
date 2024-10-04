@@ -12,7 +12,7 @@
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
         <topic>bacon.logs.toload</topic>
-        <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.ContextNameKeyingStrategy" />
+        <keyingStrategy class="fr.abes.kbart2kafka.configuration.LoggerKeyingStrategy" />
         <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
 
         <!-- Optional parameter to use a fixed partition -->
