@@ -129,7 +129,7 @@ public class FileService {
             throw new IllegalFileFormatException("nombre de colonnes incorrect");
         }
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
-        kbartLineInDtoObject.setNbCurrentLines(ligneCourante);
+        kbartLineInDtoObject.setNbCurrentLines(ligneCourante - 1);
         kbartLineInDtoObject.setNbLinesTotal(nbLignesFichier);
         kbartLineInDtoObject.setPublication_title(line[0]);
         kbartLineInDtoObject.setPrint_identifier(line[1]);
