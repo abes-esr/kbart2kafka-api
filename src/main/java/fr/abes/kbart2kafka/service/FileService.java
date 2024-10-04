@@ -66,15 +66,14 @@ public class FileService {
             List<String> kbartsToSend = new ArrayList<>();
             Integer nbLignesFichier = fileContent.size() - 1;
             log.debug("Début d'envoi de " + nbLignesFichier + " lignes du fichier");
-            AtomicInteger cpt = new AtomicInteger(0);
+            AtomicInteger cpt = new AtomicInteger(1);
             List<String> errorsList = new ArrayList<>();
             fileContent.stream().skip(1).forEach(ligneKbart -> {
                 String[] tsvElementsOnOneLine = ligneKbart.split("\t");
                 try {
                     kbartsToSend.add(mapper.writeValueAsString(constructDto(tsvElementsOnOneLine, cpt.incrementAndGet(), nbLignesFichier)));
                 } catch (IllegalDateException | IllegalFileFormatException | JsonProcessingException e) {
-                    int nbLine = cpt.get() + 1;
-                    errorsList.add("Erreur dans le fichier en entrée à la ligne " + nbLine + " : " + e.getMessage());
+                    errorsList.add("Erreur dans le fichier en entrée à la ligne " + cpt.get() + " : " + e.getMessage());
                 }
             });
             if (errorsList.isEmpty()) {
@@ -127,7 +126,7 @@ public class FileService {
      */
     private LigneKbartDto constructDto(String[] line, Integer ligneCourante, Integer nbLignesFichier) throws IllegalFileFormatException, IllegalDateException {
         if ((line.length > 26) || (line.length < 25)) {
-            throw new IllegalFileFormatException("La ligne n°" + ligneCourante + " ne comporte pas le bon nombre de colonnes");
+            throw new IllegalFileFormatException("nombre de colonnes incorrect");
         }
         LigneKbartDto kbartLineInDtoObject = new LigneKbartDto();
         kbartLineInDtoObject.setNbCurrentLines(ligneCourante);
