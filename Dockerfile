@@ -46,7 +46,8 @@ WORKDIR /app/
 RUN mkdir /app/run
 WORKDIR /app/run/
 
-COPY --from=kbart2kafka-builder build/* ./
+COPY --from=kbart2kafka-builder build/kbart2kafka ./
+RUN chmod +x kbart2kafka
 
 RUN touch app.log
 RUN chmod 777 app.log
