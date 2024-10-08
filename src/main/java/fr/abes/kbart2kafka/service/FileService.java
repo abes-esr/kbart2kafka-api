@@ -12,7 +12,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -21,9 +20,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -33,8 +32,6 @@ public class FileService {
     @Value("${topic.name.target.kbart}")
     private String topicKbart;
 
-    @Value("${topic.name.target.errors}")
-    private String topicErrors;
 
     @Value("${abes.kafka.concurrency.nbThread}")
     private int nbThread;
@@ -60,50 +57,45 @@ public class FileService {
         executeMultiThread(fichier);
     }
 
-    private void executeMultiThread(File fichier) {
+    private void executeMultiThread(File fichier) throws IllegalFileFormatException {
         try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
             List<String> fileContent = buff.lines().toList();
             List<String> kbartsToSend = new ArrayList<>();
             Integer nbLignesFichier = fileContent.size() - 1;
             log.debug("Début d'envoi de " + nbLignesFichier + " lignes du fichier");
             AtomicInteger cpt = new AtomicInteger(1);
-            List<String> errorsList = new ArrayList<>();
+            AtomicBoolean isOnError = new AtomicBoolean(false);
             fileContent.stream().skip(1).forEach(ligneKbart -> {
+                cpt.incrementAndGet();
+                ThreadContext.put("package", fichier.getName() + ";" + cpt.get());
                 String[] tsvElementsOnOneLine = ligneKbart.split("\t");
                 try {
-                    kbartsToSend.add(mapper.writeValueAsString(constructDto(tsvElementsOnOneLine, cpt.incrementAndGet(), nbLignesFichier)));
+                    kbartsToSend.add(mapper.writeValueAsString(constructDto(tsvElementsOnOneLine, cpt.get(), nbLignesFichier)));
                 } catch (IllegalDateException | IllegalFileFormatException | JsonProcessingException e) {
-                    errorsList.add("Erreur dans le fichier en entrée à la ligne " + cpt.get() + " : " + e.getMessage());
+                    log.debug("Erreur dans le fichier en entrée à la ligne " + cpt.get() + " : " + e.getMessage());
+                    log.error(e.getMessage());
+                    isOnError.set(true);
                 }
             });
-            if (errorsList.isEmpty()) {
+            if (!isOnError.get()) {
                 cpt.set(1);
-                kbartsToSend.forEach(kbart -> {
-                    executor.execute(() -> {
-                        cpt.incrementAndGet();
-                        String key = fichier.getName() + "_" + cpt.get();
-                        ThreadContext.put("package", fichier.getName());
-                        ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, calculatePartition(nbThread), key, kbart);
-                        CompletableFuture<SendResult<String, String>> result = kafkaTemplate.send(record);
-                        result.whenComplete((sr, ex) -> {
-                            if (ex != null) {
-                                log.error(ex.getMessage()); // vérification du résultat et log
-                                sendErrorToKafka("erreur d'insertion dans le topic pour la ligne " + cpt.get(), key);
-                            }
-                        });
-                    });
-                });
+                kbartsToSend.forEach(kbart -> executor.execute(() -> {
+                    cpt.incrementAndGet();
+                    String key = fichier.getName() + "_" + cpt.get();
+                    ThreadContext.put("package", fichier.getName() + ";" + cpt.get());
+                    ProducerRecord<String, String> record = new ProducerRecord<>(topicKbart, calculatePartition(nbThread), key, kbart);
+                    kafkaTemplate.send(record);
+                }));
             } else {
-                AtomicInteger cptError = new AtomicInteger(0);
-                errorsList.forEach(error -> sendErrorToKafka(error, fichier.getName() + "_" + cptError.incrementAndGet()));
+                ThreadContext.put("package", fichier.getName());
+                throw new IllegalFileFormatException("Format du fichier incorrect");
             }
         } catch (IOException ex) {
+            ThreadContext.put("package", fichier.getName());
             log.error("Erreur d'envoi dans kafka " + ex.getMessage());
-            sendErrorToKafka("erreur d'envoi des données : ", fichier.getName());
         } finally {
             executor.shutdown();
         }
-
     }
 
     public Integer calculatePartition(Integer nbPartitions) throws ArithmeticException {
@@ -111,11 +103,6 @@ public class FileService {
             throw new ArithmeticException("Nombre de threads = 0");
         }
         return lastThreadUsed.getAndIncrement() % nbPartitions;
-    }
-
-    private void sendErrorToKafka(String errorMessage, String key) {
-        log.error(errorMessage + " - " + key);
-        kafkaTemplate.send(new ProducerRecord<>(topicErrors, key, errorMessage));
     }
 
     /**
