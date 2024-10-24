@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
 import fr.abes.kbart2kafka.exception.IllegalDateException;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
+import fr.abes.kbart2kafka.utils.PUBLICATION_TYPE;
 import fr.abes.kbart2kafka.utils.Utils;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.yaml.snakeyaml.util.EnumUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,8 +74,7 @@ public class FileService {
                 try {
                     kbartsToSend.add(mapper.writeValueAsString(constructDto(tsvElementsOnOneLine, cpt.get(), nbLignesFichier)));
                 } catch (IllegalDateException | IllegalFileFormatException | JsonProcessingException e) {
-                    log.debug("Erreur dans le fichier en entrée à la ligne " + cpt.get() + " : " + e.getMessage());
-                    log.error(e.getMessage());
+                    log.error("Erreur dans le fichier en entrée à la ligne " + cpt.get() + " : " + e.getMessage());
                     isOnError.set(true);
                 }
             });
@@ -134,6 +135,11 @@ public class FileService {
         kbartLineInDtoObject.setCoverage_depth(line[13]);
         kbartLineInDtoObject.setNotes(line[14]);
         kbartLineInDtoObject.setPublisher_name(line[15]);
+        try {
+            PUBLICATION_TYPE.valueOf(line[16]);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalFileFormatException("La valeur de PUBLICATION_TYPE est invalide");
+        }
         kbartLineInDtoObject.setPublication_type(line[16]);
         kbartLineInDtoObject.setDate_monograph_published_print(Utils.reformatDateKbart(line[17]));
         kbartLineInDtoObject.setDate_monograph_published_online(Utils.reformatDateKbart(line[18]));
