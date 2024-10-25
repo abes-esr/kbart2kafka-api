@@ -6,6 +6,14 @@
 
     </Properties>
     <Appenders>
+        <RollingFile name="FileAppender" fileName="app.log" filePattern="app-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="%style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{dark,yellow}: %msg%n%throwable" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB" />
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1"/>
+        </RollingFile>
         <!-- KAFKA -->
         <!--    Les levels d'erreurs pris en compte sont INFO, WARN et ERROR    -->
         <Kafka name="kafkaLogAppender" topic="bacon.logs.toload" key="${ctx:package}">
@@ -24,9 +32,11 @@
         <Logger name="fr.abes.kbart2kafka" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="kafkaLogAppender"/>
+            <AppenderRef ref="FileAppender"/>
         </Logger>
         <Root level="info">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
         </Root>
     </Loggers>
 

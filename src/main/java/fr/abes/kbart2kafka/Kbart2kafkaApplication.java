@@ -49,7 +49,6 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws IOException {
         long startTime = System.currentTimeMillis();
-        purgeAppLog();
         //	Contrôle de la présence d'un paramètre au lancement de Kbart2kafkaApplication
         if (args.length == 0 || args[0] == null || args[0].trim().isEmpty()) {
             log.error("Message envoyé : {}", "Le chemin d'accès au fichier tsv n'a pas été trouvé dans les paramètres de l'application");
@@ -78,15 +77,5 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
     private void checkExistingPackage(String filename) throws IllegalProviderException, IllegalPackageException, IllegalDateException {
         if (providerPackageService.hasMoreRecentPackageInBdd(Utils.extractProvider(filename), Utils.extractPackageName(filename), Utils.extractDateFilename(filename)))
             throw new IllegalPackageException("Un package plus récent est déjà présent dans la base");
-    }
-
-    private void purgeAppLog() throws IOException {
-        File applog = new File("./app.log");
-        if(applog.length() > 10000000){
-            if(applog.delete())
-                if(applog.createNewFile())
-                    log.debug("Recreation du fichier app.log");
-        }
-
     }
 }
