@@ -1,7 +1,6 @@
 package fr.abes.kbart2kafka;
 
 import fr.abes.kbart2kafka.exception.IllegalDateException;
-import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import fr.abes.kbart2kafka.exception.IllegalPackageException;
 import fr.abes.kbart2kafka.exception.IllegalProviderException;
 import fr.abes.kbart2kafka.repository.ProviderRepository;
@@ -53,20 +52,23 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
         if (args.length == 0 || args[0] == null || args[0].trim().isEmpty()) {
             log.error("Message envoyé : {}", "Le chemin d'accès au fichier tsv n'a pas été trouvé dans les paramètres de l'application");
         } else {
-            ThreadContext.put("package", Utils.extractFilename(args[0]));
-            log.info("Debut envois kafka de : " + Utils.extractFilename(args[0]));
+            String fileName = Utils.extractFilename(args[0]);
+            ThreadContext.put("package", fileName);
+            log.info("Debut envois kafka de : " + fileName);
             //	Récupération du chemin d'accès au fichier
             File tsvFile = new File(args[0]);
             try {
                 CheckFiles.verifyFile(tsvFile, kbartHeader);
                 checkExistingPackage(tsvFile.getName());
                 service.loadFile(tsvFile);
-            } catch (IllegalFileFormatException | IllegalProviderException | IllegalPackageException | IllegalDateException | IOException e) {
+            } catch (Exception | IllegalPackageException e) {
                 log.error(e.getMessage());
                 log.info("Traitement refusé du fichier " + tsvFile.getName());
             }
             finally {
-                new File(tsvFile.getPath().replace(".tsv",".log")).createNewFile();
+                File fichierLog = new File(tsvFile.getPath().replace(".tsv",".log"));
+                if(fichierLog.createNewFile())
+                    log.debug("Création du fichier " + fichierLog.getName());
             }
         }
         long endTime = System.currentTimeMillis();
