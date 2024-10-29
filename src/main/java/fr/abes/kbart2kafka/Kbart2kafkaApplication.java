@@ -64,8 +64,7 @@ public class Kbart2kafkaApplication implements CommandLineRunner {
             } catch (Exception | IllegalPackageException e) {
                 log.error(e.getMessage());
                 log.info("Traitement refusé du fichier " + tsvFile.getName());
-            }
-            finally {
+            } finally {
                 File fichierLog = new File(tsvFile.getPath().replace(".tsv",".log"));
                 if(fichierLog.createNewFile())
                     log.debug("Création du fichier " + fichierLog.getName());

@@ -31,8 +31,8 @@
     <Loggers>
         <Logger name="fr.abes.kbart2kafka" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="kafkaLogAppender"/>
             <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="kafkaLogAppender"/>
         </Logger>
         <Root level="info">
             <AppenderRef ref="Console"/>
