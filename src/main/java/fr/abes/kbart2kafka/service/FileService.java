@@ -7,14 +7,12 @@ import fr.abes.kbart2kafka.exception.IllegalDateException;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
 import fr.abes.kbart2kafka.utils.PUBLICATION_TYPE;
 import fr.abes.kbart2kafka.utils.Utils;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.yaml.snakeyaml.util.EnumUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -49,7 +47,7 @@ public class FileService {
         this.lastThreadUsed = new AtomicInteger(0);
     }
 
-    @PostConstruct
+//    @PostConstruct
     void initExecutor() {
         executor = Executors.newFixedThreadPool(nbThread);
     }
@@ -60,6 +58,7 @@ public class FileService {
     }
 
     private void executeMultiThread(File fichier) throws IllegalFileFormatException {
+        initExecutor();
         try (BufferedReader buff = new BufferedReader(new FileReader(fichier))) {
             List<String> fileContent = buff.lines().toList();
             List<String> kbartsToSend = new ArrayList<>();
