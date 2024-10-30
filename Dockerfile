@@ -39,4 +39,4 @@ COPY --from=kbart2kafka-builder application/*.jar ./kbart2kafka.jar
 EXPOSE 8080
 
 #ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-XX:+UseG1GC","-XX:ConcGCThreads=5","-XX:+ExitOnOutOfMemoryError","-XX:MaxGCPauseMillis=100","-jar","/app/kbart2kafka.jar"]
-ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","--server.port=8080","/app/kbart2kafka.jar"]
+ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","/app/kbart2kafka.jar"]
