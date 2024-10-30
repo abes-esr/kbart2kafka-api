@@ -35,30 +35,30 @@ class ProviderPackageServiceTest {
         Provider provider = new Provider(1, "provider", "nomContact", "prenomContact", "mail@contact.com", "displayName");
         Mockito.when(providerRepository.findByProvider("provider")).thenReturn(Optional.of(provider));
         Calendar calendar = Calendar.getInstance();
-        calendar.set(2022, 10, 1);
+        calendar.set(2022, Calendar.NOVEMBER, 1);
         Date date1 = calendar.getTime();
         ProviderPackage package1 = new ProviderPackage(1, "package", date1, 1, 'Y');
-        calendar.set(2023, 8, 10);
+        calendar.set(2023, Calendar.SEPTEMBER, 10);
         Date date2 = calendar.getTime();
         ProviderPackage package2 = new ProviderPackage(2, "package", date2, 1, 'Y');
-        calendar.set(2023, 7, 5);
+        calendar.set(2023, Calendar.AUGUST, 5);
         Date date3 = calendar.getTime();
         ProviderPackage package3 = new ProviderPackage(3, "package", date3, 1, 'Y');
 
-        List packageList = Lists.newArrayList(package1, package2, package3);
+        List<ProviderPackage> packageList = Lists.newArrayList(package1, package2, package3);
         Mockito.when(providerPackageRepository.findByPackageNameAndProviderIdtProvider("package", 1)).thenReturn(packageList);
 
-        calendar.set(2023, 4, 20);
+        calendar.set(2023, Calendar.MAY, 20);
         Date inputDate = calendar.getTime();
         Assertions.assertTrue(service.hasMoreRecentPackageInBdd("provider", "package", inputDate));
 
 
-        calendar.set(2023, 11, 20);
+        calendar.set(2023, Calendar.DECEMBER, 20);
         inputDate = calendar.getTime();
         Assertions.assertFalse(service.hasMoreRecentPackageInBdd("provider", "package", inputDate));
 
         //cas date égale
-        calendar.set(2023, 8, 10);
+        calendar.set(2023, Calendar.SEPTEMBER, 10);
         inputDate = calendar.getTime();
         Assertions.assertFalse(service.hasMoreRecentPackageInBdd("provider", "package", inputDate));
     }

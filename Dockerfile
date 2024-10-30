@@ -30,16 +30,12 @@ ENV LANGUAGE fr_FR.UTF-8
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 WORKDIR /app/
-RUN mkdir /app/run
-WORKDIR /app/run/
 
 COPY --from=kbart2kafka-builder application/dependencies/ ./
 COPY --from=kbart2kafka-builder application/spring-boot-loader/ ./
 COPY --from=kbart2kafka-builder application/snapshot-dependencies/ ./
 COPY --from=kbart2kafka-builder application/application/ ./
 COPY --from=kbart2kafka-builder application/*.jar ./kbart2kafka.jar
-RUN chmod +x /app/run/kbart2kafka.jar
-RUN touch app.log
-RUN chmod 777 app.log
-ENTRYPOINT ["tail","-f","app.log"]
 
+#ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-XX:+UseG1GC","-XX:ConcGCThreads=5","-XX:+ExitOnOutOfMemoryError","-XX:MaxGCPauseMillis=100","-jar","/app/kbart2kafka.jar"]
+ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","/app/kbart2kafka.jar"]
