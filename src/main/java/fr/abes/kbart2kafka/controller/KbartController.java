@@ -21,7 +21,8 @@ import java.io.File;
 public class KbartController {
     @Value("${kbart.header}")
     private String kbartHeader;
-
+    @Value("${abes.pathToKbart}")
+    private String pathToKbart;
     private final FileService fileService;
 
     private final ProviderPackageService providerPackageService;
@@ -31,18 +32,17 @@ public class KbartController {
         this.providerPackageService = providerPackageService;
     }
 
-    @PostMapping(value = "/uploadFile/{kbartFilename}")
-    public void uploadFile(@PathVariable String kbartFilename) {
+    @PostMapping(value = "/uploadFile/{fileName}")
+    public void uploadFile(@PathVariable String fileName) {
         long startTime = System.currentTimeMillis();
         //	Contrôle de la présence d'un paramètre au lancement de Kbart2kafkaApplication
-        if (kbartFilename == null || kbartFilename.isEmpty()) {
+        if (fileName == null || fileName.isEmpty()) {
             log.error("Message envoyé : {}", "Le chemin d'accès au fichier tsv n'a pas été trouvé dans les paramètres de l'application");
         } else {
-            String fileName = Utils.extractFilename(kbartFilename);
             ThreadContext.put("package", fileName);
             log.info("Debut envois kafka de : {}", fileName);
             //	Récupération du chemin d'accès au fichier
-            File tsvFile = new File(kbartFilename);
+            File tsvFile = new File(pathToKbart + fileName);
             try {
                 CheckFiles.verifyFile(tsvFile, kbartHeader);
                 checkExistingPackage(tsvFile.getName());
