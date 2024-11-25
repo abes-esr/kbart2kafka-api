@@ -8,6 +8,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class CheckFiles {
@@ -93,5 +96,14 @@ public class CheckFiles {
         isFileWithTSVExtension(file);
         detectTabulations(file);
         detectHeaderPresence(header, file, isBypassOptionPresent);
+    }
+
+    public static void isValidUtf8(String input) throws IllegalFileFormatException {
+        CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
+        try {
+            decoder.decode(java.nio.ByteBuffer.wrap(input.getBytes(StandardCharsets.UTF_8)));
+        } catch (CharacterCodingException e) {
+            throw new IllegalFileFormatException("le fichier contient des caracters qui ne sont pas en UTF8");
+        }
     }
 }

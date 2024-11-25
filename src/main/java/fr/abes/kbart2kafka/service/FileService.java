@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.abes.kbart2kafka.dto.LigneKbartDto;
 import fr.abes.kbart2kafka.exception.IllegalDateException;
 import fr.abes.kbart2kafka.exception.IllegalFileFormatException;
+import fr.abes.kbart2kafka.utils.CheckFiles;
 import fr.abes.kbart2kafka.utils.PUBLICATION_TYPE;
 import fr.abes.kbart2kafka.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +72,7 @@ public class FileService {
                 ThreadContext.put("package", fichier.getName() + ";" + cpt.get());
                 String[] tsvElementsOnOneLine = ligneKbart.split("\t");
                 try {
+                    CheckFiles.isValidUtf8(ligneKbart);
                     kbartsToSend.add(mapper.writeValueAsString(constructDto(tsvElementsOnOneLine, cpt.get(), nbLignesFichier)));
                 } catch (IllegalDateException | IllegalFileFormatException | JsonProcessingException e) {
                     log.error("Erreur dans le fichier en entrée à la ligne " + cpt.get() + " : " + e.getMessage());
