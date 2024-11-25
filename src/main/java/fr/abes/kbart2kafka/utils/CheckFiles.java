@@ -100,10 +100,14 @@ public class CheckFiles {
 
     public static void isValidUtf8(String input) throws IllegalFileFormatException {
         CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
+        String messageErreur = "le fichier contient des caracters qui ne sont pas en UTF8";
         try {
             decoder.decode(java.nio.ByteBuffer.wrap(input.getBytes(StandardCharsets.UTF_8)));
         } catch (CharacterCodingException e) {
-            throw new IllegalFileFormatException("le fichier contient des caracters qui ne sont pas en UTF8");
+            throw new IllegalFileFormatException(messageErreur);
+        }
+        if(input.contains("�")){
+            throw new IllegalFileFormatException(messageErreur);
         }
     }
 }
