@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Slf4j
 public class CheckFiles {
@@ -54,10 +55,12 @@ public class CheckFiles {
      */
     public static void detectTabulations(File file) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.contains("\t"))
-                    throw new IllegalFileFormatException("Le fichier ne contient pas de tabulation");
+            List<String> lines = reader.lines().toList();
+
+            if(lines.stream().anyMatch(line ->
+                    (!line.contains("\t") && !(line.isBlank() && lines.lastIndexOf(line) == lines.size() -1)) // && isNotLast and blank
+            )){
+                throw new IllegalFileFormatException("Le fichier ne contient pas de tabulation");
             }
         }
     }
