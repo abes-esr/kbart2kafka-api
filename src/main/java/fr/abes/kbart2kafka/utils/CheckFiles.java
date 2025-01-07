@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Slf4j
 public class CheckFiles {
@@ -47,6 +48,18 @@ public class CheckFiles {
             throw new IllegalFileFormatException("le fichier n'est pas au format tsv");
     }
 
+    public static void checkPublicationTitle(File file) throws IllegalFileFormatException, IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            List<String> lines = reader.lines().toList();
+
+            if(lines.stream().anyMatch(line ->
+                    line.split("\t")[0] == null || line.split("\t")[0].isEmpty()
+            )){
+                throw new IllegalFileFormatException("Le fichier a une ligne qui ne contient pas de publication_title");
+            }
+        }
+    }
+
     /**
      * Détecte si le fichier présente des tabulations
      * @param file fichier en entrée
@@ -54,10 +67,12 @@ public class CheckFiles {
      */
     public static void detectTabulations(File file) throws IOException, IllegalFileFormatException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.contains("\t"))
-                    throw new IllegalFileFormatException("Le fichier ne contient pas de tabulation");
+            List<String> lines = reader.lines().toList();
+
+            if(lines.stream().anyMatch(line ->
+                    (!line.contains("\t") && !(line.isBlank() && lines.lastIndexOf(line) == lines.size() -1)) // && isNotLast and blank
+            )){
+                throw new IllegalFileFormatException("Le fichier ne contient pas de tabulation");
             }
         }
     }
@@ -96,6 +111,7 @@ public class CheckFiles {
         isFileWithTSVExtension(file);
         detectTabulations(file);
         detectHeaderPresence(header, file, isBypassOptionPresent);
+        checkPublicationTitle(file);
     }
 
     public static void isValidUtf8(String input) throws IllegalFileFormatException {
