@@ -113,7 +113,7 @@ public class FileService {
      * @param line ligne en entrée
      * @return Un objet DTO initialisé avec les informations de la ligne
      */
-    private LigneKbartDto constructDto(String[] line, Integer ligneCourante, Integer nbLignesFichier) throws IllegalFileFormatException, IllegalDateException {
+    public LigneKbartDto constructDto(String[] line, Integer ligneCourante, Integer nbLignesFichier) throws IllegalFileFormatException, IllegalDateException {
         if ((line.length > 26) || (line.length < 25)) {
             throw new IllegalFileFormatException("nombre de colonnes incorrect");
         }
@@ -124,11 +124,11 @@ public class FileService {
         kbartLineInDtoObject.setPrint_identifier(line[1]);
         kbartLineInDtoObject.setOnline_identifier(line[2]);
         kbartLineInDtoObject.setDate_first_issue_online(Utils.reformatDateKbart(line[3]));
-        kbartLineInDtoObject.setNum_first_vol_online(Integer.getInteger(line[4]));
-        kbartLineInDtoObject.setNum_first_issue_online(Integer.getInteger(line[5]));
+        kbartLineInDtoObject.setNum_first_vol_online(line[4]);
+        kbartLineInDtoObject.setNum_first_issue_online(line[5]);
         kbartLineInDtoObject.setDate_last_issue_online(Utils.reformatDateKbart(line[6]));
-        kbartLineInDtoObject.setNum_last_vol_online(Integer.getInteger(line[7]));
-        kbartLineInDtoObject.setNum_last_issue_online(Integer.getInteger(line[8]));
+        kbartLineInDtoObject.setNum_last_vol_online(line[7]);
+        kbartLineInDtoObject.setNum_last_issue_online(line[8]);
         kbartLineInDtoObject.setTitle_url(line[9]);
         kbartLineInDtoObject.setFirst_author(line[10]);
         kbartLineInDtoObject.setTitle_id(line[11]);
@@ -144,7 +144,7 @@ public class FileService {
         kbartLineInDtoObject.setPublication_type(line[16]);
         kbartLineInDtoObject.setDate_monograph_published_print(Utils.reformatDateKbart(line[17]));
         kbartLineInDtoObject.setDate_monograph_published_online(Utils.reformatDateKbart(line[18]));
-        kbartLineInDtoObject.setMonograph_volume(Integer.getInteger(line[19]));
+        kbartLineInDtoObject.setMonograph_volume(line[19]);
         kbartLineInDtoObject.setMonograph_edition(line[20]);
         kbartLineInDtoObject.setFirst_editor(line[21]);
         kbartLineInDtoObject.setParent_publication_title_id(line[22]);

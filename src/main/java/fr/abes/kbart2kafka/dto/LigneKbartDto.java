@@ -26,19 +26,19 @@ public class LigneKbartDto {
     private String date_first_issue_online;
     @CsvBindByName(column = "num_first_vol_online")
     @CsvBindByPosition(position = 4)
-    private Integer num_first_vol_online;
+    private String num_first_vol_online;
     @CsvBindByName(column = "num_first_issue_online")
     @CsvBindByPosition(position = 5)
-    private Integer num_first_issue_online;
+    private String num_first_issue_online;
     @CsvBindByName(column = "date_last_issue_online")
     @CsvBindByPosition(position = 6)
     private String date_last_issue_online;
     @CsvBindByName(column = "num_last_vol_online")
     @CsvBindByPosition(position = 7)
-    private Integer num_last_vol_online;
+    private String num_last_vol_online;
     @CsvBindByName(column = "num_last_issue_online")
     @CsvBindByPosition(position = 8)
-    private Integer num_last_issue_online;
+    private String num_last_issue_online;
     @CsvBindByName(column = "title_url")
     @CsvBindByPosition(position = 9)
     private String title_url;
@@ -71,7 +71,7 @@ public class LigneKbartDto {
     private String date_monograph_published_online;
     @CsvBindByName(column = "monograph_volume")
     @CsvBindByPosition(position = 19)
-    private Integer monograph_volume;
+    private String monograph_volume;
     @CsvBindByName(column = "monograph_edition")
     @CsvBindByPosition(position = 20)
     private String monograph_edition;
