@@ -10,9 +10,16 @@ import fr.abes.kbart2kafka.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -55,6 +62,36 @@ public class KbartController {
         long endTime = System.currentTimeMillis();
         double executionTime = (double) (endTime - startTime) / 1000;
         log.debug("Temps d'exécution : {} secondes", executionTime);
+    }
+
+    @GetMapping("/file/{filename}")
+    public ResponseEntity<?> getLogsFromPackageAndDate(@PathVariable String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return ResponseEntity.badRequest().body("Le paramètre filename est vide.");
+        }
+
+        try {
+            File fichier = new File(pathToKbart + filename);
+
+            if (!fichier.exists()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Le fichier " + filename + " est introuvable.");
+            }
+
+            FileInputStream fs = new FileInputStream(fichier);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fichier.getName());
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // Use setContentType for better clarity
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(fichier.length())
+                    .body(new InputStreamResource(fs));
+
+        } catch (FileNotFoundException e) {
+            // This should ideally never happen given the file.exists() check, but it's good practice to keep it.
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de la lecture du fichier : " + e.getMessage());
+        }
     }
 
     private void checkExistingPackage(String filename) throws IllegalProviderException, IllegalPackageException, IllegalDateException {
