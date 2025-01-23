@@ -78,7 +78,7 @@ public class CheckFiles {
     }
 
     /**
-     * Détecte la présence d'une entête dans le fichier
+     * Détecte la présence d'un entête dans le fichier
      * @param header liste de header
      * @param file   fichier en entrée
      * @throws IOException impossible de lire le fichier
@@ -106,12 +106,16 @@ public class CheckFiles {
      * @throws IOException Impossible de lire le fichier
      */
     public static void verifyFile(File file, String header) throws IllegalFileFormatException, IOException, IllegalProviderException {
-        Boolean isBypassOptionPresent = detectFileNameAndReturnIsBypass(file);
-        detectProvider(file);
-        isFileWithTSVExtension(file);
-        detectTabulations(file);
-        detectHeaderPresence(header, file, isBypassOptionPresent);
-        checkPublicationTitle(file);
+        if(file.exists()) {
+            Boolean isBypassOptionPresent = detectFileNameAndReturnIsBypass(file);
+            detectProvider(file);
+            isFileWithTSVExtension(file);
+            detectTabulations(file);
+            detectHeaderPresence(header, file, isBypassOptionPresent);
+            checkPublicationTitle(file);
+        } else {
+            throw new IllegalFileFormatException("Le fichier "+file.getName()+" n'est pas trouvable");
+        }
     }
 
     public static void isValidUtf8(String input) throws IllegalFileFormatException {
