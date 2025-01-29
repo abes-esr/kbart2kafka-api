@@ -129,17 +129,23 @@ public class FileService {
         kbartLineInDtoObject.setDate_last_issue_online(Utils.reformatDateKbart(line[6]));
         kbartLineInDtoObject.setNum_last_vol_online(line[7]);
         kbartLineInDtoObject.setNum_last_issue_online(line[8]);
+        if(line[9].isEmpty()){
+            throw new IllegalFileFormatException("La valeur de TITLE_URL est vide");
+        }
         kbartLineInDtoObject.setTitle_url(line[9]);
         kbartLineInDtoObject.setFirst_author(line[10]);
         kbartLineInDtoObject.setTitle_id(line[11]);
         kbartLineInDtoObject.setEmbargo_info(line[12]);
+        if(!line[13].equals("fulltext")){
+            throw new IllegalFileFormatException("La valeur de COVERAGE_DEPTH est invalide");
+        }
         kbartLineInDtoObject.setCoverage_depth(line[13]);
         kbartLineInDtoObject.setNotes(line[14]);
         kbartLineInDtoObject.setPublisher_name(line[15]);
         try {
             PUBLICATION_TYPE.valueOf(line[16]);
         } catch (IllegalArgumentException ex) {
-            throw new IllegalFileFormatException("La valeur de PUBLICATION_TYPE est invalide");
+            throw new IllegalFileFormatException("La valeur de PUBLICATION_TYPE est invalide. (valeurs acceptées : monograph, serial)");
         }
         kbartLineInDtoObject.setPublication_type(line[16]);
         kbartLineInDtoObject.setDate_monograph_published_print(Utils.reformatDateKbart(line[17]));
@@ -149,6 +155,9 @@ public class FileService {
         kbartLineInDtoObject.setFirst_editor(line[21]);
         kbartLineInDtoObject.setParent_publication_title_id(line[22]);
         kbartLineInDtoObject.setPreceding_publication_title_id(line[23]);
+        if(!line[24].equals("P") && !line[24].equals("F")){
+            throw new IllegalFileFormatException("La valeur de ACCESS_TYPE est invalide. (valeurs acceptées : P, F)");
+        }
         kbartLineInDtoObject.setAccess_type(line[24]);
         // Vérification de la présence d'un best ppn déjà renseigné dans le kbart
         if (line.length == 26) {
