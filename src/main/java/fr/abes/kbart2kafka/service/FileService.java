@@ -65,7 +65,7 @@ public class FileService {
             List<String> kbartsToSend = new ArrayList<>();
             Integer nbLignesFichier = fileContent.size() - 1;
             log.debug("Début d'envoi de " + nbLignesFichier + " lignes du fichier");
-            AtomicInteger cpt = new AtomicInteger(1);
+            AtomicInteger cpt = new AtomicInteger(0);
             AtomicBoolean isOnError = new AtomicBoolean(false);
             fileContent.stream().skip(1).forEach(ligneKbart -> {
                 cpt.incrementAndGet();
@@ -124,10 +124,22 @@ public class FileService {
         kbartLineInDtoObject.setPrint_identifier(line[1]);
         kbartLineInDtoObject.setOnline_identifier(line[2]);
         kbartLineInDtoObject.setDate_first_issue_online(Utils.reformatDateKbart(line[3]));
+        if(!line[4].isEmpty() && !line[4].matches("\\d+")){
+            throw new IllegalFileFormatException("La valeur de NUM_FIRST_VOL_ONLINE n'est pas un nombre");
+        }
         kbartLineInDtoObject.setNum_first_vol_online(line[4]);
+        if(!line[5].isEmpty() && !line[5].matches("\\d+")){
+            throw new IllegalFileFormatException("La valeur de NUM_FIRST_ISSUE_ONLINE n'est pas un nombre");
+        }
         kbartLineInDtoObject.setNum_first_issue_online(line[5]);
         kbartLineInDtoObject.setDate_last_issue_online(Utils.reformatDateKbart(line[6]));
+        if(!line[7].isEmpty() && !line[7].matches("\\d+")){
+            throw new IllegalFileFormatException("La valeur de NUM_LAST_VOL_ONLINE n'est pas un nombre");
+        }
         kbartLineInDtoObject.setNum_last_vol_online(line[7]);
+        if(!line[8].isEmpty() && !line[8].matches("\\d+")){
+            throw new IllegalFileFormatException("La valeur de NUM_LAST_ISSUE_ONLINE n'est pas un nombre");
+        }
         kbartLineInDtoObject.setNum_last_issue_online(line[8]);
         if(line[9].isEmpty()){
             throw new IllegalFileFormatException("La valeur de TITLE_URL est vide");
